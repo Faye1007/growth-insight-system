@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 1.3，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航和基础页面壳。
+当前项目已完成 Step 1.4，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳和基础视觉规范。
 
 当前已存在：
 
@@ -13,6 +13,9 @@
 - `src/components`、`src/contexts`、`src/db` 和 `src/lib/ai` 初始目录。
 - 共享应用壳和主导航。
 - 成长主页、每日工作台、成长记录、洞察报告、个人说明书和设置页。
+- 全局视觉 token 和基础 dashboard 组件样式。
+- 低饱和紫色、绿色、蓝色和辅助暖色的基础配色系统。
+- `package-lock.json` 依赖锁文件。
 - shadcn/ui 预备配置。
 
 尚未开始：
@@ -22,7 +25,7 @@
 - 注册登录。
 - 真实业务数据读写。
 - AI provider adapter。
-- 完整视觉规范。
+- 真实图表、表单和交互组件视觉细化。
 
 目标技术方向：
 
@@ -40,25 +43,26 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 1.3 只建立应用骨架、目录和页面壳，不包含真实业务逻辑。各文件职责如下：
+当前 Step 1.1-Step 1.4 只建立应用骨架、目录、页面壳和基础视觉规范，不包含真实业务逻辑。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start` 和 `lint`。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
 - `next-env.d.ts`: Next.js 自动类型声明入口。
 - `next.config.ts`: Next.js 配置文件，当前保持最小配置。
 - `postcss.config.mjs`: Tailwind CSS v4 的 PostCSS 插件配置。
-- `eslint.config.mjs`: ESLint flat config，继承 Next.js core web vitals 和 TypeScript 规则。
+- `eslint.config.mjs`: ESLint flat config，直接导入 Next 16 的 `eslint-config-next/core-web-vitals` 和 `eslint-config-next/typescript`。
+- `package-lock.json`: npm 依赖锁文件，用于固定依赖解析结果，保证后续安装和验证更稳定。
 - `components.json`: shadcn/ui 配置，指定 UI 组件别名、样式入口和图标库。
 - `.gitignore`: 忽略依赖、构建产物、环境变量、本地调试日志和 TypeScript 构建缓存。
 - `src/app/layout.tsx`: App Router 根布局，定义页面 HTML 语言和全局 metadata。
-- `src/app/page.tsx`: 成长主页页面壳，展示今日行动进度、本周指标和最近复盘等占位区。
-- `src/app/daily/page.tsx`: 每日工作台页面壳，预留今日概览、今日任务、习惯打卡、今日日程和随手记录分区。
-- `src/app/records/page.tsx`: 成长记录页面壳，预留任务、习惯、日程、事件和灵感记录入口。
-- `src/app/insights/page.tsx`: 洞察报告页面壳，预留今日概览、本周趋势、习惯状态和情绪记录。
-- `src/app/manual/page.tsx`: 个人说明书页面壳，预留人生阶段、目标、能力画像、情绪模式和常见内耗点。
-- `src/app/settings/page.tsx`: 设置页页面壳，预留应用、数据库、AI 和账号状态。
-- `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，并设置初始颜色变量和基础字体。
-- `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航，并把页面内容包裹在统一布局中。
+- `src/app/page.tsx`: 成长主页页面壳，展示今日行动进度、本周指标、最近复盘和每日工作台入口等占位区。
+- `src/app/daily/page.tsx`: 每日工作台页面壳，预留今日概览、今日任务、习惯打卡、今日日程和随手记录分区，并使用统一状态标签。
+- `src/app/records/page.tsx`: 成长记录页面壳，预留任务、习惯、日程、事件和灵感记录入口，并使用统一列表样式。
+- `src/app/insights/page.tsx`: 洞察报告页面壳，预留今日概览、本周趋势、习惯状态和情绪记录，并使用柔和图表占位样式。
+- `src/app/manual/page.tsx`: 个人说明书页面壳，预留人生阶段、目标、能力画像、情绪模式和常见内耗点，并使用统一字段卡片样式。
+- `src/app/settings/page.tsx`: 设置页页面壳，预留应用、数据库、AI 和账号状态，并使用统一安全状态样式。
+- `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮和导航样式。
+- `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区和当前阶段提示，并把页面内容包裹在统一布局中。
 - `src/components/.gitkeep`: 保留业务组件目录。
 - `src/components/ui/.gitkeep`: 保留 shadcn/ui 组件目录。
 - `src/contexts/.gitkeep`: 保留 React context 目录。
@@ -72,7 +76,10 @@ AI Provider Adapter for scheduled/manual reviews
 - 不接认证。
 - 不接 AI。
 - 不写入任何环境变量。
-- 只提供静态页面壳和导航，后续视觉系统在 Step 1.4 处理。
+- 只提供静态页面壳、导航和基础视觉规范。
+- 页面视觉应保持个人 dashboard 风格，不做营销首页。
+- 视觉 token 使用低饱和、温暖、莫兰迪方向；紫色、绿色、蓝色用于区分状态和占位图表。
+- 卡片圆角保持 8px 左右，避免过度装饰。
 
 ### 1.2 Current Route Map
 

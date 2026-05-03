@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 1.3：基础页面壳创建。
+项目已完成 Step 1.4：建立基础视觉规范。
 
 当前目标：
 
-- 保持当前基础页面和导航稳定。
-- 等待进入 Step 1.4：建立基础视觉规范。
+- 保持当前基础视觉系统、基础页面和导航稳定。
+- 等待进入 Step 2.1：确定基础数据模型。
 - 后续逐步接入数据库、认证、真实数据读写和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -117,6 +117,26 @@
 - 当前本地没有 `node_modules` 时无法由 Codex 运行 `npm run lint` 或 `npm run build`。
 - Faye 已要求更新文档并提交 Git，视为 Step 1.3 验证已通过。
 
+### Step 1.4：建立基础视觉规范
+
+已完成内容：
+
+- 在 `src/app/globals.css` 中建立全局视觉 token，包括背景、前景、卡片、边框、低饱和紫色、绿色、蓝色和辅助暖色。
+- 建立通用页面样式，包括页面标题、说明文字、卡片、列表、状态标签和基础按钮。
+- 更新共享应用壳 `src/components/app-shell.tsx`，强化侧边栏、导航图标和当前阶段提示。
+- 统一成长主页、每日工作台、成长记录、洞察报告、个人说明书和设置页的静态视觉风格。
+- 保持当前页面仍为静态占位，不接数据库、认证或 AI。
+- 修正 `eslint.config.mjs`，改为直接使用 Next 16 的 flat config，避免 ESLint 9 通过 `FlatCompat` 重复转换时出现循环对象错误。
+- 安装项目本地依赖并生成 `package-lock.json`，用于锁定依赖版本和支持后续稳定验证。
+
+验证记录：
+
+- `npm install` 初次因网络 `ECONNRESET` 失败；改用 `--prefer-offline --no-audit --no-fund --registry=https://registry.npmjs.org` 后安装成功。
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- Faye 已要求更新文档并提交 Git，视为 Step 1.4 验证已通过。
+
 ## Not Started
 
 - Supabase 项目配置
@@ -125,6 +145,6 @@
 
 ## Next Step Candidate
 
-Step 1.4：建立基础视觉规范。
+Step 2.1：确定基础数据模型。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
