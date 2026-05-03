@@ -2,13 +2,13 @@
 
 ## Current Status
 
-项目已完成 Step 1.1：Next.js 应用骨架创建。
+项目已完成 Step 1.3：基础页面壳创建。
 
 当前目标：
 
-- 保持当前应用骨架稳定。
-- 等待进入 Step 1.2：整理项目初始目录。
-- 后续逐步接入页面结构、数据库、认证和 AI 复盘能力。
+- 保持当前基础页面和导航稳定。
+- 等待进入 Step 1.4：建立基础视觉规范。
+- 后续逐步接入数据库、认证、真实数据读写和 AI 复盘能力。
 
 ## Confirmed Decisions
 
@@ -76,15 +76,55 @@
 - `npm run lint` 曾因依赖未安装报错 `eslint: not found`；这是依赖安装前的预期状态。
 - Faye 已接管并确认 Step 1.1 验证通过。
 
+### Step 1.2：整理项目初始目录
+
+已完成内容：
+
+- 建立业务组件目录 `src/components/`。
+- 建立 shadcn/ui 组件目录 `src/components/ui/`。
+- 建立 React context 目录 `src/contexts/`。
+- 建立数据库目录 `src/db/`。
+- 建立 AI 适配目录 `src/lib/ai/`。
+- 使用 `.gitkeep` 保留空目录结构，不写入业务代码。
+
+验证记录：
+
+- 页面目录存在。
+- UI 组件目录存在。
+- 业务组件目录存在。
+- 数据库目录存在。
+- AI 适配目录存在。
+- Faye 已确认继续进入下一步。
+
+### Step 1.3：建立基础页面壳
+
+已完成内容：
+
+- 创建共享应用壳 `src/components/app-shell.tsx`。
+- 在根布局中接入共享导航。
+- 创建成长主页 `/`。
+- 创建每日工作台 `/daily`。
+- 创建成长记录 `/records`。
+- 创建洞察报告 `/insights`。
+- 创建个人说明书 `/manual`。
+- 创建设置页 `/settings`。
+- 所有页面只提供静态占位内容，不接数据库、认证或 AI。
+
+验证记录：
+
+- 页面文件存在性检查通过。
+- 导航路径和页面路径一致。
+- 当前本地没有 `node_modules` 时无法由 Codex 运行 `npm run lint` 或 `npm run build`。
+- Faye 已要求更新文档并提交 Git，视为 Step 1.3 验证已通过。
+
 ## Not Started
 
 - Supabase 项目配置
 - 数据库 schema
-- 页面导航和完整页面壳
 - AI provider adapter
 
 ## Next Step Candidate
 
-Step 1.2：整理项目初始目录。
+Step 1.4：建立基础视觉规范。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

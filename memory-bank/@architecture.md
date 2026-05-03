@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 1.1，具备 Next.js App Router 基础应用骨架。
+当前项目已完成 Step 1.3，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航和基础页面壳。
 
 当前已存在：
 
@@ -10,6 +10,9 @@
 - TypeScript 配置。
 - Tailwind CSS v4 基础样式入口。
 - `src/app` 应用入口。
+- `src/components`、`src/contexts`、`src/db` 和 `src/lib/ai` 初始目录。
+- 共享应用壳和主导航。
+- 成长主页、每日工作台、成长记录、洞察报告、个人说明书和设置页。
 - shadcn/ui 预备配置。
 
 尚未开始：
@@ -17,9 +20,9 @@
 - Supabase 连接。
 - Drizzle schema。
 - 注册登录。
-- 页面导航和完整页面壳。
 - 真实业务数据读写。
 - AI provider adapter。
+- 完整视觉规范。
 
 目标技术方向：
 
@@ -37,7 +40,7 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1 只建立应用骨架，不包含真实业务逻辑。各文件职责如下：
+当前 Step 1.1-Step 1.3 只建立应用骨架、目录和页面壳，不包含真实业务逻辑。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start` 和 `lint`。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
@@ -48,8 +51,19 @@ AI Provider Adapter for scheduled/manual reviews
 - `components.json`: shadcn/ui 配置，指定 UI 组件别名、样式入口和图标库。
 - `.gitignore`: 忽略依赖、构建产物、环境变量、本地调试日志和 TypeScript 构建缓存。
 - `src/app/layout.tsx`: App Router 根布局，定义页面 HTML 语言和全局 metadata。
-- `src/app/page.tsx`: 当前首页占位页面，用于验证 App Router 和基础样式可以正常工作。
+- `src/app/page.tsx`: 成长主页页面壳，展示今日行动进度、本周指标和最近复盘等占位区。
+- `src/app/daily/page.tsx`: 每日工作台页面壳，预留今日概览、今日任务、习惯打卡、今日日程和随手记录分区。
+- `src/app/records/page.tsx`: 成长记录页面壳，预留任务、习惯、日程、事件和灵感记录入口。
+- `src/app/insights/page.tsx`: 洞察报告页面壳，预留今日概览、本周趋势、习惯状态和情绪记录。
+- `src/app/manual/page.tsx`: 个人说明书页面壳，预留人生阶段、目标、能力画像、情绪模式和常见内耗点。
+- `src/app/settings/page.tsx`: 设置页页面壳，预留应用、数据库、AI 和账号状态。
 - `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，并设置初始颜色变量和基础字体。
+- `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航，并把页面内容包裹在统一布局中。
+- `src/components/.gitkeep`: 保留业务组件目录。
+- `src/components/ui/.gitkeep`: 保留 shadcn/ui 组件目录。
+- `src/contexts/.gitkeep`: 保留 React context 目录。
+- `src/db/.gitkeep`: 保留数据库 schema 和 query 目录。
+- `src/lib/ai/.gitkeep`: 保留 AI provider adapter 目录。
 - `src/lib/utils.ts`: 通用工具函数入口，当前提供 `cn()` 用于合并 Tailwind className。
 
 当前骨架遵循的约束：
@@ -58,7 +72,16 @@ AI Provider Adapter for scheduled/manual reviews
 - 不接认证。
 - 不接 AI。
 - 不写入任何环境变量。
-- 只提供最小可运行页面，后续页面结构在 Step 1.3 处理。
+- 只提供静态页面壳和导航，后续视觉系统在 Step 1.4 处理。
+
+### 1.2 Current Route Map
+
+- `/`: 成长主页。
+- `/daily`: 每日工作台。
+- `/records`: 成长记录。
+- `/insights`: 洞察报告。
+- `/manual`: 个人说明书。
+- `/settings`: 设置。
 
 ## 2. Recommended Tech Stack
 
