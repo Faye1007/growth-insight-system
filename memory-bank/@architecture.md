@@ -271,37 +271,313 @@ Responsibilities:
 
 ## 6. Initial Data Model Draft
 
-具体字段在数据库设计 Step 细化。当前只确定实体边界。
+Step 2.1 只确定基础功能第一轮需要的数据模型，不创建数据库、不写 Drizzle schema、不执行迁移。
 
-- `users`
+第一批基础表：
+
 - `tasks`
 - `habits`
 - `habit_checkins`
 - `schedule_items`
-- `life_entries`
-- `emotion_tags`
+- `life_events`
+- `ideas`
 - `insight_reports`
 - `personal_manuals`
-- `anniversaries`
-- `gift_records`
-- `tool_sessions`
 
-### 6.1 MVP Entity Semantics
+暂缓表：
 
-- `tasks`: 任务，固定分类为学习、工作、生活、健康、关系、其他；状态包括未开始、进行中、已完成、延期。
-- `tasks` 延期规则：延期任务需要保留延期标记，并允许同步修改任务日期到延期那一天。
-- `habits`: 习惯，记录启用状态、分类、累计打卡天数和连续打卡天数。
-- `habit_checkins`: 习惯每日打卡；同一习惯同一天只能有一条有效打卡。
-- `schedule_items`: 单日日程项；第一版不做重复规则。
-- `life_entries`: 随手记，类型只包括事件和灵感。
-- `life_entries` 事件：片段式日记，记录每天比较有意义的事情，可手动选择情绪标签。
-- `life_entries` 灵感：想做但当下还未安排做的事情，后续可以转为任务，也可以搁置或放弃。
-- `life_entries` 需要记录 AI 分析权限：不参与 AI 分析、仅摘要参与、允许原文参与；默认仅摘要参与。
-- `emotion_tags`: 手动选择的情绪标签；情绪不是独立记录类型。
-- `emotion_tags` 第一版预设值：平静、开心、满足、期待、兴奋、焦虑、疲惫、低落、委屈、生气、压力、混乱、孤独、感激。
-- `insight_reports`: AI 生成或缓存的每日、每周、月度复盘报告。
+- `anniversaries`: 纪念日，等每日工作台和每日复盘稳定后再做。
+- `gift_records`: 礼物记录，等纪念日模块进入开发时再做。
+- `tool_sessions`: 场景工具箱会话，等工具箱进入开发时再做。
+- 成长知识库相关表：第一版不做，Obsidian 继续作为学习笔记主阵地。
+- 飞书任务 ID、飞书日历事件 ID 等外部平台同步字段：第一版不保留，避免基础模型被外部工具绑定。
 
-### 6.2 Time Rules
+用户关系规则：
+
+- 用户账号由 Supabase Auth 的 `auth.users` 管理，应用业务表不单独复制完整用户表。
+- 每张个人数据表都必须有 `user_id`，关联到当前登录用户。
+- 未登录用户只能浏览展示数据，不能写入个人数据。
+- 后续启用 Row Level Security 时，所有个人数据都按 `user_id` 做隔离。
+
+通用字段规则：
+
+- 主键统一使用 `id`，类型优先使用 UUID。
+- 每张业务表都保留 `created_at` 和 `updated_at`。
+- 需要软删除时使用 `deleted_at`，第一轮先保留字段设计，不要求所有页面都实现删除。
+- 日期字段用 `date` 表示用户理解的日期，按北京时间解释。
+- 精确时间点用 `timestamp` 或 `timestamptz`，显示到前端时按北京时间格式化。
+
+### 6.1 `tasks`
+
+用途：
+
+- 保存每日任务，是今日任务、任务完成率、延期统计和任务复盘的来源。
+
+用户关系：
+
+- 每条任务必须属于一个 `user_id`。
+- 登录用户只能读取和修改自己的任务。
+
+最小字段：
+
+- `id`: 任务 ID。
+- `user_id`: 所属用户 ID，关联 Supabase Auth 用户。
+- `title`: 任务标题，必填。
+- `description`: 任务补充说明，可选。
+- `category`: 任务分类，固定为 `study`、`work`、`life`、`health`、`relationship`、`other`。
+- `status`: 任务状态，固定为 `todo`、`in_progress`、`completed`、`postponed`。
+- `task_date`: 任务所属日期，按北京时间理解。
+- `is_postponed`: 是否曾被延期。
+- `postponed_from_date`: 从哪一天延期而来，可选。
+- `postponed_to_date`: 延期到哪一天，可选。
+- `review_note`: 任务复盘或备注，可选。
+- `completed_at`: 完成时间，可选。
+- `created_at`: 创建时间。
+- `updated_at`: 更新时间。
+- `deleted_at`: 软删除时间，可选。
+
+规则：
+
+- 新任务默认 `status = todo`，默认 `task_date = 今天`。
+- 标记延期时，`status = postponed`，`is_postponed = true`。
+- 如果用户选择同步修改日期，则 `task_date` 改为延期后的日期，同时记录 `postponed_from_date` 和 `postponed_to_date`。
+
+### 6.2 `habits`
+
+用途：
+
+- 保存习惯本身，是习惯打卡列表、连续天数和累计次数的基础。
+
+用户关系：
+
+- 每个习惯必须属于一个 `user_id`。
+- 登录用户只能读取和修改自己的习惯。
+
+最小字段：
+
+- `id`: 习惯 ID。
+- `user_id`: 所属用户 ID。
+- `name`: 习惯名称，必填。
+- `description`: 习惯说明，可选。
+- `category`: 习惯分类，先复用任务分类：`study`、`work`、`life`、`health`、`relationship`、`other`。
+- `is_active`: 是否启用，默认启用。
+- `start_date`: 习惯开始日期，可选。
+- `created_at`: 创建时间。
+- `updated_at`: 更新时间。
+- `deleted_at`: 软删除时间，可选。
+
+规则：
+
+- 第一轮不做复杂目标频率，启用的习惯默认出现在今日打卡列表。
+- 连续天数和累计次数优先通过 `habit_checkins` 计算，避免在 `habits` 表里保存容易不同步的统计值。
+- `habits` 只保存习惯本身，例如“多邻国”“快走10000步”，不保存某一天是否完成。
+- 创建一个新习惯时写入 `habits`；每日勾选打卡时写入或更新 `habit_checkins`。
+
+### 6.3 `habit_checkins`
+
+用途：
+
+- 保存每日习惯打卡记录，是习惯完成数、连续天数和累计打卡次数的来源。
+
+用户关系：
+
+- 每条打卡记录必须属于一个 `user_id`，并关联一个属于该用户的 `habit_id`。
+- 一个 `habits` 记录可以对应多条 `habit_checkins` 记录，也就是同一个习惯每天最多一条打卡记录。
+
+最小字段：
+
+- `id`: 打卡记录 ID。
+- `user_id`: 所属用户 ID。
+- `habit_id`: 关联的习惯 ID。
+- `checkin_date`: 打卡日期，按北京时间理解。
+- `status`: 打卡状态，固定为 `checked`、`skipped`。
+- `note`: 中断原因或复盘说明，可选。
+- `created_at`: 创建时间。
+- `updated_at`: 更新时间。
+
+规则：
+
+- 同一个 `habit_id` 在同一个 `checkin_date` 只能有一条有效记录。
+- 勾选某个习惯当天已完成时，写入或更新一条 `habit_checkins`，`status = checked`。
+- 如果打卡时没有填写复盘或感受，`note` 可以为空，但仍然需要有这条打卡记录。
+- 如果打卡时同步填写复盘或感受，就把内容写入同一条 `habit_checkins.note`。
+- 取消今日打卡时，可以删除记录或把状态改为 `skipped`，实际 schema 阶段再选择一种实现。
+- 连续天数规则：漏打一天则连续天数断掉；取消某天打卡后重新计算连续天数。
+- 累计天数规则：统计该习惯所有 `status = checked` 的有效日期。
+
+### 6.4 `schedule_items`
+
+用途：
+
+- 保存单日日程项，是今日日程列表和日程数量统计的来源。
+
+用户关系：
+
+- 每条日程必须属于一个 `user_id`。
+- 登录用户只能读取和修改自己的日程。
+
+最小字段：
+
+- `id`: 日程 ID。
+- `user_id`: 所属用户 ID。
+- `title`: 日程标题，必填。
+- `description`: 日程说明，可选。
+- `category`: 日程分类，先复用任务分类：`study`、`work`、`life`、`health`、`relationship`、`other`。
+- `schedule_date`: 日程日期，按北京时间理解。
+- `start_time`: 开始时间，可选，格式按本地时间理解。
+- `end_time`: 结束时间，可选。
+- `created_at`: 创建时间。
+- `updated_at`: 更新时间。
+- `deleted_at`: 软删除时间，可选。
+
+规则：
+
+- 第一轮只做单日记录，不做重复规则，不做外部日历同步。
+- 今日工作台只展示 `schedule_date = 今天` 的日程。
+- 有 `start_time` 时按开始时间排序，没有时间的日程排在后面。
+
+### 6.5 `life_events`
+
+用途：
+
+- 保存人生笔记，也就是已经发生过的事件、情绪、复盘和下次行动，是成长记录、情绪统计、记录数量趋势和每日复盘上下文的来源。
+
+用户关系：
+
+- 每条人生笔记必须属于一个 `user_id`。
+- 登录用户只能读取和修改自己的人生笔记。
+
+最小字段：
+
+- `id`: 人生笔记 ID。
+- `user_id`: 所属用户 ID。
+- `event_date`: 事件日期，按北京时间理解。
+- `content`: 事件正文，必填。
+- `emotion_tags`: 情绪标签列表，可选，第一轮手动选择。
+- `tags`: 事件标签列表，可选，用于承接日常、情绪、工作、人际、教训等分类。
+- `specific_event`: 具体事件，可选，用于从长文本中单独标记发生了什么。
+- `next_action`: 下次怎么做，可选。
+- `ai_analysis_permission`: AI 分析权限，固定为 `none`、`summary_only`、`allow_original`。
+- `summary`: 程序或用户维护的摘要，可选，第一轮可以先为空。
+- `created_at`: 创建时间。
+- `updated_at`: 更新时间。
+- `deleted_at`: 软删除时间，可选。
+
+规则：
+
+- 人生笔记就是事件记录，不再和灵感放在同一张表里。
+- 人生笔记用于记录已经发生的事、当时的情绪、反思和下次行动。
+- 情绪不是独立记录类型，只作为人生笔记的手动标签。
+- `tags` 统一承接事件类型和场景标签，第一版不再单独保留 `event_type` 和 `scene_tags`，避免重复分类。
+- 第一版预设情绪标签：平静、开心、满足、期待、兴奋、焦虑、疲惫、低落、委屈、生气、压力、混乱、孤独、感激。
+- 新人生笔记默认 `ai_analysis_permission = summary_only`。
+- 只有 `ai_analysis_permission = allow_original` 的人生笔记，才可能进入每日复盘原文候选。
+
+### 6.6 `ideas`
+
+用途：
+
+- 保存灵感，也就是未来可能要做、要评估、要搁置或可转成任务的想法。
+
+用户关系：
+
+- 每条灵感必须属于一个 `user_id`。
+- 登录用户只能读取和修改自己的灵感。
+
+最小字段：
+
+- `id`: 灵感 ID。
+- `user_id`: 所属用户 ID。
+- `idea_date`: 灵感记录日期，按北京时间理解。
+- `content`: 灵感内容，必填。
+- `status`: 灵感状态，固定为 `to_review`、`converted_to_task`、`shelved`、`abandoned`。
+- `solution_note`: 解决方法或处理说明，可选。
+- `converted_task_id`: 灵感转成任务后的任务 ID，可选。
+- `created_at`: 创建时间。
+- `updated_at`: 更新时间。
+- `deleted_at`: 软删除时间，可选。
+
+规则：
+
+- 灵感和人生笔记归属于两个不同思路：灵感偏未来行动候选，人生笔记偏已发生事件和复盘。
+- 新灵感默认 `status = to_review`。
+- 灵感可以转化为任务，转化后记录 `converted_task_id`。
+- 灵感默认只进入 AI 复盘摘要，不进入原文候选。
+
+### 6.7 `insight_reports`
+
+用途：
+
+- 保存 AI 生成或缓存的复盘报告，是每日复盘展示、历史复盘和避免重复调用 AI 的来源。
+
+用户关系：
+
+- 每份复盘报告必须属于一个 `user_id`。
+- 登录用户只能读取和重新生成自己的复盘报告。
+
+最小字段：
+
+- `id`: 复盘报告 ID。
+- `user_id`: 所属用户 ID。
+- `report_type`: 复盘类型，固定为 `daily`、`weekly`、`monthly`。
+- `period_start`: 复盘开始日期，按北京时间理解。
+- `period_end`: 复盘结束日期，按北京时间理解。
+- `title`: 复盘标题。
+- `summary`: 总结正文。
+- `patterns`: 生活模式或问题列表，建议用 JSON 保存。
+- `suggestions`: 行动建议列表，建议用 JSON 保存。
+- `next_actions`: 下一步行动列表，建议用 JSON 保存。
+- `source_stats`: 发送给 AI 前的结构化统计摘要，建议用 JSON 保存。
+- `source_highlights`: 关键记录摘要，建议用 JSON 保存。
+- `selected_original_event_ids`: 本次允许发送原文的人生笔记 ID 列表，建议用 JSON 保存。
+- `model_provider`: 模型供应商名称。
+- `model_name`: 实际使用的模型名称。
+- `generation_status`: 生成状态，固定为 `pending`、`completed`、`failed`。
+- `error_message`: 失败原因，可选，不直接展示底层堆栈。
+- `generated_at`: 生成完成时间，可选。
+- `created_at`: 创建时间。
+- `updated_at`: 更新时间。
+
+规则：
+
+- 同一用户、同一 `report_type`、同一 `period_start` 和 `period_end` 默认只保留一份当前有效报告。
+- 页面打开时默认读取缓存报告，不自动重复调用 AI。
+- 重新生成必须由用户明确触发。
+- 普通统计和摘要由程序生成，AI 只负责解释、归纳和建议。
+
+### 6.8 `personal_manuals`
+
+用途：
+
+- 保存个人说明书，是长期自我理解、目标、情绪模式和行动建议风格的结构化资料。
+
+用户关系：
+
+- 每份个人说明书必须属于一个 `user_id`。
+- 第一轮每个用户默认最多一份当前版本。
+
+最小字段：
+
+- `id`: 个人说明书 ID。
+- `user_id`: 所属用户 ID。
+- `life_stage`: 当前人生阶段，可选。
+- `current_goals`: 当前主要目标，建议用 JSON 保存。
+- `ability_profile`: 能力画像，可选。
+- `emotion_patterns`: 情绪模式，可选。
+- `energy_sources`: 高能量来源，建议用 JSON 保存。
+- `drain_sources`: 常见内耗点，建议用 JSON 保存。
+- `recurring_problems`: 反复出现的问题，建议用 JSON 保存。
+- `preferred_action_style`: 适合 Faye 的行动建议风格，可选。
+- `notes`: 手动补充说明，可选。
+- `created_at`: 创建时间。
+- `updated_at`: 更新时间。
+
+规则：
+
+- 第一轮只支持手动编辑。
+- 后续周复盘和月度复盘可以生成更新建议，但必须经用户确认后再写入。
+
+### 6.9 Time Rules
 
 - 所有“今天”“最近 7 天”“最近 30 天”“本周”都按北京时间计算。
 - 时区统一为 `Asia/Shanghai`。
@@ -325,7 +601,7 @@ type GenerateReviewInput = {
   stats: Record<string, unknown>;
   highlights: string[];
   selectedOriginals?: Array<{
-    entryId: string;
+    eventId: string;
     content: string;
     sensitivityDecision: "allowed" | "downgraded_to_summary";
   }>;
