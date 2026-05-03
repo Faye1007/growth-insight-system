@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 1.4，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳和基础视觉规范。
+当前项目已完成 Step 2.2，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范和 Supabase 客户端接入基线。
 
 当前已存在：
 
@@ -17,10 +17,13 @@
 - 低饱和紫色、绿色、蓝色和辅助暖色的基础配色系统。
 - `package-lock.json` 依赖锁文件。
 - shadcn/ui 预备配置。
+- Supabase SSR/browser client 工具层。
+- `.env.example` 环境变量模板。
+- 设置页 Supabase 配置状态展示。
 
 尚未开始：
 
-- Supabase 连接。
+- 真实 Supabase 项目配置和 `.env.local` 写入。
 - Drizzle schema。
 - 注册登录。
 - 真实业务数据读写。
@@ -43,9 +46,9 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 1.4 只建立应用骨架、目录、页面壳和基础视觉规范，不包含真实业务逻辑。各文件职责如下：
+当前 Step 1.1-Step 2.2 建立应用骨架、目录、页面壳、基础视觉规范和 Supabase 客户端接入基线，不包含真实业务数据读写。各文件职责如下：
 
-- `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start` 和 `lint`。
+- `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start` 和 `lint`；依赖包括 Supabase SSR/client 包。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
 - `next-env.d.ts`: Next.js 自动类型声明入口。
 - `next.config.ts`: Next.js 配置文件，当前保持最小配置。
@@ -60,7 +63,8 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/app/records/page.tsx`: 成长记录页面壳，预留任务、习惯、日程、事件和灵感记录入口，并使用统一列表样式。
 - `src/app/insights/page.tsx`: 洞察报告页面壳，预留今日概览、本周趋势、习惯状态和情绪记录，并使用柔和图表占位样式。
 - `src/app/manual/page.tsx`: 个人说明书页面壳，预留人生阶段、目标、能力画像、情绪模式和常见内耗点，并使用统一字段卡片样式。
-- `src/app/settings/page.tsx`: 设置页页面壳，预留应用、数据库、AI 和账号状态，并使用统一安全状态样式。
+- `.env.example`: 环境变量模板，只列出需要配置的字段，不保存真实密钥。
+- `src/app/settings/page.tsx`: 设置页展示应用和 Supabase 配置状态，只显示是否配置，不展示密钥、token 或连接字符串。
 - `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮和导航样式。
 - `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区和当前阶段提示，并把页面内容包裹在统一布局中。
 - `src/components/.gitkeep`: 保留业务组件目录。
@@ -68,14 +72,17 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/contexts/.gitkeep`: 保留 React context 目录。
 - `src/db/.gitkeep`: 保留数据库 schema 和 query 目录。
 - `src/lib/ai/.gitkeep`: 保留 AI provider adapter 目录。
+- `src/lib/supabase/config.ts`: 读取 Supabase 环境变量，提供 public client 配置校验和设置页状态检查。
+- `src/lib/supabase/client.ts`: 浏览器端 Supabase client 工厂，只使用 `NEXT_PUBLIC_*` 配置。
+- `src/lib/supabase/server.ts`: 服务端 Supabase client 工厂，使用 Next.js cookies 接入 SSR 会话能力。
 - `src/lib/utils.ts`: 通用工具函数入口，当前提供 `cn()` 用于合并 Tailwind className。
 
 当前骨架遵循的约束：
 
-- 不接数据库。
+- 已接入 Supabase client 工具层，但未配置真实 Supabase 项目，未做真实数据库读写。
 - 不接认证。
 - 不接 AI。
-- 不写入任何环境变量。
+- 不写入真实环境变量，只维护 `.env.example` 模板。
 - 只提供静态页面壳、导航和基础视觉规范。
 - 页面视觉应保持个人 dashboard 风格，不做营销首页。
 - 视觉 token 使用低饱和、温暖、莫兰迪方向；紫色、绿色、蓝色用于区分状态和占位图表。
@@ -120,6 +127,27 @@ AI Provider Adapter for scheduled/manual reviews
 ### 3.2 Supabase Postgres
 
 适合作为真实产品数据库，支持未来公开上线需要的认证、权限和数据隔离。
+
+### 3.2.1 Supabase Client Baseline
+
+Step 2.2 已安装并接入：
+
+- `@supabase/supabase-js`
+- `@supabase/ssr`
+
+客户端分层规则：
+
+- 浏览器端代码只能通过 `src/lib/supabase/client.ts` 创建 Supabase client。
+- 服务端组件、Server Actions 和 Route Handlers 后续通过 `src/lib/supabase/server.ts` 创建 Supabase client。
+- `src/lib/supabase/config.ts` 统一读取和校验 Supabase public 配置，并给设置页提供配置状态。
+- 当前支持 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`，并兼容旧命名 `NEXT_PUBLIC_SUPABASE_ANON_KEY`。
+- `SUPABASE_SERVICE_ROLE_KEY` 和 `DATABASE_URL` 只允许服务端使用，设置页只显示是否配置，不展示实际值。
+
+当前限制：
+
+- 尚未填写真实 `.env.local`。
+- 尚未验证真实 Supabase 项目连接。
+- 尚未创建 Drizzle schema、迁移或业务表。
 
 ### 3.3 Drizzle ORM
 

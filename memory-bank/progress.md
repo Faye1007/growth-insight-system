@@ -2,13 +2,13 @@
 
 ## Current Status
 
-项目已完成 Step 2.1：确定基础数据模型。
+项目已完成 Step 2.2：接入 Supabase 数据库代码基线。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航和数据模型文档稳定。
-- 等待进入 Step 2.2：接入 Supabase 数据库。
-- 后续逐步接入认证、真实数据读写和 AI 复盘能力。
+- 保持当前基础视觉系统、基础页面、导航、数据模型文档和 Supabase client 工具层稳定。
+- 等待进入 Step 2.3：建立数据库迁移流程。
+- 后续逐步配置真实 Supabase 项目、建立 Drizzle schema、接入认证、真实数据读写和 AI 复盘能力。
 
 ## Confirmed Decisions
 
@@ -160,14 +160,43 @@
 - 本 Step 只修改文档，没有运行 `npm run lint` 或 `npm run build`。
 - Faye 已确认 Step 2.1 数据模型调整方向，并要求更新文档和提交 Git。
 
+### Step 2.2：接入 Supabase 数据库
+
+已完成内容：
+
+- 安装 `@supabase/supabase-js` 和 `@supabase/ssr`。
+- 新增 `.env.example`，列出 Supabase、数据库和后续 AI 所需环境变量字段。
+- 更新 `.gitignore`，继续忽略真实 `.env*`，但允许保留 `.env.example` 模板。
+- 新增 `src/lib/supabase/config.ts`，统一读取 Supabase public 配置并提供配置状态检查。
+- 新增 `src/lib/supabase/client.ts`，作为浏览器端 Supabase client 创建入口。
+- 新增 `src/lib/supabase/server.ts`，作为服务端 Supabase client 创建入口，并接入 Next.js cookies。
+- 更新设置页 `src/app/settings/page.tsx`，展示 Supabase URL、public key、service role key 和 database URL 是否已配置，但不展示任何真实密钥或连接字符串。
+- 当前兼容 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 和旧命名 `NEXT_PUBLIC_SUPABASE_ANON_KEY`。
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 检查通过：前端页面只显示配置是否存在，不输出真实密钥值。
+- 本地开发服务曾启动在 `http://localhost:3001/settings`，3000 端口当时已被占用。
+
+尚未完成或暂缓：
+
+- 未修改真实 `.env.local`。
+- 未填写真实 Supabase 项目地址、public key、service role key 或 database URL。
+- 未验证真实 Supabase 项目连接。
+- 未创建 Drizzle schema、数据库迁移或业务表。
+
 ## Not Started
 
-- Supabase 项目配置
+- Supabase 项目真实配置
 - 数据库 schema
+- 数据库迁移
 - AI provider adapter
 
 ## Next Step Candidate
 
-Step 2.2：接入 Supabase 数据库。
+Step 2.3：建立数据库迁移流程。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
