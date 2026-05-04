@@ -57,6 +57,7 @@ const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
 
 type TimelineRecord = {
   id: string;
+  href: string;
   kind: "task" | "habit" | "schedule" | "event" | "idea";
   label: string;
   title: string;
@@ -174,6 +175,7 @@ async function getRecentTasks(userId: string): Promise<TimelineRecord[]> {
 
   return rows.map((task) => ({
     id: `task-${task.id}`,
+    href: `/records/task/${task.id}`,
     kind: "task",
     label: "任务记录",
     title: task.title,
@@ -213,6 +215,7 @@ async function getRecentHabitCheckins(userId: string): Promise<TimelineRecord[]>
 
   return rows.map((checkin) => ({
     id: `habit-${checkin.id}`,
+    href: `/records/habit/${checkin.id}`,
     kind: "habit",
     label: "习惯打卡",
     title: checkin.habitName,
@@ -243,6 +246,7 @@ async function getRecentScheduleItems(userId: string): Promise<TimelineRecord[]>
 
   return rows.map((item) => ({
     id: `schedule-${item.id}`,
+    href: `/records/schedule/${item.id}`,
     kind: "schedule",
     label: "日程记录",
     title: item.title,
@@ -272,6 +276,7 @@ async function getRecentLifeEvents(userId: string): Promise<TimelineRecord[]> {
 
   return rows.map((event) => ({
     id: `event-${event.id}`,
+    href: `/records/event/${event.id}`,
     kind: "event",
     label: "事件记录",
     title: getPreview(event.content),
@@ -300,6 +305,7 @@ async function getRecentIdeas(userId: string): Promise<TimelineRecord[]> {
 
   return rows.map((idea) => ({
     id: `idea-${idea.id}`,
+    href: `/records/idea/${idea.id}`,
     kind: "idea",
     label: "灵感记录",
     title: getPreview(idea.content),
@@ -494,7 +500,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
               const Icon = record.Icon;
 
               return (
-                <article key={record.id} className={`record-timeline-item ${record.tone}`}>
+                <Link key={record.id} className={`record-timeline-item ${record.tone}`} href={record.href}>
                   <div className="nav-icon">
                     <Icon aria-hidden="true" className="h-4 w-4" />
                   </div>
@@ -517,7 +523,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
                       </div>
                     ) : null}
                   </div>
-                </article>
+                </Link>
               );
             })}
           </div>
