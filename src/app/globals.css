@@ -309,7 +309,8 @@ select {
     font-weight: 650;
   }
 
-  .form-field input {
+  .form-field input,
+  .form-field select {
     min-height: 2.75rem;
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-control);
@@ -317,6 +318,40 @@ select {
     padding: 0.625rem 0.75rem;
     color: var(--foreground);
     font-size: 0.9375rem;
+  }
+
+  .task-form {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: rgb(255 253 248 / 72%);
+    padding: 1rem;
+  }
+
+  .task-form-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .task-message {
+    margin-bottom: 0;
+  }
+
+  .task-list {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .task-list-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    padding: 0.875rem 1rem;
   }
 
   .auth-message {
@@ -402,6 +437,10 @@ select {
 
   .daily-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .task-form-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .workspace-panel,

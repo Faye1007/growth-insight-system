@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 3.1，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper 和每日工作台页面结构。
+当前项目已完成 Step 3.2，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构和今日任务创建能力。
 
 当前已存在：
 
@@ -36,13 +36,19 @@
 - 侧边栏账号状态展示。
 - 每日工作台页面结构，包括顶部日期、今日概览、今日任务、习惯打卡、今日日程和随手记录分区。
 - 每日工作台未登录写入拦截提示。
+- 每日工作台今日任务创建表单。
+- 今日任务保存 Server Action。
+- 当前登录用户今日任务读取和列表展示。
+- 今日概览中的任务数量读取真实今日任务数量。
+- 任务分类和状态的统一选项定义。
 
 尚未开始：
 
-- 真实业务数据读写。
+- 任务状态更新。
+- 习惯、日程、随手记录和复盘的真实业务数据读写。
 - Row Level Security。
 - AI provider adapter。
-- 真实图表、表单和交互组件视觉细化。
+- 真实图表和其他交互组件视觉细化。
 
 目标技术方向：
 
@@ -60,7 +66,7 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 3.1 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper 和每日工作台结构，不包含真实业务数据读写。各文件职责如下：
+当前 Step 1.1-Step 3.2 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构和今日任务创建。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start`、`lint`、`db:generate`、`db:migrate` 和 `db:studio`；依赖包括 Supabase SSR/client 包、Drizzle ORM 和 Postgres client。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
@@ -73,7 +79,8 @@ AI Provider Adapter for scheduled/manual reviews
 - `.gitignore`: 忽略依赖、构建产物、环境变量、本地调试日志和 TypeScript 构建缓存。
 - `src/app/layout.tsx`: App Router 根布局，定义页面 HTML 语言和全局 metadata。
 - `src/app/page.tsx`: 成长主页页面壳，展示今日行动进度、本周指标、最近复盘和每日工作台入口等占位区。
-- `src/app/daily/page.tsx`: 每日工作台页面结构，显示北京时间日期、今日概览、今日任务、习惯打卡、今日日程和随手记录分区；每个分区包含用途说明、空状态、后续字段标签和写入入口，当前仍不接真实数据。
+- `src/app/daily/page.tsx`: 每日工作台页面结构，显示北京时间日期、今日概览、今日任务、习惯打卡、今日日程和随手记录分区；今日任务分区已接入任务创建表单、当前用户今日任务列表和任务数量统计，其他分区仍为占位结构。
+- `src/app/daily/actions.ts`: 每日工作台 Server Actions，当前提供 `createTaskAction()`；写入任务前必须通过 `requireCurrentUser()` 获取当前登录用户，并把任务写入 `tasks.user_id`。
 - `src/app/records/page.tsx`: 成长记录页面壳，预留任务、习惯、日程、事件和灵感记录入口，并使用统一列表样式。
 - `src/app/insights/page.tsx`: 洞察报告页面壳，预留今日概览、本周趋势、习惯状态和情绪记录，并使用柔和图表占位样式。
 - `src/app/manual/page.tsx`: 个人说明书页面壳，预留人生阶段、目标、能力画像、情绪模式和常见内耗点，并使用统一字段卡片样式。
@@ -82,7 +89,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/app/login/page.tsx`: 邮箱登录和注册页面，支持 `next` 参数把用户带回原页面。
 - `src/app/auth/actions.ts`: Supabase Auth Server Actions，负责登录、注册和退出。
 - `src/app/auth/confirm/route.ts`: Supabase 邮箱确认回调路由，成功后跳转到安全的 `next` 路径，失败时回到登录页。
-- `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮、导航样式、每日概览卡、工作台面板和空状态样式。
+- `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮、导航样式、每日概览卡、工作台面板、空状态、任务表单和任务列表样式。
 - `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区、当前阶段提示、账号状态和退出入口，并把页面内容包裹在统一布局中。
 - `src/components/.gitkeep`: 保留业务组件目录。
 - `src/components/ui/.gitkeep`: 保留 shadcn/ui 组件目录。
@@ -94,6 +101,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/lib/supabase/server.ts`: 服务端 Supabase client 工厂，使用 Next.js cookies 接入 SSR 会话能力。
 - `src/lib/auth/paths.ts`: 认证路径工具，统一校验登录页 `next` 参数，并生成登录、注册和写入拦截提示 URL。
 - `src/lib/auth/session.ts`: 当前用户读取和写入保护 helper，封装 Supabase `auth.getUser()`；`getCurrentUser()` 认证未就绪时返回 `null`，`requireCurrentUser()` 用于后续写入类 Server Action，未登录时跳转登录页。
+- `src/lib/tasks/options.ts`: 任务分类和任务状态的统一选项定义，提供英文枚举值、中文显示文案和合法性校验。
 - `drizzle.config.ts`: Drizzle Kit 配置，读取 `.env.local` 中的 `DATABASE_URL`，用于生成和执行迁移。
 - `drizzle/0000_true_silver_sable.sql`: 第一版数据库迁移 SQL，创建基础枚举、8 张基础业务表、索引和内部外键。
 - `drizzle/meta/`: Drizzle 迁移快照和迁移日志元数据，用于后续增量迁移。
@@ -109,7 +117,9 @@ AI Provider Adapter for scheduled/manual reviews
 - 已接入认证入口和未登录写入拦截基线。
 - 已建立统一安全跳转逻辑，避免登录和邮箱确认流程出现开放跳转。
 - 已建立 `requireCurrentUser()` 写入保护 helper，后续真实写入 Action 必须先通过它拿到当前用户。
-- 已建立每日工作台页面结构，后续真实任务、习惯、日程和记录读写应优先接入该页面。
+- 已建立每日工作台页面结构，今日任务创建已优先接入该页面；后续任务状态更新、习惯、日程和记录读写继续接入该页面。
+- 今日任务创建 Server Action 已调用 `requireCurrentUser()`，并把任务写入当前用户的 `tasks.user_id`。
+- 今日任务列表只按当前登录用户 ID、北京时间今日日期和未软删除条件查询。
 - 未登录用户仍可浏览页面。
 - 未登录用户触发每日工作台写入入口时跳转登录提示。
 - 登录用户可在侧边栏看到账号状态并退出。
@@ -185,7 +195,7 @@ Step 2.2 已安装并接入：
 - 尚未配置 `SUPABASE_SERVICE_ROLE_KEY`。
 - 已接入 Supabase Auth 页面入口和基础 Server Actions。
 - 已建立认证安全跳转和登录后写入保护 helper。
-- 尚未启用 Row Level Security 或真实业务数据读写。
+- 尚未启用 Row Level Security；当前只接入今日任务创建，其他业务数据读写尚未实现。
 
 ### 3.2.3 Supabase Auth Baseline
 
@@ -205,14 +215,14 @@ Step 2.4A 已接入 Supabase Auth 基线，Step 2.4B 已补充安全跳转和写
 - 未登录用户在每日工作台看到写入拦截提示。
 - 每日工作台里的写入入口在未登录状态下跳转 `/login?next=/daily&message=login_required`。
 - 已登录用户在侧边栏显示邮箱，并可退出登录。
-- 所有后续写入类 Server Action 应调用 `requireCurrentUser()`，并用返回的当前用户 ID 写入业务表 `user_id` 字段。
+- 所有写入类 Server Action 应调用 `requireCurrentUser()`，并用返回的当前用户 ID 写入业务表 `user_id` 字段；当前 `createTaskAction()` 已按此规则实现。
 - `next` 参数只允许站内路径，外部 URL、双斜杠路径、反斜杠路径和控制字符会降级为 `/`。
 
 当前限制：
 
-- 真实业务写入尚未实现，因此写入拦截目前只覆盖每日工作台的占位入口。
+- 今日任务创建已接入真实写入；其他写入入口仍保持每日工作台占位和登录拦截。
 - Row Level Security 尚未配置。
-- 登录后的用户数据隔离需要后续在查询层和 RLS 中同时落实。
+- 登录后的任务查询已在查询层按当前用户 ID 隔离；后续仍需要用 RLS 补强数据库层隔离。
 - 邮箱确认回调仍需要 Supabase Dashboard 允许 `http://localhost:3001/auth/confirm` 作为 Redirect URL。
 
 ### 3.2.2 Drizzle Migration Baseline

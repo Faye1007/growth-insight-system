@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import {
   CalendarDays,
   CheckCircle2,
@@ -9,8 +10,24 @@ import {
   Repeat2,
 } from "lucide-react";
 
+import { createTaskAction } from "@/app/daily/actions";
+import { db } from "@/db";
+import { tasks as taskTable } from "@/db/schema";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
+import {
+  getTaskCategoryLabel,
+  getTaskStatusLabel,
+  taskCategories,
+  taskStatuses,
+} from "@/lib/tasks/options";
+
+type DailyPageProps = {
+  searchParams?: Promise<{
+    taskCreated?: string;
+    taskError?: string;
+  }>;
+};
 
 const beijingDateFormatter = new Intl.DateTimeFormat("zh-CN", {
   timeZone: "Asia/Shanghai",
@@ -26,11 +43,27 @@ const beijingShortDateFormatter = new Intl.DateTimeFormat("zh-CN", {
   day: "2-digit",
 });
 
-const overviewCards = [
+const taskErrorText: Record<string, string> = {
+  missing_title: "请先填写任务标题，再保存。",
+};
+
+function getBeijingDateValue(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  return formatter.format(date);
+}
+
+function buildOverviewCards(taskCount: number, completedTaskCount: number) {
+  return [
   {
     label: "今日任务",
-    value: "0",
-    note: "暂无待办，下一步接入创建任务。",
+    value: `${taskCount}`,
+    note: taskCount > 0 ? `${completedTaskCount} 项已完成，状态更新会在 Step 3.3 接入。` : "暂无待办，可以先创建今天的第一项任务。",
     tone: "tone-lavender",
   },
   {
@@ -51,7 +84,8 @@ const overviewCards = [
     note: "暂无事件或灵感，后续支持快速记录。",
     tone: "tone-clay",
   },
-];
+  ];
+}
 
 const dailySections = [
   {
@@ -68,6 +102,7 @@ const dailySections = [
     previewItems: ["未开始", "进行中", "已完成", "延期"],
   },
   {
+    id: "habits",
     title: "习惯打卡",
     eyebrow: "稳定性",
     description: "用于记录今天是否完成长期习惯，并为连续天数和累计次数提供数据。",
@@ -80,6 +115,7 @@ const dailySections = [
     previewItems: ["今日完成", "今日跳过", "连续天数", "复盘原因"],
   },
   {
+    id: "schedule",
     title: "今日日程",
     eyebrow: "时间",
     description: "用于记录今天的固定事项、开始时间和分类，先做单日记录。",
@@ -92,6 +128,7 @@ const dailySections = [
     previewItems: ["开始时间", "结束时间", "分类", "说明"],
   },
   {
+    id: "notes",
     title: "随手记录",
     eyebrow: "沉淀",
     description: "用于记录已经发生的事件、灵感、情绪标签和下次行动。",
@@ -131,13 +168,41 @@ function WriteAction({
   );
 }
 
-export default async function DailyPage() {
+async function getTodayTasks(userId: string, todayDate: string) {
+  return db
+    .select({
+      id: taskTable.id,
+      title: taskTable.title,
+      category: taskTable.category,
+      status: taskTable.status,
+      taskDate: taskTable.taskDate,
+      createdAt: taskTable.createdAt,
+    })
+    .from(taskTable)
+    .where(
+      and(
+        eq(taskTable.userId, userId),
+        eq(taskTable.taskDate, todayDate),
+        isNull(taskTable.deletedAt),
+      ),
+    )
+    .orderBy(asc(taskTable.createdAt));
+}
+
+export default async function DailyPage({ searchParams }: DailyPageProps) {
+  const params = await searchParams;
   const user = await getCurrentUser();
   const isLoggedIn = Boolean(user);
   const loginPath = buildLoginPath({ next: "/daily", message: loginRequiredMessage });
   const now = new Date();
   const beijingDate = beijingDateFormatter.format(now);
   const shortDate = beijingShortDateFormatter.format(now);
+  const todayDate = getBeijingDateValue(now);
+  const todayTasks = user ? await getTodayTasks(user.id, todayDate) : [];
+  const completedTaskCount = todayTasks.filter((task) => task.status === "completed").length;
+  const overviewCards = buildOverviewCards(todayTasks.length, completedTaskCount);
+  const taskCreated = params?.taskCreated === "1";
+  const taskError = params?.taskError ? taskErrorText[params.taskError] ?? "任务保存失败，请稍后重试。" : "";
 
   return (
     <div className="page-stack">
@@ -210,10 +275,12 @@ export default async function DailyPage() {
         {dailySections.map((section) => {
           const Icon = section.Icon;
           const EmptyIcon = section.EmptyIcon;
+          const isTaskSection = section.id === "tasks";
 
           return (
           <article
-            key={section.title}
+            key={section.id}
+            id={section.id}
             className={`workspace-panel ${section.tone}`}
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -227,18 +294,104 @@ export default async function DailyPage() {
                   <p className="body-copy mt-2">{section.description}</p>
                 </div>
               </div>
-              <WriteAction isLoggedIn={isLoggedIn} label={section.actionLabel} loginPath={loginPath} />
+              {isTaskSection && isLoggedIn ? null : (
+                <WriteAction isLoggedIn={isLoggedIn} label={section.actionLabel} loginPath={loginPath} />
+              )}
             </div>
 
-            <div className="empty-state mt-5">
-              <span className="empty-icon">
-                <EmptyIcon aria-hidden="true" className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="list-label">{section.emptyTitle}</p>
-                <p className="body-copy mt-1">{section.emptyDescription}</p>
+            {isTaskSection && isLoggedIn ? (
+              <div className="mt-5 grid gap-5">
+                {taskError ? (
+                  <p className="auth-message auth-message-error task-message">{taskError}</p>
+                ) : null}
+                {taskCreated ? (
+                  <p className="auth-message task-message">任务已保存，并已关联到当前账号。</p>
+                ) : null}
+
+                <form action={createTaskAction} className="task-form">
+                  <label className="form-field">
+                    <span>任务标题</span>
+                    <input
+                      name="title"
+                      type="text"
+                      maxLength={120}
+                      placeholder="例如：整理 AI 产品学习笔记"
+                      required
+                    />
+                  </label>
+
+                  <div className="task-form-grid">
+                    <label className="form-field">
+                      <span>分类</span>
+                      <select name="category" defaultValue="study">
+                        {taskCategories.map((category) => (
+                          <option key={category.value} value={category.value}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="form-field">
+                      <span>日期</span>
+                      <input name="taskDate" type="date" defaultValue={todayDate} required />
+                    </label>
+
+                    <label className="form-field">
+                      <span>状态</span>
+                      <select name="status" defaultValue="todo">
+                        {taskStatuses.map((status) => (
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+
+                  <button className="soft-button w-full sm:w-fit" type="submit">
+                    <Plus aria-hidden="true" className="h-4 w-4" />
+                    保存任务
+                  </button>
+                </form>
+
+                {todayTasks.length > 0 ? (
+                  <div className="task-list">
+                    {todayTasks.map((task) => (
+                      <article key={task.id} className="task-list-item">
+                        <div>
+                          <p className="list-label">{task.title}</p>
+                          <p className="body-copy mt-1">
+                            {getTaskCategoryLabel(task.category)} · {task.taskDate}
+                          </p>
+                        </div>
+                        <span className="status-pill">{getTaskStatusLabel(task.status)}</span>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <span className="empty-icon">
+                      <EmptyIcon aria-hidden="true" className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="list-label">{section.emptyTitle}</p>
+                      <p className="body-copy mt-1">{section.emptyDescription}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            ) : (
+              <div className="empty-state mt-5">
+                <span className="empty-icon">
+                  <EmptyIcon aria-hidden="true" className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="list-label">{section.emptyTitle}</p>
+                  <p className="body-copy mt-1">{section.emptyDescription}</p>
+                </div>
+              </div>
+            )}
 
             <div className="preview-row mt-4">
               {section.previewItems.map((item) => (
