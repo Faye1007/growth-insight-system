@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 3.6：今日日程记录。
+项目已完成 Step 3.7：随手记录。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡和今日日程记录能力稳定。
-- 准备进入 Step 3.7：实现随手记录。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录和随手记录能力稳定。
+- 准备进入 Step 3.8：实现今日概览统计。
 - 后续逐步接入真实业务数据读写、Row Level Security、基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -426,7 +426,53 @@
 尚未完成或暂缓：
 
 - Row Level Security 尚未配置。
-- 当前只接入任务创建、任务状态更新、习惯创建、习惯打卡和今日日程记录，随手记录和复盘仍未接真实写入。
+- 当前只接入任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录和随手记录，复盘仍未接真实写入。
+
+### Step 3.7：实现随手记录
+
+已完成内容：
+
+- 在每日工作台随手记录分区新增记录创建表单。
+- 支持选择记录类型：事件或灵感。
+- 事件写入 `life_events` 表。
+- 灵感写入 `ideas` 表。
+- 事件最少包含内容、日期和 AI 分析权限。
+- 灵感最少包含内容和日期。
+- 事件支持手动选择情绪标签，第一版预设情绪包括平静、开心、满足、期待、兴奋、焦虑、疲惫、低落、委屈、生气、压力、混乱、孤独、感激。
+- 事件支持手动输入普通标签，逗号分隔，最多保存 8 个。
+- 新事件默认 `ai_analysis_permission = summary_only`。
+- 新灵感默认 `status = to_review`。
+- 新增随手记录保存 Server Action，写入前必须通过 `requireCurrentUser()` 获取当前登录用户。
+- 保存后的事件和灵感会关联到当前用户，并分别写入 `life_events.user_id` 或 `ideas.user_id`。
+- 每日工作台会读取当前登录用户今天的事件和灵感，并显示在今日随手记录列表。
+- 今日概览中的随手记录卡会读取真实今日事件和灵感数量。
+- 空内容提交会显示清晰提示。
+- 非今日日期的事件和灵感不会出现在今日列表。
+- 保存事件或灵感不会触发 AI 调用。
+- 未登录用户仍保持登录拦截，不允许写入随手记录。
+- 本 Step 复用已有 `life_events` 和 `ideas` 表字段，没有修改数据库 schema，也没有执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `curl -I http://localhost:3001/daily` 返回 `200`。
+- 本地开发服务已启动在 `http://localhost:3001/daily`。
+- Faye 已要求更新文档并提交 Git，视为 Step 3.7 验收通过。
+
+尚未完成或暂缓：
+
+- Row Level Security 尚未配置。
+- 当前只接入任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录和随手记录，复盘仍未接真实写入。
 
 ### Step 3.6：实现今日日程记录
 
@@ -509,11 +555,11 @@
 ## Not Started
 
 - Row Level Security
-- 随手记录和复盘的真实业务数据读写
+- 复盘的真实业务数据读写
 - AI provider adapter
 
 ## Next Step Candidate
 
-Step 3.7：实现随手记录。
+Step 3.8：实现今日概览统计。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

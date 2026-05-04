@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import {
   CalendarDays,
   CheckCircle2,
@@ -12,6 +12,7 @@ import {
 
 import {
   createHabitAction,
+  createQuickRecordAction,
   createScheduleItemAction,
   createTaskAction,
   updateHabitCheckinAction,
@@ -21,6 +22,8 @@ import { db } from "@/db";
 import {
   habitCheckins as habitCheckinTable,
   habits as habitTable,
+  ideas as ideaTable,
+  lifeEvents as lifeEventTable,
   scheduleItems as scheduleItemTable,
   tasks as taskTable,
 } from "@/db/schema";
@@ -44,6 +47,8 @@ type DailyPageProps = {
     habitUpdated?: string;
     scheduleCreated?: string;
     scheduleError?: string;
+    recordCreated?: string;
+    recordError?: string;
   }>;
 };
 
@@ -91,6 +96,39 @@ const scheduleErrorText: Record<string, string> = {
   invalid_time: "日程时间格式无效，请重新选择时间。",
 };
 
+const recordErrorText: Record<string, string> = {
+  missing_content: "请先填写记录内容，再保存。",
+  invalid_type: "记录类型无效，请刷新页面后重试。",
+};
+
+const recordCreatedText: Record<string, string> = {
+  event: "事件已保存，不会自动触发 AI 分析。",
+  idea: "灵感已保存为待处理状态。",
+};
+
+const emotionOptions = [
+  "平静",
+  "开心",
+  "满足",
+  "期待",
+  "兴奋",
+  "焦虑",
+  "疲惫",
+  "低落",
+  "委屈",
+  "生气",
+  "压力",
+  "混乱",
+  "孤独",
+  "感激",
+] as const;
+
+const aiAnalysisPermissions = [
+  { value: "none", label: "不参与 AI 分析" },
+  { value: "summary_only", label: "仅摘要参与" },
+  { value: "allow_original", label: "允许原文参与" },
+] as const;
+
 function getBeijingDateValue(date = new Date()) {
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Shanghai",
@@ -114,6 +152,7 @@ function buildOverviewCards(
   activeHabitCount: number,
   checkedHabitCount: number,
   scheduleCount: number,
+  recordCount: number,
 ) {
   const completionRate = taskCount > 0 ? Math.round((completedTaskCount / taskCount) * 100) : 0;
 
@@ -141,8 +180,8 @@ function buildOverviewCards(
     },
     {
       label: "随手记录",
-      value: "0",
-      note: "暂无事件或灵感，后续支持快速记录。",
+      value: `${recordCount}`,
+      note: recordCount > 0 ? "今日已保存的事件和灵感数量。" : "暂无事件或灵感，可以先写一条记录。",
       tone: "tone-clay",
     },
   ];
@@ -194,7 +233,7 @@ const dailySections = [
     eyebrow: "沉淀",
     description: "用于记录已经发生的事件、灵感、情绪标签和下次行动。",
     emptyTitle: "暂无随手记录",
-    emptyDescription: "事件和灵感会分开保存；情绪作为事件的手动标签。",
+    emptyDescription: "事件会保存到人生笔记，灵感会保存为未来行动候选。",
     actionLabel: "写一条记录",
     Icon: NotebookPen,
     EmptyIcon: Lightbulb,
@@ -297,6 +336,48 @@ async function getTodayScheduleItems(userId: string, todayDate: string) {
       ),
     )
     .orderBy(asc(scheduleItemTable.startTime), asc(scheduleItemTable.createdAt));
+}
+
+async function getTodayLifeEvents(userId: string, todayDate: string) {
+  return db
+    .select({
+      id: lifeEventTable.id,
+      content: lifeEventTable.content,
+      eventDate: lifeEventTable.eventDate,
+      emotionTags: lifeEventTable.emotionTags,
+      tags: lifeEventTable.tags,
+      aiAnalysisPermission: lifeEventTable.aiAnalysisPermission,
+      createdAt: lifeEventTable.createdAt,
+    })
+    .from(lifeEventTable)
+    .where(
+      and(
+        eq(lifeEventTable.userId, userId),
+        eq(lifeEventTable.eventDate, todayDate),
+        isNull(lifeEventTable.deletedAt),
+      ),
+    )
+    .orderBy(desc(lifeEventTable.createdAt));
+}
+
+async function getTodayIdeas(userId: string, todayDate: string) {
+  return db
+    .select({
+      id: ideaTable.id,
+      content: ideaTable.content,
+      ideaDate: ideaTable.ideaDate,
+      status: ideaTable.status,
+      createdAt: ideaTable.createdAt,
+    })
+    .from(ideaTable)
+    .where(
+      and(
+        eq(ideaTable.userId, userId),
+        eq(ideaTable.ideaDate, todayDate),
+        isNull(ideaTable.deletedAt),
+      ),
+    )
+    .orderBy(desc(ideaTable.createdAt));
 }
 
 async function getHabitCheckins(userId: string, habitIds: string[]) {
@@ -422,6 +503,14 @@ function formatScheduleTimeRange(startTime: string | null, endTime: string | nul
   return endTime ? `${start}-${endTime.slice(0, 5)}` : start;
 }
 
+function getAiAnalysisPermissionLabel(value: string) {
+  return aiAnalysisPermissions.find((item) => item.value === value)?.label ?? "仅摘要参与";
+}
+
+function getRecordPreview(content: string) {
+  return content.length > 96 ? `${content.slice(0, 96)}...` : content;
+}
+
 export default async function DailyPage({ searchParams }: DailyPageProps) {
   const params = await searchParams;
   const user = await getCurrentUser();
@@ -435,6 +524,8 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const todayTasks = user ? await getTodayTasks(user.id, todayDate) : [];
   const activeHabits = user ? await getActiveHabits(user.id) : [];
   const todayScheduleItems = user ? await getTodayScheduleItems(user.id, todayDate) : [];
+  const todayLifeEvents = user ? await getTodayLifeEvents(user.id, todayDate) : [];
+  const todayIdeas = user ? await getTodayIdeas(user.id, todayDate) : [];
   const habitCheckins = user
     ? await getHabitCheckins(
         user.id,
@@ -454,6 +545,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     activeHabits.length,
     checkedHabitCount,
     todayScheduleItems.length,
+    todayLifeEvents.length + todayIdeas.length,
   );
   const taskCreated = params?.taskCreated === "1";
   const taskUpdated = params?.taskUpdated ? taskUpdatedText[params.taskUpdated] ?? "任务状态已更新。" : "";
@@ -466,6 +558,12 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const scheduleCreated = params?.scheduleCreated === "1";
   const scheduleError = params?.scheduleError
     ? scheduleErrorText[params.scheduleError] ?? "日程保存失败，请稍后重试。"
+    : "";
+  const recordCreated = params?.recordCreated
+    ? recordCreatedText[params.recordCreated] ?? "记录已保存。"
+    : "";
+  const recordError = params?.recordError
+    ? recordErrorText[params.recordError] ?? "记录保存失败，请稍后重试。"
     : "";
   const tasksByStatus = taskStatusOrder.map((status) => ({
     status,
@@ -546,6 +644,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
           const isTaskSection = section.id === "tasks";
           const isHabitSection = section.id === "habits";
           const isScheduleSection = section.id === "schedule";
+          const isNotesSection = section.id === "notes";
 
           return (
           <article
@@ -564,7 +663,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                   <p className="body-copy mt-2">{section.description}</p>
                 </div>
               </div>
-              {(isTaskSection || isHabitSection || isScheduleSection) && isLoggedIn ? null : (
+              {(isTaskSection || isHabitSection || isScheduleSection || isNotesSection) && isLoggedIn ? null : (
                 <WriteAction isLoggedIn={isLoggedIn} label={section.actionLabel} loginPath={loginPath} />
               )}
             </div>
@@ -837,6 +936,133 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                           </p>
                         </div>
                         <span className="status-pill">{item.scheduleDate}</span>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <span className="empty-icon">
+                      <EmptyIcon aria-hidden="true" className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="list-label">{section.emptyTitle}</p>
+                      <p className="body-copy mt-1">{section.emptyDescription}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : isNotesSection && isLoggedIn ? (
+              <div className="mt-5 grid gap-5">
+                {recordError ? (
+                  <p className="auth-message auth-message-error task-message">{recordError}</p>
+                ) : null}
+                {recordCreated ? (
+                  <p className="auth-message task-message">{recordCreated}</p>
+                ) : null}
+
+                <form action={createQuickRecordAction} className="task-form">
+                  <div className="task-form-grid">
+                    <label className="form-field">
+                      <span>记录类型</span>
+                      <select name="recordType" defaultValue="event">
+                        <option value="event">事件</option>
+                        <option value="idea">灵感</option>
+                      </select>
+                    </label>
+
+                    <label className="form-field">
+                      <span>日期</span>
+                      <input name="recordDate" type="date" defaultValue={todayDate} required />
+                    </label>
+
+                    <label className="form-field">
+                      <span>AI 分析权限</span>
+                      <select name="aiAnalysisPermission" defaultValue="summary_only">
+                        {aiAnalysisPermissions.map((permission) => (
+                          <option key={permission.value} value={permission.value}>
+                            {permission.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+
+                  <label className="form-field">
+                    <span>内容</span>
+                    <textarea
+                      name="content"
+                      maxLength={1200}
+                      placeholder="记录今天发生的一件事，或一个未来想尝试的灵感。"
+                      required
+                      rows={5}
+                    />
+                  </label>
+
+                  <div className="task-form-grid">
+                    <label className="form-field">
+                      <span>事件情绪标签</span>
+                      <select name="emotionTags" multiple size={5}>
+                        {emotionOptions.map((emotion) => (
+                          <option key={emotion} value={emotion}>
+                            {emotion}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="form-field">
+                      <span>事件标签</span>
+                      <input name="tags" type="text" placeholder="用逗号分隔，例如：学习, 人际" />
+                    </label>
+
+                    <div className="form-field">
+                      <span>保存规则</span>
+                      <p className="form-hint">
+                        选择事件时保存情绪和 AI 权限；选择灵感时保存为待处理状态，不触发 AI。
+                      </p>
+                    </div>
+                  </div>
+
+                  <button className="soft-button w-full sm:w-fit" type="submit">
+                    <Plus aria-hidden="true" className="h-4 w-4" />
+                    保存记录
+                  </button>
+                </form>
+
+                {todayLifeEvents.length > 0 || todayIdeas.length > 0 ? (
+                  <div className="task-list">
+                    {todayLifeEvents.map((event) => (
+                      <article key={event.id} className="task-list-item">
+                        <div className="min-w-0">
+                          <p className="list-label">事件 · {event.eventDate}</p>
+                          <p className="body-copy mt-1">{getRecordPreview(event.content)}</p>
+                          <div className="habit-stat-row mt-3">
+                            <span className="status-pill">
+                              {getAiAnalysisPermissionLabel(event.aiAnalysisPermission)}
+                            </span>
+                            {event.emotionTags.map((emotion) => (
+                              <span key={emotion} className="status-pill">
+                                {emotion}
+                              </span>
+                            ))}
+                            {event.tags.map((tag) => (
+                              <span key={tag} className="status-pill">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                    {todayIdeas.map((idea) => (
+                      <article key={idea.id} className="task-list-item">
+                        <div className="min-w-0">
+                          <p className="list-label">灵感 · {idea.ideaDate}</p>
+                          <p className="body-copy mt-1">{getRecordPreview(idea.content)}</p>
+                        </div>
+                        <span className="status-pill">
+                          {idea.status === "to_review" ? "待处理" : idea.status}
+                        </span>
                       </article>
                     ))}
                   </div>

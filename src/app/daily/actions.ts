@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { habitCheckins, habits, scheduleItems, tasks } from "@/db/schema";
+import { habitCheckins, habits, ideas, lifeEvents, scheduleItems, tasks } from "@/db/schema";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { isTaskCategory, isTaskStatus } from "@/lib/tasks/options";
 
@@ -13,6 +13,14 @@ function getStringValue(formData: FormData, key: string) {
   const value = formData.get(key);
 
   return typeof value === "string" ? value.trim() : "";
+}
+
+function getStringValues(formData: FormData, key: string) {
+  return formData
+    .getAll(key)
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim())
+    .filter(Boolean);
 }
 
 function getBeijingDateValue(date = new Date()) {
@@ -36,6 +44,18 @@ function isValidDateValue(value: string) {
 
 function isValidTimeValue(value: string) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+}
+
+function getTagsValue(value: string) {
+  return value
+    .split(/[,，]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function isAiAnalysisPermission(value: string) {
+  return value === "none" || value === "summary_only" || value === "allow_original";
 }
 
 export async function createTaskAction(formData: FormData) {
@@ -232,4 +252,50 @@ export async function createScheduleItemAction(formData: FormData) {
 
   revalidatePath("/daily");
   redirect("/daily?scheduleCreated=1#schedule");
+}
+
+export async function createQuickRecordAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const recordType = getStringValue(formData, "recordType");
+  const content = getStringValue(formData, "content");
+
+  if (!content) {
+    redirect("/daily?recordError=missing_content#notes");
+  }
+
+  const dateValue = getStringValue(formData, "recordDate");
+  const recordDate = isValidDateValue(dateValue) ? dateValue : getBeijingDateValue();
+
+  if (recordType === "event") {
+    const aiPermissionValue = getStringValue(formData, "aiAnalysisPermission");
+    const aiAnalysisPermission = isAiAnalysisPermission(aiPermissionValue)
+      ? aiPermissionValue
+      : "summary_only";
+
+    await db.insert(lifeEvents).values({
+      userId: user.id,
+      eventDate: recordDate,
+      content,
+      emotionTags: getStringValues(formData, "emotionTags"),
+      tags: getTagsValue(getStringValue(formData, "tags")),
+      aiAnalysisPermission,
+    });
+
+    revalidatePath("/daily");
+    redirect("/daily?recordCreated=event#notes");
+  }
+
+  if (recordType === "idea") {
+    await db.insert(ideas).values({
+      userId: user.id,
+      ideaDate: recordDate,
+      content,
+      status: "to_review",
+    });
+
+    revalidatePath("/daily");
+    redirect("/daily?recordCreated=idea#notes");
+  }
+
+  redirect("/daily?recordError=invalid_type#notes");
 }
