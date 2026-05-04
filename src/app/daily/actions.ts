@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { tasks } from "@/db/schema";
+import { habits, tasks } from "@/db/schema";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { isTaskCategory, isTaskStatus } from "@/lib/tasks/options";
 
@@ -117,4 +117,29 @@ export async function updateTaskStatusAction(formData: FormData) {
 
   revalidatePath("/daily");
   redirect(`/daily?taskUpdated=${statusValue}#tasks`);
+}
+
+export async function createHabitAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const name = getStringValue(formData, "name");
+
+  if (!name) {
+    redirect("/daily?habitError=missing_name#habits");
+  }
+
+  const categoryValue = getStringValue(formData, "category");
+  const startDateValue = getStringValue(formData, "startDate");
+  const category = isTaskCategory(categoryValue) ? categoryValue : "other";
+  const startDate = isValidDateValue(startDateValue) ? startDateValue : getBeijingDateValue();
+
+  await db.insert(habits).values({
+    userId: user.id,
+    name,
+    category,
+    isActive: true,
+    startDate,
+  });
+
+  revalidatePath("/daily");
+  redirect("/daily?habitCreated=1#habits");
 }

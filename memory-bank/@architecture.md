@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 3.3，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建和任务状态更新能力。
+当前项目已完成 Step 3.4，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新和习惯创建能力。
 
 当前已存在：
 
@@ -44,11 +44,16 @@
 - 今日任务状态操作，包括进行中、已完成和延期。
 - 延期任务日期同步更新和延期来源记录。
 - 今日概览中的任务完成率读取真实今日任务数据。
+- 每日工作台习惯创建表单。
+- 习惯保存 Server Action。
+- 当前登录用户启用习惯读取和列表展示。
+- 今日概览中的习惯卡读取真实启用习惯数量。
 - 任务分类和状态的统一选项定义。
 
 尚未开始：
 
-- 习惯、日程、随手记录和复盘的真实业务数据读写。
+- 习惯打卡。
+- 日程、随手记录和复盘的真实业务数据读写。
 - Row Level Security。
 - AI provider adapter。
 - 真实图表和其他交互组件视觉细化。
@@ -69,7 +74,7 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 3.3 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建和任务状态更新。各文件职责如下：
+当前 Step 1.1-Step 3.4 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新和习惯创建。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start`、`lint`、`db:generate`、`db:migrate` 和 `db:studio`；依赖包括 Supabase SSR/client 包、Drizzle ORM 和 Postgres client。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
@@ -82,8 +87,8 @@ AI Provider Adapter for scheduled/manual reviews
 - `.gitignore`: 忽略依赖、构建产物、环境变量、本地调试日志和 TypeScript 构建缓存。
 - `src/app/layout.tsx`: App Router 根布局，定义页面 HTML 语言和全局 metadata。
 - `src/app/page.tsx`: 成长主页页面壳，展示今日行动进度、本周指标、最近复盘和每日工作台入口等占位区。
-- `src/app/daily/page.tsx`: 每日工作台页面结构，显示北京时间日期、今日概览、今日任务、习惯打卡、今日日程和随手记录分区；今日任务分区已接入任务创建表单、当前用户今日任务列表、按状态分组展示、状态操作、延期日期选择和任务完成率统计，其他分区仍为占位结构。
-- `src/app/daily/actions.ts`: 每日工作台 Server Actions，当前提供 `createTaskAction()` 和 `updateTaskStatusAction()`；写入任务和更新状态前必须通过 `requireCurrentUser()` 获取当前登录用户，并把任务写入或限定更新到当前用户的 `tasks.user_id`。
+- `src/app/daily/page.tsx`: 每日工作台页面结构，显示北京时间日期、今日概览、今日任务、习惯打卡、今日日程和随手记录分区；今日任务分区已接入任务创建表单、当前用户今日任务列表、按状态分组展示、状态操作、延期日期选择和任务完成率统计；习惯打卡分区已接入习惯创建表单、当前用户启用习惯列表和启用习惯数量统计；其他分区仍为占位结构。
+- `src/app/daily/actions.ts`: 每日工作台 Server Actions，当前提供 `createTaskAction()`、`updateTaskStatusAction()` 和 `createHabitAction()`；写入任务、更新任务状态和创建习惯前必须通过 `requireCurrentUser()` 获取当前登录用户，并把数据写入或限定更新到当前用户的 `user_id`。
 - `src/app/records/page.tsx`: 成长记录页面壳，预留任务、习惯、日程、事件和灵感记录入口，并使用统一列表样式。
 - `src/app/insights/page.tsx`: 洞察报告页面壳，预留今日概览、本周趋势、习惯状态和情绪记录，并使用柔和图表占位样式。
 - `src/app/manual/page.tsx`: 个人说明书页面壳，预留人生阶段、目标、能力画像、情绪模式和常见内耗点，并使用统一字段卡片样式。
@@ -120,12 +125,16 @@ AI Provider Adapter for scheduled/manual reviews
 - 已接入认证入口和未登录写入拦截基线。
 - 已建立统一安全跳转逻辑，避免登录和邮箱确认流程出现开放跳转。
 - 已建立 `requireCurrentUser()` 写入保护 helper，后续真实写入 Action 必须先通过它拿到当前用户。
-- 已建立每日工作台页面结构，今日任务创建和状态更新已优先接入该页面；后续习惯、日程和记录读写继续接入该页面。
+- 已建立每日工作台页面结构，今日任务创建、任务状态更新和习惯创建已优先接入该页面；后续习惯打卡、日程和记录读写继续接入该页面。
 - 今日任务创建 Server Action 已调用 `requireCurrentUser()`，并把任务写入当前用户的 `tasks.user_id`。
 - 今日任务状态更新 Server Action 已调用 `requireCurrentUser()`，并按当前用户 ID 限定任务读取和更新范围。
 - 今日任务列表只按当前登录用户 ID、北京时间今日日期和未软删除条件查询，并按统一状态顺序分组展示。
 - 今日任务支持标记为进行中、已完成和延期；标记已完成时写入 `completed_at`，标记延期时同步更新 `task_date`、`is_postponed`、`postponed_from_date` 和 `postponed_to_date`。
 - 今日任务完成率由程序根据今日任务总数和已完成任务数计算，不调用 AI。
+- 习惯创建 Server Action 已调用 `requireCurrentUser()`，并把习惯写入当前用户的 `habits.user_id`。
+- 新习惯默认 `is_active = true`，分类复用任务分类，开始日期默认按北京时间今天。
+- 启用习惯列表只按当前登录用户 ID、启用状态和未软删除条件查询。
+- 今日概览习惯卡显示当前启用习惯数；真实打卡数和连续天数仍保留到 Step 3.5。
 - 未登录用户仍可浏览页面。
 - 未登录用户触发每日工作台写入入口时跳转登录提示。
 - 登录用户可在侧边栏看到账号状态并退出。

@@ -10,9 +10,13 @@ import {
   Repeat2,
 } from "lucide-react";
 
-import { createTaskAction, updateTaskStatusAction } from "@/app/daily/actions";
+import {
+  createHabitAction,
+  createTaskAction,
+  updateTaskStatusAction,
+} from "@/app/daily/actions";
 import { db } from "@/db";
-import { tasks as taskTable } from "@/db/schema";
+import { habits as habitTable, tasks as taskTable } from "@/db/schema";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import {
@@ -28,6 +32,8 @@ type DailyPageProps = {
     taskCreated?: string;
     taskError?: string;
     taskUpdated?: string;
+    habitCreated?: string;
+    habitError?: string;
   }>;
 };
 
@@ -58,6 +64,10 @@ const taskUpdatedText: Record<string, string> = {
   postponed: "任务已延期，并同步更新到新的任务日期。",
 };
 
+const habitErrorText: Record<string, string> = {
+  missing_name: "请先填写习惯名称，再保存。",
+};
+
 function getBeijingDateValue(date = new Date()) {
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Shanghai",
@@ -75,7 +85,7 @@ function getBeijingDateAfter(days: number, date = new Date()) {
   return getBeijingDateValue(targetDate);
 }
 
-function buildOverviewCards(taskCount: number, completedTaskCount: number) {
+function buildOverviewCards(taskCount: number, completedTaskCount: number, activeHabitCount: number) {
   const completionRate = taskCount > 0 ? Math.round((completedTaskCount / taskCount) * 100) : 0;
 
   return [
@@ -87,8 +97,8 @@ function buildOverviewCards(taskCount: number, completedTaskCount: number) {
   },
   {
     label: "习惯打卡",
-    value: "0/0",
-    note: "暂无启用习惯，后续从习惯列表读取。",
+    value: `0/${activeHabitCount}`,
+    note: activeHabitCount > 0 ? "打卡功能会在 Step 3.5 接入。" : "暂无启用习惯，可以先添加一个长期习惯。",
     tone: "tone-sage",
   },
   {
@@ -126,7 +136,7 @@ const dailySections = [
     eyebrow: "稳定性",
     description: "用于记录今天是否完成长期习惯，并为连续天数和累计次数提供数据。",
     emptyTitle: "暂无启用习惯",
-    emptyDescription: "后续会先创建习惯，再在这里完成每日打卡。",
+    emptyDescription: "添加习惯后，会先出现在今日习惯列表；打卡功能在 Step 3.5 接入。",
     actionLabel: "添加习惯",
     Icon: Repeat2,
     EmptyIcon: CheckCircle2,
@@ -211,6 +221,27 @@ async function getTodayTasks(userId: string, todayDate: string) {
     .orderBy(asc(taskTable.createdAt));
 }
 
+async function getActiveHabits(userId: string) {
+  return db
+    .select({
+      id: habitTable.id,
+      name: habitTable.name,
+      category: habitTable.category,
+      isActive: habitTable.isActive,
+      startDate: habitTable.startDate,
+      createdAt: habitTable.createdAt,
+    })
+    .from(habitTable)
+    .where(
+      and(
+        eq(habitTable.userId, userId),
+        eq(habitTable.isActive, true),
+        isNull(habitTable.deletedAt),
+      ),
+    )
+    .orderBy(asc(habitTable.createdAt));
+}
+
 type TodayTask = Awaited<ReturnType<typeof getTodayTasks>>[number];
 
 function TaskStatusAction({
@@ -274,11 +305,14 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const todayDate = getBeijingDateValue(now);
   const defaultPostponedDate = getBeijingDateAfter(1, now);
   const todayTasks = user ? await getTodayTasks(user.id, todayDate) : [];
+  const activeHabits = user ? await getActiveHabits(user.id) : [];
   const completedTaskCount = todayTasks.filter((task) => task.status === "completed").length;
-  const overviewCards = buildOverviewCards(todayTasks.length, completedTaskCount);
+  const overviewCards = buildOverviewCards(todayTasks.length, completedTaskCount, activeHabits.length);
   const taskCreated = params?.taskCreated === "1";
   const taskUpdated = params?.taskUpdated ? taskUpdatedText[params.taskUpdated] ?? "任务状态已更新。" : "";
   const taskError = params?.taskError ? taskErrorText[params.taskError] ?? "任务保存失败，请稍后重试。" : "";
+  const habitCreated = params?.habitCreated === "1";
+  const habitError = params?.habitError ? habitErrorText[params.habitError] ?? "习惯保存失败，请稍后重试。" : "";
   const tasksByStatus = taskStatusOrder.map((status) => ({
     status,
     tasks: todayTasks.filter((task) => task.status === status),
@@ -356,6 +390,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
           const Icon = section.Icon;
           const EmptyIcon = section.EmptyIcon;
           const isTaskSection = section.id === "tasks";
+          const isHabitSection = section.id === "habits";
 
           return (
           <article
@@ -374,7 +409,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                   <p className="body-copy mt-2">{section.description}</p>
                 </div>
               </div>
-              {isTaskSection && isLoggedIn ? null : (
+              {(isTaskSection || isHabitSection) && isLoggedIn ? null : (
                 <WriteAction isLoggedIn={isLoggedIn} label={section.actionLabel} loginPath={loginPath} />
               )}
             </div>
@@ -472,6 +507,82 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                         </section>
                       ) : null,
                     )}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <span className="empty-icon">
+                      <EmptyIcon aria-hidden="true" className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="list-label">{section.emptyTitle}</p>
+                      <p className="body-copy mt-1">{section.emptyDescription}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : isHabitSection && isLoggedIn ? (
+              <div className="mt-5 grid gap-5">
+                {habitError ? (
+                  <p className="auth-message auth-message-error task-message">{habitError}</p>
+                ) : null}
+                {habitCreated ? (
+                  <p className="auth-message task-message">习惯已保存，并已关联到当前账号。</p>
+                ) : null}
+
+                <form action={createHabitAction} className="task-form">
+                  <label className="form-field">
+                    <span>习惯名称</span>
+                    <input
+                      name="name"
+                      type="text"
+                      maxLength={120}
+                      placeholder="例如：多邻国 15 分钟"
+                      required
+                    />
+                  </label>
+
+                  <div className="task-form-grid">
+                    <label className="form-field">
+                      <span>分类</span>
+                      <select name="category" defaultValue="health">
+                        {taskCategories.map((category) => (
+                          <option key={category.value} value={category.value}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="form-field">
+                      <span>开始日期</span>
+                      <input name="startDate" type="date" defaultValue={todayDate} required />
+                    </label>
+
+                    <label className="form-field">
+                      <span>启用状态</span>
+                      <input type="text" value="默认启用" disabled readOnly />
+                    </label>
+                  </div>
+
+                  <button className="soft-button w-full sm:w-fit" type="submit">
+                    <Plus aria-hidden="true" className="h-4 w-4" />
+                    保存习惯
+                  </button>
+                </form>
+
+                {activeHabits.length > 0 ? (
+                  <div className="task-list">
+                    {activeHabits.map((habit) => (
+                      <article key={habit.id} className="task-list-item">
+                        <div className="min-w-0">
+                          <p className="list-label">{habit.name}</p>
+                          <p className="body-copy mt-1">
+                            {getTaskCategoryLabel(habit.category)} · {habit.startDate ?? "未设置开始日期"}
+                          </p>
+                        </div>
+                        <span className="status-pill">启用中</span>
+                      </article>
+                    ))}
                   </div>
                 ) : (
                   <div className="empty-state">
