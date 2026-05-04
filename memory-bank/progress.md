@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 3.7：随手记录。
+项目已完成 Step 3.8：实现今日概览统计。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录和随手记录能力稳定。
-- 准备进入 Step 3.8：实现今日概览统计。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录和今日概览程序统计能力稳定。
+- 准备进入 Step 4.1：实现成长记录列表页。
 - 后续逐步接入真实业务数据读写、Row Level Security、基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -552,6 +552,42 @@
 - Row Level Security 尚未配置。
 - 当前只接入任务创建、任务状态更新、习惯创建和习惯打卡，日程、随手记录和复盘仍未接真实写入。
 
+### Step 3.8：实现今日概览统计
+
+已完成内容：
+
+- 每日工作台顶部今日概览改为完整真实程序统计。
+- 今日任务卡显示任务完成率，并补充任务总数、进行中数量和延期数量。
+- 任务完成率由当前登录用户北京时间今日任务总数和已完成任务数计算。
+- 习惯打卡卡显示今日已打卡数和启用习惯数，并用进度条表达完成比例。
+- 今日日程卡显示当前登录用户北京时间今日真实日程数量。
+- 随手记录卡显示当前登录用户北京时间今日事件和灵感总数，并补充事件数和灵感数。
+- 今日概览明确标注“程序统计，不调用 AI”。
+- 新增今日概览进度条和细分标签样式，保持桌面和手机宽度下可读。
+- 本 Step 不修改数据库 schema，不执行迁移，不接入 AI。
+
+本次新增或更新的文件：
+
+- `src/app/daily/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `curl -I http://localhost:3001/daily` 返回 `200`。
+- 本地开发服务已启动在 `http://localhost:3001/daily`。
+- Faye 已要求更新文档并提交 Git，视为 Step 3.8 验收通过。
+
+尚未完成或暂缓：
+
+- Row Level Security 尚未配置。
+- 复盘仍未接真实写入。
+- AI provider adapter 尚未接入。
+
 ## Not Started
 
 - Row Level Security
@@ -560,6 +596,6 @@
 
 ## Next Step Candidate
 
-Step 3.8：实现今日概览统计。
+Step 4.1：实现成长记录列表页。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

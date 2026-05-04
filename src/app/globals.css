@@ -426,6 +426,28 @@ select {
     gap: 0.5rem;
   }
 
+  .overview-progress {
+    height: 0.5rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgb(255 253 248 / 70%);
+  }
+
+  .overview-progress span {
+    display: block;
+    height: 100%;
+    max-width: 100%;
+    border-radius: inherit;
+    background: var(--accent, var(--mist));
+  }
+
+  .overview-detail-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
   .postpone-form {
     display: flex;
     flex-wrap: wrap;

@@ -149,39 +149,61 @@ function getBeijingDateAfter(days: number, date = new Date()) {
 function buildOverviewCards(
   taskCount: number,
   completedTaskCount: number,
+  inProgressTaskCount: number,
+  postponedTaskCount: number,
   activeHabitCount: number,
   checkedHabitCount: number,
   scheduleCount: number,
-  recordCount: number,
+  eventCount: number,
+  ideaCount: number,
 ) {
   const completionRate = taskCount > 0 ? Math.round((completedTaskCount / taskCount) * 100) : 0;
+  const recordCount = eventCount + ideaCount;
 
   return [
     {
       label: "今日任务",
       value: `${completionRate}%`,
+      progress: completionRate,
       note:
         taskCount > 0
           ? `${completedTaskCount}/${taskCount} 项已完成。`
           : "暂无待办，可以先创建今天的第一项任务。",
+      details:
+        taskCount > 0
+          ? [
+              `总数 ${taskCount}`,
+              `进行中 ${inProgressTaskCount}`,
+              `延期 ${postponedTaskCount}`,
+            ]
+          : ["总数 0", "完成率 0%"],
       tone: "tone-lavender",
     },
     {
       label: "习惯打卡",
       value: `${checkedHabitCount}/${activeHabitCount}`,
+      progress: activeHabitCount > 0 ? Math.round((checkedHabitCount / activeHabitCount) * 100) : 0,
       note: activeHabitCount > 0 ? "今日已完成的习惯打卡数。" : "暂无启用习惯，可以先添加一个长期习惯。",
+      details:
+        activeHabitCount > 0
+          ? [`启用 ${activeHabitCount}`, `已打卡 ${checkedHabitCount}`]
+          : ["启用 0", "已打卡 0"],
       tone: "tone-sage",
     },
     {
       label: "今日日程",
       value: `${scheduleCount}`,
+      progress: scheduleCount > 0 ? 100 : 0,
       note: scheduleCount > 0 ? "今日已记录的固定事项数量。" : "暂无固定事项，可以先记录今天的第一个日程。",
+      details: [`日程 ${scheduleCount}`],
       tone: "tone-mist",
     },
     {
       label: "随手记录",
       value: `${recordCount}`,
+      progress: recordCount > 0 ? 100 : 0,
       note: recordCount > 0 ? "今日已保存的事件和灵感数量。" : "暂无事件或灵感，可以先写一条记录。",
+      details: [`事件 ${eventCount}`, `灵感 ${ideaCount}`],
       tone: "tone-clay",
     },
   ];
@@ -536,16 +558,21 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     activeHabits.map((habit) => [habit.id, getHabitStats(habit, habitCheckins, todayDate)]),
   );
   const completedTaskCount = todayTasks.filter((task) => task.status === "completed").length;
+  const inProgressTaskCount = todayTasks.filter((task) => task.status === "in_progress").length;
+  const postponedTaskCount = todayTasks.filter((task) => task.status === "postponed").length;
   const checkedHabitCount = activeHabits.filter(
     (habit) => habitStatsById.get(habit.id)?.isCheckedToday,
   ).length;
   const overviewCards = buildOverviewCards(
     todayTasks.length,
     completedTaskCount,
+    inProgressTaskCount,
+    postponedTaskCount,
     activeHabits.length,
     checkedHabitCount,
     todayScheduleItems.length,
-    todayLifeEvents.length + todayIdeas.length,
+    todayLifeEvents.length,
+    todayIdeas.length,
   );
   const taskCreated = params?.taskCreated === "1";
   const taskUpdated = params?.taskUpdated ? taskUpdatedText[params.taskUpdated] ?? "任务状态已更新。" : "";
@@ -624,7 +651,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
               今日基础状态
             </h2>
           </div>
-          <span className="status-pill w-fit">部分真实统计</span>
+          <span className="status-pill w-fit">程序统计，不调用 AI</span>
         </div>
         <div className="daily-summary-grid mt-5">
           {overviewCards.map((card) => (
@@ -632,6 +659,16 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
               <p className="metric-label">{card.label}</p>
               <p className="metric-value">{card.value}</p>
               <p className="body-copy mt-2">{card.note}</p>
+              <div aria-hidden="true" className="overview-progress mt-4">
+                <span style={{ width: `${card.progress}%` }} />
+              </div>
+              <div className="overview-detail-row mt-3">
+                {card.details.map((detail) => (
+                  <span key={detail} className="status-pill">
+                    {detail}
+                  </span>
+                ))}
+              </div>
             </article>
           ))}
         </div>
