@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 4.1：实现成长记录列表页。
+项目已完成 Step 4.2：实现基础筛选。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计和成长记录统一时间线能力稳定。
-- 准备进入 Step 4.2：实现基础筛选。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线和成长记录基础筛选能力稳定。
+- 准备进入 Step 4.3：实现记录详情查看。
 - 后续逐步接入真实业务数据读写、Row Level Security、基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -624,7 +624,47 @@
 
 尚未完成或暂缓：
 
-- Step 4.2 基础筛选尚未实现。
+- Step 4.3 记录详情查看尚未实现。
+- Row Level Security 尚未配置。
+- 复盘仍未接真实写入。
+- AI provider adapter 尚未接入。
+
+### Step 4.2：实现基础筛选
+
+已完成内容：
+
+- 成长记录页支持按记录类型筛选。
+- 记录类型筛选项包括全部、任务、习惯、日程、事件和灵感。
+- 成长记录页支持按日期范围筛选。
+- 日期范围筛选项包括全部近期、今天和最近 7 天。
+- 筛选状态写入 URL query 参数，例如 `/records?type=task`、`/records?range=today` 和 `/records?type=habit&range=7d`。
+- 刷新页面后筛选状态会保留。
+- 登录提示中的返回路径会保留当前筛选 URL。
+- 当前筛选结果的统计卡会随筛选结果更新。
+- 当前 Step 不做全文搜索。
+- 本 Step 不修改数据库 schema，不执行迁移，不接入 AI。
+
+本次新增或更新的文件：
+
+- `src/app/records/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `curl -I http://localhost:3001/records` 返回 `200`。
+- `curl -I "http://localhost:3001/records?type=task"` 返回 `200`。
+- `curl -I "http://localhost:3001/records?range=today"` 返回 `200`。
+- `curl -I "http://localhost:3001/records?type=habit&range=7d"` 返回 `200`。
+- 本地开发服务已启动在 `http://localhost:3001/records`。
+- Faye 已要求更新文档并提交 Git，视为 Step 4.2 验收通过。
+
+尚未完成或暂缓：
+
 - Step 4.3 记录详情查看尚未实现。
 - Row Level Security 尚未配置。
 - 复盘仍未接真实写入。
@@ -638,6 +678,6 @@
 
 ## Next Step Candidate
 
-Step 4.2：实现基础筛选。
+Step 4.3：实现记录详情查看。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

@@ -25,6 +25,21 @@ import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
 const recentLimitPerType = 12;
 const timelineLimit = 40;
 
+const recordTypeOptions = [
+  { value: "all", label: "全部" },
+  { value: "task", label: "任务" },
+  { value: "habit", label: "习惯" },
+  { value: "schedule", label: "日程" },
+  { value: "event", label: "事件" },
+  { value: "idea", label: "灵感" },
+] as const;
+
+const dateRangeOptions = [
+  { value: "recent", label: "全部近期" },
+  { value: "today", label: "今天" },
+  { value: "7d", label: "最近 7 天" },
+] as const;
+
 const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
   timeZone: "Asia/Shanghai",
   month: "2-digit",
@@ -53,6 +68,15 @@ type TimelineRecord = {
   Icon: typeof ClipboardList;
 };
 
+type RecordTypeFilter = (typeof recordTypeOptions)[number]["value"];
+type DateRangeFilter = (typeof dateRangeOptions)[number]["value"];
+type RecordsPageProps = {
+  searchParams?: Promise<{
+    type?: string;
+    range?: string;
+  }>;
+};
+
 const recordKindLabels: Record<TimelineRecord["kind"], string> = {
   task: "任务",
   habit: "习惯",
@@ -79,6 +103,47 @@ function formatDateTime(value: Date) {
 
 function formatDateValue(value: string) {
   return dateFormatter.format(new Date(`${value}T00:00:00+08:00`));
+}
+
+function getBeijingDateValue(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  return formatter.format(date);
+}
+
+function getBeijingDateAfter(days: number, date = new Date()) {
+  const targetDate = new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
+
+  return getBeijingDateValue(targetDate);
+}
+
+function isRecordTypeFilter(value: string | undefined): value is RecordTypeFilter {
+  return recordTypeOptions.some((option) => option.value === value);
+}
+
+function isDateRangeFilter(value: string | undefined): value is DateRangeFilter {
+  return dateRangeOptions.some((option) => option.value === value);
+}
+
+function getFilterHref(type: RecordTypeFilter, range: DateRangeFilter) {
+  const params = new URLSearchParams();
+
+  if (type !== "all") {
+    params.set("type", type);
+  }
+
+  if (range !== "recent") {
+    params.set("range", range);
+  }
+
+  const query = params.toString();
+
+  return query ? `/records?${query}` : "/records";
 }
 
 function formatScheduleTimeRange(startTime: string | null, endTime: string | null) {
@@ -262,6 +327,33 @@ async function getRecentTimelineRecords(userId: string) {
     .slice(0, timelineLimit);
 }
 
+function filterTimelineRecords(
+  records: TimelineRecord[],
+  typeFilter: RecordTypeFilter,
+  rangeFilter: DateRangeFilter,
+) {
+  const todayDate = getBeijingDateValue();
+  const sevenDayStartDate = getBeijingDateAfter(-6);
+
+  return records.filter((record) => {
+    if (typeFilter !== "all" && record.kind !== typeFilter) {
+      return false;
+    }
+
+    if (rangeFilter === "today") {
+      return getBeijingDateValue(record.occurredAt) === todayDate;
+    }
+
+    if (rangeFilter === "7d") {
+      const recordDate = getBeijingDateValue(record.occurredAt);
+
+      return recordDate >= sevenDayStartDate && recordDate <= todayDate;
+    }
+
+    return true;
+  });
+}
+
 function buildTypeCounts(records: TimelineRecord[]) {
   return Object.entries(recordKindLabels).map(([kind, label]) => ({
     kind,
@@ -270,12 +362,21 @@ function buildTypeCounts(records: TimelineRecord[]) {
   }));
 }
 
-export default async function RecordsPage() {
+export default async function RecordsPage({ searchParams }: RecordsPageProps) {
+  const params = await searchParams;
+  const typeFilter = isRecordTypeFilter(params?.type) ? params.type : "all";
+  const rangeFilter = isDateRangeFilter(params?.range) ? params.range : "recent";
   const user = await getCurrentUser();
   const isLoggedIn = Boolean(user);
-  const loginPath = buildLoginPath({ next: "/records", message: loginRequiredMessage });
-  const records = user ? await getRecentTimelineRecords(user.id) : [];
+  const currentPath = getFilterHref(typeFilter, rangeFilter);
+  const loginPath = buildLoginPath({ next: currentPath, message: loginRequiredMessage });
+  const allRecords = user ? await getRecentTimelineRecords(user.id) : [];
+  const records = filterTimelineRecords(allRecords, typeFilter, rangeFilter);
   const typeCounts = buildTypeCounts(records);
+  const typeFilterLabel =
+    recordTypeOptions.find((option) => option.value === typeFilter)?.label ?? "全部";
+  const rangeFilterLabel =
+    dateRangeOptions.find((option) => option.value === rangeFilter)?.label ?? "全部近期";
 
   return (
     <div className="page-stack">
@@ -288,7 +389,7 @@ export default async function RecordsPage() {
           <span className="status-pill w-fit">统一时间线</span>
         </div>
         <p className="page-description">
-          按创建时间倒序汇总任务、习惯打卡、日程、事件和灵感。第一版先做近期时间线，筛选留到下一步。
+          按创建时间倒序汇总任务、习惯打卡、日程、事件和灵感。当前支持按记录类型和日期范围做基础筛选。
         </p>
       </header>
 
@@ -325,6 +426,54 @@ export default async function RecordsPage() {
               <strong>{item.count}</strong>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="records-filters" className="panel-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="page-kicker">筛选</p>
+            <h2 id="records-filters" className="section-heading mt-1">
+              当前：{typeFilterLabel} · {rangeFilterLabel}
+            </h2>
+          </div>
+          <Link className="quiet-button w-fit" href="/records">
+            重置筛选
+          </Link>
+        </div>
+
+        <div className="record-filter-panel mt-5">
+          <div className="record-filter-group">
+            <p className="metric-label">记录类型</p>
+            <div className="record-filter-row">
+              {recordTypeOptions.map((option) => (
+                <Link
+                  key={option.value}
+                  aria-current={typeFilter === option.value ? "page" : undefined}
+                  className={typeFilter === option.value ? "soft-button" : "quiet-button"}
+                  href={getFilterHref(option.value, rangeFilter)}
+                >
+                  {option.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="record-filter-group">
+            <p className="metric-label">日期范围</p>
+            <div className="record-filter-row">
+              {dateRangeOptions.map((option) => (
+                <Link
+                  key={option.value}
+                  aria-current={rangeFilter === option.value ? "page" : undefined}
+                  className={rangeFilter === option.value ? "soft-button" : "quiet-button"}
+                  href={getFilterHref(typeFilter, option.value)}
+                >
+                  {option.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

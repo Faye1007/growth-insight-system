@@ -507,6 +507,22 @@ select {
     line-height: 1;
   }
 
+  .record-filter-panel {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .record-filter-group {
+    display: grid;
+    gap: 0.625rem;
+  }
+
+  .record-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
   .record-timeline {
     display: grid;
     gap: 0.875rem;
