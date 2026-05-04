@@ -235,6 +235,51 @@ select {
     background: var(--mist-soft);
   }
 
+  .soft-button:disabled {
+    cursor: not-allowed;
+    border-color: var(--border);
+    background: var(--card-muted);
+    color: var(--subtle-foreground);
+  }
+
+  .auth-form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .form-field {
+    display: grid;
+    gap: 0.5rem;
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 650;
+  }
+
+  .form-field input {
+    min-height: 2.75rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    padding: 0.625rem 0.75rem;
+    color: var(--foreground);
+    font-size: 0.9375rem;
+  }
+
+  .auth-message {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--sage-soft);
+    padding: 0.75rem 0.875rem;
+    color: var(--foreground);
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  .auth-message-error {
+    background: var(--clay-soft);
+  }
+
   .field-tile {
     padding: 0.875rem 1rem;
     color: var(--foreground);

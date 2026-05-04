@@ -5,8 +5,14 @@ import {
   CalendarCheck,
   ClipboardList,
   Home,
+  LogIn,
+  LogOut,
   Settings,
+  UserRound,
 } from "lucide-react";
+
+import { signOutAction } from "@/app/auth/actions";
+import { getCurrentUser } from "@/lib/auth/session";
 
 const navigationItems = [
   { href: "/", label: "成长主页", icon: Home },
@@ -17,7 +23,9 @@ const navigationItems = [
   { href: "/settings", label: "设置", icon: Settings },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export async function AppShell({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser();
+
   return (
     <body>
       <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -65,11 +73,40 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 当前阶段
               </p>
               <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">
-                基础页面与视觉规范
+                认证基线接入
               </p>
               <p className="mt-2 text-xs leading-5 text-[var(--muted-foreground)]">
-                暂不接入数据库、认证和 AI。
+                数据库迁移已完成，正在接入登录和写入拦截。
               </p>
+            </div>
+
+            <div className="mt-4 hidden rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 lg:block">
+              <div className="flex items-center gap-2">
+                <span className="nav-icon">
+                  <UserRound aria-hidden="true" className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-[var(--subtle-foreground)]">
+                    账号状态
+                  </p>
+                  <p className="truncate text-sm font-semibold text-[var(--foreground)]">
+                    {user?.email ?? "未登录"}
+                  </p>
+                </div>
+              </div>
+              {user ? (
+                <form action={signOutAction} className="mt-3">
+                  <button className="soft-button w-full" type="submit">
+                    <LogOut aria-hidden="true" className="h-4 w-4" />
+                    退出
+                  </button>
+                </form>
+              ) : (
+                <Link className="soft-button mt-3 w-full" href="/login?next=/daily&message=login_required">
+                  <LogIn aria-hidden="true" className="h-4 w-4" />
+                  登录 / 注册
+                </Link>
+              )}
             </div>
           </aside>
 

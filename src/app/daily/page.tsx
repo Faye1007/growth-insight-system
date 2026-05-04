@@ -1,3 +1,7 @@
+import Link from "next/link";
+
+import { getCurrentUser } from "@/lib/auth/session";
+
 const sections = [
   {
     title: "今日概览",
@@ -31,7 +35,9 @@ const sections = [
   },
 ];
 
-export default function DailyPage() {
+export default async function DailyPage() {
+  const user = await getCurrentUser();
+
   return (
     <div className="page-stack">
       <header className="page-header">
@@ -47,6 +53,34 @@ export default function DailyPage() {
         </p>
       </header>
 
+      {!user ? (
+        <section className="panel-card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="section-heading">保存个人数据前需要登录</h2>
+              <p className="body-copy mt-2">
+                你仍然可以浏览每日工作台；创建任务、打卡、记录事件或生成复盘时需要注册或登录。
+              </p>
+            </div>
+            <Link className="soft-button w-full sm:w-auto" href="/login?next=/daily&message=login_required">
+              登录 / 注册
+            </Link>
+          </div>
+        </section>
+      ) : (
+        <section className="panel-card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="section-heading">已登录</h2>
+              <p className="body-copy mt-2">
+                真实写入入口会在后续 Step 接入，保存的数据会关联到当前账号。
+              </p>
+            </div>
+            <span className="status-pill w-fit">可写入账号</span>
+          </div>
+        </section>
+      )}
+
       <section className="card-grid lg:grid-cols-2">
         {sections.map((section) => (
           <article
@@ -58,6 +92,17 @@ export default function DailyPage() {
               <span className="status-pill">{section.status}</span>
             </div>
             <p className="body-copy mt-3">{section.note}</p>
+            <div className="mt-4">
+              {user ? (
+                <button className="soft-button" type="button" disabled>
+                  即将接入创建
+                </button>
+              ) : (
+                <Link className="soft-button" href="/login?next=/daily&message=login_required">
+                  登录后写入
+                </Link>
+              )}
+            </div>
           </article>
         ))}
       </section>

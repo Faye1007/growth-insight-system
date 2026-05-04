@@ -2,13 +2,13 @@
 
 ## Current Status
 
-项目已完成 Step 2.3：建立数据库迁移流程，并已将第一批基础表迁移到真实 Supabase 数据库。
+项目已完成 Step 2.4A：认证入口和未登录写入拦截基线。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema 和迁移流程稳定。
-- 等待进入 Step 2.4：建立注册登录和写入拦截策略。
-- 后续逐步接入认证、真实业务数据读写、基础图表和 AI 复盘能力。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程和认证入口稳定。
+- 等待进入 Step 2.4B：验证真实注册登录流程，并完善登录后的写入保护基础。
+- 后续逐步接入真实业务数据读写、Row Level Security、基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
 
@@ -225,19 +225,47 @@
 尚未完成或暂缓：
 
 - 未配置 `SUPABASE_SERVICE_ROLE_KEY`。
-- 未启用 Supabase Auth 注册登录。
+- Step 2.4A 已接入 Supabase Auth 登录/注册入口和会话读取基线。
 - 未配置 Row Level Security。
 - 未实现真实业务数据读写。
 
+### Step 2.4A：认证入口和未登录写入拦截基线
+
+已完成内容：
+
+- 新增 `src/app/login/page.tsx`，提供邮箱登录和注册页面。
+- 新增 `src/app/auth/actions.ts`，提供登录、注册和退出的 Server Actions。
+- 新增 `src/app/auth/confirm/route.ts`，处理 Supabase 邮箱确认回调。
+- 新增 `src/lib/auth/session.ts`，封装当前登录用户读取逻辑。
+- 更新 `src/components/app-shell.tsx`，在侧边栏显示账号状态；未登录显示登录/注册链接，已登录显示邮箱和退出按钮。
+- 更新 `src/app/daily/page.tsx`，未登录用户仍可浏览每日工作台，但写入入口统一跳转登录提示。
+- 更新 `src/app/settings/page.tsx`，显示真实账号登录状态。
+- 更新 `src/app/globals.css`，补充登录表单、消息提示和禁用按钮样式。
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 本地开发服务启动在 `http://localhost:3001`。
+- `/login`、`/daily` 和 `/settings` 本地响应 `200`。
+- 源码检查通过：未发现真实 Supabase URL、publishable key 或数据库密码。
+
+尚未完成或暂缓：
+
+- 未实现真实任务、习惯、日程、事件或灵感写入。
+- 未配置 Row Level Security。
+- 未验证 Supabase Auth 邮件确认完整链路；需要在 Supabase Dashboard 中确认 Redirect URL 允许 `http://localhost:3001/auth/confirm`。
+- 未配置 `SUPABASE_SERVICE_ROLE_KEY`，当前阶段仍不需要。
+
 ## Not Started
 
-- Supabase Auth 注册登录
 - Row Level Security
 - 真实业务数据读写
 - AI provider adapter
 
 ## Next Step Candidate
 
-Step 2.4：建立注册登录和写入拦截策略。
+Step 2.4B：验证真实注册登录流程，并完善登录后的写入保护基础。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

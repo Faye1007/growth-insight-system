@@ -1,7 +1,9 @@
 import { getSupabaseConfigStatus } from "@/lib/supabase/config";
+import { getCurrentUser } from "@/lib/auth/session";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
   const supabaseStatus = getSupabaseConfigStatus();
+  const user = await getCurrentUser();
   const settings = [
     {
       label: "应用状态",
@@ -25,7 +27,7 @@ export default function SettingsPage() {
     },
     {
       label: "账号状态",
-      status: "待接入认证",
+      status: user ? "已登录" : "未登录",
     },
   ];
 
@@ -65,9 +67,8 @@ export default function SettingsPage() {
       <section className="panel-card">
         <h2 className="section-heading">下一步需要的配置</h2>
         <p className="body-copy mt-2">
-          真实连接 Supabase 前，需要在本地 `.env.local` 中填写项目地址、public key、
-          service role key 和数据库连接字符串。`SUPABASE_SERVICE_ROLE_KEY` 与
-          `DATABASE_URL` 只允许服务端读取。
+          当前已配置 Supabase public client 和数据库连接字符串。`SUPABASE_SERVICE_ROLE_KEY`
+          暂不配置，后续确实需要服务端高权限操作时再单独确认。
         </p>
       </section>
     </div>

@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 2.3，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema 和数据库迁移流程。
+当前项目已完成 Step 2.4A，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口和未登录写入拦截基线。
 
 当前已存在：
 
@@ -27,11 +27,17 @@
 - `src/db/index.ts` 服务端数据库查询入口。
 - `drizzle/0000_true_silver_sable.sql` 第一版迁移 SQL。
 - 真实 Supabase 数据库中的第一批 8 张基础业务表。
+- `/login` 登录/注册页面。
+- `/auth/confirm` Supabase 邮箱确认回调路由。
+- Supabase Auth 登录、注册、退出 Server Actions。
+- 当前用户读取 helper。
+- 侧边栏账号状态展示。
+- 每日工作台未登录写入拦截提示。
 
 尚未开始：
 
-- 注册登录。
 - 真实业务数据读写。
+- Row Level Security。
 - AI provider adapter。
 - 真实图表、表单和交互组件视觉细化。
 
@@ -51,7 +57,7 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 2.3 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema 和数据库迁移流程，不包含真实业务数据读写。各文件职责如下：
+当前 Step 1.1-Step 2.4A 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口和未登录写入拦截基线，不包含真实业务数据读写。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start`、`lint`、`db:generate`、`db:migrate` 和 `db:studio`；依赖包括 Supabase SSR/client 包、Drizzle ORM 和 Postgres client。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
@@ -69,9 +75,12 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/app/insights/page.tsx`: 洞察报告页面壳，预留今日概览、本周趋势、习惯状态和情绪记录，并使用柔和图表占位样式。
 - `src/app/manual/page.tsx`: 个人说明书页面壳，预留人生阶段、目标、能力画像、情绪模式和常见内耗点，并使用统一字段卡片样式。
 - `.env.example`: 环境变量模板，只列出需要配置的字段，不保存真实密钥。
-- `src/app/settings/page.tsx`: 设置页展示应用和 Supabase 配置状态，只显示是否配置，不展示密钥、token 或连接字符串。
+- `src/app/settings/page.tsx`: 设置页展示应用、Supabase 配置状态和账号登录状态，只显示是否配置，不展示密钥、token 或连接字符串。
+- `src/app/login/page.tsx`: 邮箱登录和注册页面，支持 `next` 参数把用户带回原页面。
+- `src/app/auth/actions.ts`: Supabase Auth Server Actions，负责登录、注册和退出。
+- `src/app/auth/confirm/route.ts`: Supabase 邮箱确认回调路由，成功后跳转到安全的 `next` 路径。
 - `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮和导航样式。
-- `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区和当前阶段提示，并把页面内容包裹在统一布局中。
+- `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区、当前阶段提示、账号状态和退出入口，并把页面内容包裹在统一布局中。
 - `src/components/.gitkeep`: 保留业务组件目录。
 - `src/components/ui/.gitkeep`: 保留 shadcn/ui 组件目录。
 - `src/contexts/.gitkeep`: 保留 React context 目录。
@@ -80,6 +89,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/lib/supabase/config.ts`: 读取 Supabase 环境变量，提供 public client 配置校验和设置页状态检查。
 - `src/lib/supabase/client.ts`: 浏览器端 Supabase client 工厂，只使用 `NEXT_PUBLIC_*` 配置。
 - `src/lib/supabase/server.ts`: 服务端 Supabase client 工厂，使用 Next.js cookies 接入 SSR 会话能力。
+- `src/lib/auth/session.ts`: 当前用户读取 helper，封装 Supabase `auth.getUser()`，认证未就绪时返回 `null`。
 - `drizzle.config.ts`: Drizzle Kit 配置，读取 `.env.local` 中的 `DATABASE_URL`，用于生成和执行迁移。
 - `drizzle/0000_true_silver_sable.sql`: 第一版数据库迁移 SQL，创建基础枚举、8 张基础业务表、索引和内部外键。
 - `drizzle/meta/`: Drizzle 迁移快照和迁移日志元数据，用于后续增量迁移。
@@ -92,7 +102,11 @@ AI Provider Adapter for scheduled/manual reviews
 - 已接入 Supabase client 工具层，并已配置真实 Supabase public client 与 `DATABASE_URL` 到本地 `.env.local`。
 - `.env.local` 被 Git 忽略，不能提交真实密钥、token 或连接字符串。
 - 已建立 Drizzle schema 和迁移流程，并已将第一批基础表迁移到真实 Supabase 数据库。
-- 不接认证。
+- 已接入认证入口和未登录写入拦截基线。
+- 未登录用户仍可浏览页面。
+- 未登录用户触发每日工作台写入入口时跳转登录提示。
+- 登录用户可在侧边栏看到账号状态并退出。
+- Supabase Auth 邮件确认完整链路需要在 Supabase Dashboard 中确认 Redirect URL 允许 `http://localhost:3001/auth/confirm`。
 - 不接 AI。
 - 不配置 `SUPABASE_SERVICE_ROLE_KEY`，除非后续步骤确实需要并单独确认。
 - 只提供静态页面壳、导航和基础视觉规范。
@@ -108,6 +122,8 @@ AI Provider Adapter for scheduled/manual reviews
 - `/insights`: 洞察报告。
 - `/manual`: 个人说明书。
 - `/settings`: 设置。
+- `/login`: 登录/注册。
+- `/auth/confirm`: Supabase 邮箱确认回调。
 
 ## 2. Recommended Tech Stack
 
@@ -160,7 +176,33 @@ Step 2.2 已安装并接入：
 - `.env.local` 只存在本地，不进入 Git。
 - 已验证真实 Supabase 数据库连接和迁移。
 - 尚未配置 `SUPABASE_SERVICE_ROLE_KEY`。
-- 尚未启用 Supabase Auth、Row Level Security 或真实业务数据读写。
+- 已接入 Supabase Auth 页面入口和基础 Server Actions。
+- 尚未验证真实注册登录完整链路。
+- 尚未启用 Row Level Security 或真实业务数据读写。
+
+### 3.2.3 Supabase Auth Baseline
+
+Step 2.4A 已接入 Supabase Auth 基线：
+
+- 使用 `src/lib/supabase/server.ts` 创建服务端 Supabase client。
+- 使用 `src/lib/auth/session.ts` 读取当前用户。
+- 使用 `src/app/auth/actions.ts` 执行登录、注册和退出。
+- 使用 `src/app/auth/confirm/route.ts` 处理邮箱确认回调。
+- `/login` 支持登录和注册模式，并通过安全的 `next` 参数返回原页面。
+
+访问规则当前实现：
+
+- 未登录用户可以访问首页、每日工作台、成长记录、洞察报告、个人说明书、设置页和登录页。
+- 未登录用户在每日工作台看到写入拦截提示。
+- 每日工作台里的写入入口在未登录状态下跳转 `/login?next=/daily&message=login_required`。
+- 已登录用户在侧边栏显示邮箱，并可退出登录。
+
+当前限制：
+
+- 真实业务写入尚未实现，因此写入拦截目前只覆盖每日工作台的占位入口。
+- Row Level Security 尚未配置。
+- 登录后的用户数据隔离需要后续在查询层和 RLS 中同时落实。
+- 邮箱确认回调需要 Supabase Dashboard 允许 `http://localhost:3001/auth/confirm` 作为 Redirect URL。
 
 ### 3.2.2 Drizzle Migration Baseline
 
