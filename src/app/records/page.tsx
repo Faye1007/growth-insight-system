@@ -1,35 +1,390 @@
-const recordTypes = [
-  "任务完成记录",
-  "习惯打卡记录",
-  "日程记录",
-  "事件记录",
-  "灵感记录",
-];
+import Link from "next/link";
+import { and, desc, eq, isNull } from "drizzle-orm";
+import {
+  CalendarDays,
+  CheckCircle2,
+  ClipboardList,
+  Lightbulb,
+  NotebookPen,
+  Repeat2,
+} from "lucide-react";
 
-export default function RecordsPage() {
+import { db } from "@/db";
+import {
+  habitCheckins as habitCheckinTable,
+  habits as habitTable,
+  ideas as ideaTable,
+  lifeEvents as lifeEventTable,
+  scheduleItems as scheduleItemTable,
+  tasks as taskTable,
+} from "@/db/schema";
+import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
+import { getCurrentUser } from "@/lib/auth/session";
+import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
+
+const recentLimitPerType = 12;
+const timelineLimit = 40;
+
+const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+type TimelineRecord = {
+  id: string;
+  kind: "task" | "habit" | "schedule" | "event" | "idea";
+  label: string;
+  title: string;
+  description: string;
+  occurredAt: Date;
+  dateText: string;
+  meta: string[];
+  tone: "tone-lavender" | "tone-sage" | "tone-mist" | "tone-clay";
+  Icon: typeof ClipboardList;
+};
+
+const recordKindLabels: Record<TimelineRecord["kind"], string> = {
+  task: "任务",
+  habit: "习惯",
+  schedule: "日程",
+  event: "事件",
+  idea: "灵感",
+};
+
+const ideaStatusLabels: Record<string, string> = {
+  to_review: "待处理",
+  converted_to_task: "已转任务",
+  shelved: "已搁置",
+  abandoned: "已放弃",
+};
+
+const habitCheckinStatusLabels: Record<string, string> = {
+  checked: "已打卡",
+  skipped: "已取消",
+};
+
+function formatDateTime(value: Date) {
+  return dateTimeFormatter.format(value);
+}
+
+function formatDateValue(value: string) {
+  return dateFormatter.format(new Date(`${value}T00:00:00+08:00`));
+}
+
+function formatScheduleTimeRange(startTime: string | null, endTime: string | null) {
+  const start = startTime ? startTime.slice(0, 5) : "未设置时间";
+
+  return endTime ? `${start}-${endTime.slice(0, 5)}` : start;
+}
+
+function getPreview(content: string) {
+  return content.length > 120 ? `${content.slice(0, 120)}...` : content;
+}
+
+async function getRecentTasks(userId: string): Promise<TimelineRecord[]> {
+  const rows = await db
+    .select({
+      id: taskTable.id,
+      title: taskTable.title,
+      category: taskTable.category,
+      status: taskTable.status,
+      taskDate: taskTable.taskDate,
+      isPostponed: taskTable.isPostponed,
+      createdAt: taskTable.createdAt,
+    })
+    .from(taskTable)
+    .where(and(eq(taskTable.userId, userId), isNull(taskTable.deletedAt)))
+    .orderBy(desc(taskTable.createdAt))
+    .limit(recentLimitPerType);
+
+  return rows.map((task) => ({
+    id: `task-${task.id}`,
+    kind: "task",
+    label: "任务记录",
+    title: task.title,
+    description: `任务日期：${formatDateValue(task.taskDate)}`,
+    occurredAt: task.createdAt,
+    dateText: formatDateTime(task.createdAt),
+    meta: [
+      getTaskCategoryLabel(task.category),
+      getTaskStatusLabel(task.status),
+      task.isPostponed ? "延期任务" : "",
+    ].filter(Boolean),
+    tone: "tone-lavender",
+    Icon: ClipboardList,
+  }));
+}
+
+async function getRecentHabitCheckins(userId: string): Promise<TimelineRecord[]> {
+  const rows = await db
+    .select({
+      id: habitCheckinTable.id,
+      habitName: habitTable.name,
+      checkinDate: habitCheckinTable.checkinDate,
+      status: habitCheckinTable.status,
+      createdAt: habitCheckinTable.createdAt,
+    })
+    .from(habitCheckinTable)
+    .innerJoin(habitTable, eq(habitCheckinTable.habitId, habitTable.id))
+    .where(
+      and(
+        eq(habitCheckinTable.userId, userId),
+        eq(habitTable.userId, userId),
+        isNull(habitTable.deletedAt),
+      ),
+    )
+    .orderBy(desc(habitCheckinTable.createdAt))
+    .limit(recentLimitPerType);
+
+  return rows.map((checkin) => ({
+    id: `habit-${checkin.id}`,
+    kind: "habit",
+    label: "习惯打卡",
+    title: checkin.habitName,
+    description: `打卡日期：${formatDateValue(checkin.checkinDate)}`,
+    occurredAt: checkin.createdAt,
+    dateText: formatDateTime(checkin.createdAt),
+    meta: [habitCheckinStatusLabels[checkin.status] ?? checkin.status],
+    tone: "tone-sage",
+    Icon: Repeat2,
+  }));
+}
+
+async function getRecentScheduleItems(userId: string): Promise<TimelineRecord[]> {
+  const rows = await db
+    .select({
+      id: scheduleItemTable.id,
+      title: scheduleItemTable.title,
+      category: scheduleItemTable.category,
+      scheduleDate: scheduleItemTable.scheduleDate,
+      startTime: scheduleItemTable.startTime,
+      endTime: scheduleItemTable.endTime,
+      createdAt: scheduleItemTable.createdAt,
+    })
+    .from(scheduleItemTable)
+    .where(and(eq(scheduleItemTable.userId, userId), isNull(scheduleItemTable.deletedAt)))
+    .orderBy(desc(scheduleItemTable.createdAt))
+    .limit(recentLimitPerType);
+
+  return rows.map((item) => ({
+    id: `schedule-${item.id}`,
+    kind: "schedule",
+    label: "日程记录",
+    title: item.title,
+    description: `${formatDateValue(item.scheduleDate)} · ${formatScheduleTimeRange(item.startTime, item.endTime)}`,
+    occurredAt: item.createdAt,
+    dateText: formatDateTime(item.createdAt),
+    meta: [getTaskCategoryLabel(item.category)],
+    tone: "tone-clay",
+    Icon: CalendarDays,
+  }));
+}
+
+async function getRecentLifeEvents(userId: string): Promise<TimelineRecord[]> {
+  const rows = await db
+    .select({
+      id: lifeEventTable.id,
+      content: lifeEventTable.content,
+      eventDate: lifeEventTable.eventDate,
+      emotionTags: lifeEventTable.emotionTags,
+      tags: lifeEventTable.tags,
+      createdAt: lifeEventTable.createdAt,
+    })
+    .from(lifeEventTable)
+    .where(and(eq(lifeEventTable.userId, userId), isNull(lifeEventTable.deletedAt)))
+    .orderBy(desc(lifeEventTable.createdAt))
+    .limit(recentLimitPerType);
+
+  return rows.map((event) => ({
+    id: `event-${event.id}`,
+    kind: "event",
+    label: "事件记录",
+    title: getPreview(event.content),
+    description: `事件日期：${formatDateValue(event.eventDate)}`,
+    occurredAt: event.createdAt,
+    dateText: formatDateTime(event.createdAt),
+    meta: [...event.emotionTags, ...event.tags].slice(0, 6),
+    tone: "tone-mist",
+    Icon: NotebookPen,
+  }));
+}
+
+async function getRecentIdeas(userId: string): Promise<TimelineRecord[]> {
+  const rows = await db
+    .select({
+      id: ideaTable.id,
+      content: ideaTable.content,
+      ideaDate: ideaTable.ideaDate,
+      status: ideaTable.status,
+      createdAt: ideaTable.createdAt,
+    })
+    .from(ideaTable)
+    .where(and(eq(ideaTable.userId, userId), isNull(ideaTable.deletedAt)))
+    .orderBy(desc(ideaTable.createdAt))
+    .limit(recentLimitPerType);
+
+  return rows.map((idea) => ({
+    id: `idea-${idea.id}`,
+    kind: "idea",
+    label: "灵感记录",
+    title: getPreview(idea.content),
+    description: `记录日期：${formatDateValue(idea.ideaDate)}`,
+    occurredAt: idea.createdAt,
+    dateText: formatDateTime(idea.createdAt),
+    meta: [ideaStatusLabels[idea.status] ?? idea.status],
+    tone: "tone-lavender",
+    Icon: Lightbulb,
+  }));
+}
+
+async function getRecentTimelineRecords(userId: string) {
+  const recordGroups = await Promise.all([
+    getRecentTasks(userId),
+    getRecentHabitCheckins(userId),
+    getRecentScheduleItems(userId),
+    getRecentLifeEvents(userId),
+    getRecentIdeas(userId),
+  ]);
+
+  return recordGroups
+    .flat()
+    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+    .slice(0, timelineLimit);
+}
+
+function buildTypeCounts(records: TimelineRecord[]) {
+  return Object.entries(recordKindLabels).map(([kind, label]) => ({
+    kind,
+    label,
+    count: records.filter((record) => record.kind === kind).length,
+  }));
+}
+
+export default async function RecordsPage() {
+  const user = await getCurrentUser();
+  const isLoggedIn = Boolean(user);
+  const loginPath = buildLoginPath({ next: "/records", message: loginRequiredMessage });
+  const records = user ? await getRecentTimelineRecords(user.id) : [];
+  const typeCounts = buildTypeCounts(records);
+
   return (
     <div className="page-stack">
       <header className="page-header">
-        <p className="page-kicker">成长记录</p>
-        <h1 className="page-title">长期生活数据沉淀</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="page-kicker">成长记录</p>
+            <h1 className="page-title">长期生活数据沉淀</h1>
+          </div>
+          <span className="status-pill w-fit">统一时间线</span>
+        </div>
         <p className="page-description">
-          后续会用统一时间线展示任务、习惯、日程和随手记录。
+          按创建时间倒序汇总任务、习惯打卡、日程、事件和灵感。第一版先做近期时间线，筛选留到下一步。
         </p>
       </header>
 
-      <section className="panel-card">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="section-heading">近期记录</h2>
-          <span className="status-pill">展示数据</span>
-        </div>
-        <div className="panel-list">
-          {recordTypes.map((type) => (
-            <div key={type} className="list-row">
-              <span className="list-label">{type}</span>
-              <span className="status-pill">待接入</span>
+      {!isLoggedIn ? (
+        <section className="panel-card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="section-heading">登录后查看真实记录</h2>
+              <p className="body-copy mt-2">
+                未登录时可以浏览页面结构；登录后会显示你在每日工作台创建的近期数据。
+              </p>
             </div>
+            <Link className="soft-button w-full sm:w-auto" href={loginPath}>
+              登录 / 注册
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
+      <section aria-labelledby="records-overview" className="panel-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="page-kicker">近期概览</p>
+            <h2 id="records-overview" className="section-heading mt-1">
+              已载入 {records.length} 条记录
+            </h2>
+          </div>
+          <span className="status-pill w-fit">程序查询，不调用 AI</span>
+        </div>
+        <div className="record-summary-grid mt-5">
+          {typeCounts.map((item) => (
+            <article key={item.kind} className="field-tile">
+              <span>{item.label}</span>
+              <strong>{item.count}</strong>
+            </article>
           ))}
         </div>
+      </section>
+
+      <section aria-labelledby="records-timeline" className="panel-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="page-kicker">时间线</p>
+            <h2 id="records-timeline" className="section-heading mt-1">
+              近期记录
+            </h2>
+          </div>
+          <span className="status-pill w-fit">按创建时间倒序</span>
+        </div>
+
+        {records.length > 0 ? (
+          <div className="record-timeline mt-5">
+            {records.map((record) => {
+              const Icon = record.Icon;
+
+              return (
+                <article key={record.id} className={`record-timeline-item ${record.tone}`}>
+                  <div className="nav-icon">
+                    <Icon aria-hidden="true" className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="record-item-heading">
+                      <span className="status-pill">{record.label}</span>
+                      <time className="body-copy" dateTime={record.occurredAt.toISOString()}>
+                        {record.dateText}
+                      </time>
+                    </div>
+                    <h3 className="list-label mt-3">{record.title}</h3>
+                    <p className="body-copy mt-1">{record.description}</p>
+                    {record.meta.length > 0 ? (
+                      <div className="overview-detail-row mt-3">
+                        {record.meta.map((item) => (
+                          <span key={item} className="status-pill">
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="empty-state mt-5">
+            <span className="empty-icon">
+              <CheckCircle2 aria-hidden="true" className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="list-label">暂无近期记录</p>
+              <p className="body-copy mt-1">
+                在每日工作台创建任务、打卡习惯、记录日程、事件或灵感后，会出现在这里。
+              </p>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );
