@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import {
   CalendarDays,
   CheckCircle2,
@@ -13,10 +13,15 @@ import {
 import {
   createHabitAction,
   createTaskAction,
+  updateHabitCheckinAction,
   updateTaskStatusAction,
 } from "@/app/daily/actions";
 import { db } from "@/db";
-import { habits as habitTable, tasks as taskTable } from "@/db/schema";
+import {
+  habitCheckins as habitCheckinTable,
+  habits as habitTable,
+  tasks as taskTable,
+} from "@/db/schema";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import {
@@ -34,6 +39,7 @@ type DailyPageProps = {
     taskUpdated?: string;
     habitCreated?: string;
     habitError?: string;
+    habitUpdated?: string;
   }>;
 };
 
@@ -66,6 +72,13 @@ const taskUpdatedText: Record<string, string> = {
 
 const habitErrorText: Record<string, string> = {
   missing_name: "请先填写习惯名称，再保存。",
+  invalid_checkin: "习惯打卡操作无效，请刷新页面后重试。",
+  missing_habit: "没有找到这个启用习惯，请刷新页面后重试。",
+};
+
+const habitUpdatedText: Record<string, string> = {
+  checked: "今日习惯已打卡。",
+  skipped: "今日打卡已取消。",
 };
 
 function getBeijingDateValue(date = new Date()) {
@@ -85,34 +98,42 @@ function getBeijingDateAfter(days: number, date = new Date()) {
   return getBeijingDateValue(targetDate);
 }
 
-function buildOverviewCards(taskCount: number, completedTaskCount: number, activeHabitCount: number) {
+function buildOverviewCards(
+  taskCount: number,
+  completedTaskCount: number,
+  activeHabitCount: number,
+  checkedHabitCount: number,
+) {
   const completionRate = taskCount > 0 ? Math.round((completedTaskCount / taskCount) * 100) : 0;
 
   return [
-  {
-    label: "今日任务",
-    value: `${completionRate}%`,
-    note: taskCount > 0 ? `${completedTaskCount}/${taskCount} 项已完成。` : "暂无待办，可以先创建今天的第一项任务。",
-    tone: "tone-lavender",
-  },
-  {
-    label: "习惯打卡",
-    value: `0/${activeHabitCount}`,
-    note: activeHabitCount > 0 ? "打卡功能会在 Step 3.5 接入。" : "暂无启用习惯，可以先添加一个长期习惯。",
-    tone: "tone-sage",
-  },
-  {
-    label: "今日日程",
-    value: "0",
-    note: "暂无固定事项，后续支持手动记录。",
-    tone: "tone-mist",
-  },
-  {
-    label: "随手记录",
-    value: "0",
-    note: "暂无事件或灵感，后续支持快速记录。",
-    tone: "tone-clay",
-  },
+    {
+      label: "今日任务",
+      value: `${completionRate}%`,
+      note:
+        taskCount > 0
+          ? `${completedTaskCount}/${taskCount} 项已完成。`
+          : "暂无待办，可以先创建今天的第一项任务。",
+      tone: "tone-lavender",
+    },
+    {
+      label: "习惯打卡",
+      value: `${checkedHabitCount}/${activeHabitCount}`,
+      note: activeHabitCount > 0 ? "今日已完成的习惯打卡数。" : "暂无启用习惯，可以先添加一个长期习惯。",
+      tone: "tone-sage",
+    },
+    {
+      label: "今日日程",
+      value: "0",
+      note: "暂无固定事项，后续支持手动记录。",
+      tone: "tone-mist",
+    },
+    {
+      label: "随手记录",
+      value: "0",
+      note: "暂无事件或灵感，后续支持快速记录。",
+      tone: "tone-clay",
+    },
   ];
 }
 
@@ -243,6 +264,56 @@ async function getActiveHabits(userId: string) {
 }
 
 type TodayTask = Awaited<ReturnType<typeof getTodayTasks>>[number];
+type ActiveHabit = Awaited<ReturnType<typeof getActiveHabits>>[number];
+
+async function getHabitCheckins(userId: string, habitIds: string[]) {
+  if (habitIds.length === 0) {
+    return [];
+  }
+
+  return db
+    .select({
+      habitId: habitCheckinTable.habitId,
+      checkinDate: habitCheckinTable.checkinDate,
+      status: habitCheckinTable.status,
+    })
+    .from(habitCheckinTable)
+    .where(
+      and(
+        eq(habitCheckinTable.userId, userId),
+        inArray(habitCheckinTable.habitId, habitIds),
+      ),
+    )
+    .orderBy(asc(habitCheckinTable.checkinDate));
+}
+
+type HabitCheckin = Awaited<ReturnType<typeof getHabitCheckins>>[number];
+
+function getHabitStats(habit: ActiveHabit, checkins: HabitCheckin[], todayDate: string) {
+  const habitCheckins = checkins.filter((checkin) => checkin.habitId === habit.id);
+  const checkedDates = new Set(
+    habitCheckins
+      .filter((checkin) => checkin.status === "checked")
+      .map((checkin) => checkin.checkinDate),
+  );
+  const todayCheckin = habitCheckins.find((checkin) => checkin.checkinDate === todayDate);
+  let streakCount = 0;
+
+  if (checkedDates.has(todayDate)) {
+    let cursorDate = todayDate;
+
+    while (checkedDates.has(cursorDate)) {
+      streakCount += 1;
+      cursorDate = getBeijingDateAfter(-1, new Date(`${cursorDate}T00:00:00+08:00`));
+    }
+  }
+
+  return {
+    isCheckedToday: todayCheckin?.status === "checked",
+    totalCount: checkedDates.size,
+    streakCount,
+  };
+}
 
 function TaskStatusAction({
   task,
@@ -294,6 +365,24 @@ function PostponeTaskAction({
   );
 }
 
+function HabitCheckinAction({
+  habit,
+  isCheckedToday,
+}: {
+  habit: ActiveHabit;
+  isCheckedToday: boolean;
+}) {
+  return (
+    <form action={updateHabitCheckinAction}>
+      <input type="hidden" name="habitId" value={habit.id} />
+      <input type="hidden" name="intent" value={isCheckedToday ? "cancel" : "check"} />
+      <button className={isCheckedToday ? "quiet-button" : "soft-button"} type="submit">
+        {isCheckedToday ? "取消打卡" : "今日打卡"}
+      </button>
+    </form>
+  );
+}
+
 export default async function DailyPage({ searchParams }: DailyPageProps) {
   const params = await searchParams;
   const user = await getCurrentUser();
@@ -306,13 +395,33 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const defaultPostponedDate = getBeijingDateAfter(1, now);
   const todayTasks = user ? await getTodayTasks(user.id, todayDate) : [];
   const activeHabits = user ? await getActiveHabits(user.id) : [];
+  const habitCheckins = user
+    ? await getHabitCheckins(
+        user.id,
+        activeHabits.map((habit) => habit.id),
+      )
+    : [];
+  const habitStatsById = new Map(
+    activeHabits.map((habit) => [habit.id, getHabitStats(habit, habitCheckins, todayDate)]),
+  );
   const completedTaskCount = todayTasks.filter((task) => task.status === "completed").length;
-  const overviewCards = buildOverviewCards(todayTasks.length, completedTaskCount, activeHabits.length);
+  const checkedHabitCount = activeHabits.filter(
+    (habit) => habitStatsById.get(habit.id)?.isCheckedToday,
+  ).length;
+  const overviewCards = buildOverviewCards(
+    todayTasks.length,
+    completedTaskCount,
+    activeHabits.length,
+    checkedHabitCount,
+  );
   const taskCreated = params?.taskCreated === "1";
   const taskUpdated = params?.taskUpdated ? taskUpdatedText[params.taskUpdated] ?? "任务状态已更新。" : "";
   const taskError = params?.taskError ? taskErrorText[params.taskError] ?? "任务保存失败，请稍后重试。" : "";
   const habitCreated = params?.habitCreated === "1";
   const habitError = params?.habitError ? habitErrorText[params.habitError] ?? "习惯保存失败，请稍后重试。" : "";
+  const habitUpdated = params?.habitUpdated
+    ? habitUpdatedText[params.habitUpdated] ?? "习惯打卡已更新。"
+    : "";
   const tasksByStatus = taskStatusOrder.map((status) => ({
     status,
     tasks: todayTasks.filter((task) => task.status === status),
@@ -528,6 +637,9 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                 {habitCreated ? (
                   <p className="auth-message task-message">习惯已保存，并已关联到当前账号。</p>
                 ) : null}
+                {habitUpdated ? (
+                  <p className="auth-message task-message">{habitUpdated}</p>
+                ) : null}
 
                 <form action={createHabitAction} className="task-form">
                   <label className="form-field">
@@ -572,17 +684,34 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
 
                 {activeHabits.length > 0 ? (
                   <div className="task-list">
-                    {activeHabits.map((habit) => (
-                      <article key={habit.id} className="task-list-item">
-                        <div className="min-w-0">
-                          <p className="list-label">{habit.name}</p>
-                          <p className="body-copy mt-1">
-                            {getTaskCategoryLabel(habit.category)} · {habit.startDate ?? "未设置开始日期"}
-                          </p>
-                        </div>
-                        <span className="status-pill">启用中</span>
-                      </article>
-                    ))}
+                    {activeHabits.map((habit) => {
+                      const stats = habitStatsById.get(habit.id) ?? {
+                        isCheckedToday: false,
+                        totalCount: 0,
+                        streakCount: 0,
+                      };
+
+                      return (
+                        <article key={habit.id} className="task-list-item">
+                          <div className="min-w-0">
+                            <p className="list-label">{habit.name}</p>
+                            <p className="body-copy mt-1">
+                              {getTaskCategoryLabel(habit.category)} · {habit.startDate ?? "未设置开始日期"}
+                            </p>
+                            <div className="habit-stat-row mt-3">
+                              <span className="status-pill">
+                                {stats.isCheckedToday ? "今日已完成" : "今日未完成"}
+                              </span>
+                              <span className="status-pill">累计 {stats.totalCount} 次</span>
+                              <span className="status-pill">连续 {stats.streakCount} 天</span>
+                            </div>
+                          </div>
+                          <div className="task-actions">
+                            <HabitCheckinAction habit={habit} isCheckedToday={stats.isCheckedToday} />
+                          </div>
+                        </article>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="empty-state">

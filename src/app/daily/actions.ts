@@ -2,10 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { habits, tasks } from "@/db/schema";
+import { habitCheckins, habits, tasks } from "@/db/schema";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { isTaskCategory, isTaskStatus } from "@/lib/tasks/options";
 
@@ -142,4 +142,54 @@ export async function createHabitAction(formData: FormData) {
 
   revalidatePath("/daily");
   redirect("/daily?habitCreated=1#habits");
+}
+
+export async function updateHabitCheckinAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const habitId = getStringValue(formData, "habitId");
+  const intent = getStringValue(formData, "intent");
+  const todayDate = getBeijingDateValue();
+
+  if (!habitId || (intent !== "check" && intent !== "cancel")) {
+    redirect("/daily?habitError=invalid_checkin#habits");
+  }
+
+  const [existingHabit] = await db
+    .select({ id: habits.id })
+    .from(habits)
+    .where(
+      and(
+        eq(habits.id, habitId),
+        eq(habits.userId, user.id),
+        eq(habits.isActive, true),
+        isNull(habits.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!existingHabit) {
+    redirect("/daily?habitError=missing_habit#habits");
+  }
+
+  const status = intent === "check" ? "checked" : "skipped";
+
+  await db
+    .insert(habitCheckins)
+    .values({
+      userId: user.id,
+      habitId,
+      checkinDate: todayDate,
+      status,
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [habitCheckins.habitId, habitCheckins.checkinDate],
+      set: {
+        status,
+        updatedAt: new Date(),
+      },
+    });
+
+  revalidatePath("/daily");
+  redirect(`/daily?habitUpdated=${status}#habits`);
 }

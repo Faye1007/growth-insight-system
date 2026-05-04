@@ -402,6 +402,12 @@ select {
     gap: 0.5rem;
   }
 
+  .habit-stat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
   .postpone-form {
     display: flex;
     flex-wrap: wrap;

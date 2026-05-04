@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 3.4：习惯创建。
+项目已完成 Step 3.5：习惯打卡。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新和习惯创建能力稳定。
-- 准备进入 Step 3.5：实现习惯打卡。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建和习惯打卡能力稳定。
+- 准备进入 Step 3.6：实现今日日程记录。
 - 后续逐步接入真实业务数据读写、Row Level Security、基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -425,19 +425,55 @@
 
 尚未完成或暂缓：
 
-- 习惯打卡在 Step 3.5 实现。
 - Row Level Security 尚未配置。
-- 当前只接入任务创建、任务状态更新和习惯创建，日程、随手记录和复盘仍未接真实写入。
+- 当前只接入任务创建、任务状态更新、习惯创建和习惯打卡，日程、随手记录和复盘仍未接真实写入。
+
+### Step 3.5：实现习惯打卡
+
+已完成内容：
+
+- 在每日工作台启用习惯列表中新增今日打卡按钮。
+- 支持取消今日打卡。
+- 同一习惯同一天通过 `habit_checkins_habit_date_unique` 唯一约束做 upsert，不生成重复有效打卡记录。
+- 今日打卡写入或更新为 `habit_checkins.status = checked`。
+- 取消今日打卡写入或更新为 `habit_checkins.status = skipped`。
+- 习惯打卡 Server Action 写入前必须通过 `requireCurrentUser()` 获取当前登录用户。
+- 习惯打卡写入前会校验习惯属于当前用户、处于启用状态且未软删除，避免操作其他用户或停用习惯。
+- 每日工作台会读取当前登录用户启用习惯的打卡记录，并显示今日是否完成、累计打卡次数和连续打卡天数。
+- 今日概览中的习惯卡从 `0/启用习惯数` 升级为真实 `今日已完成/启用习惯数`。
+- 连续天数从北京时间今日向前逐日计算；今日未打卡时连续天数为 0，漏打一天后连续天数断掉。
+- 本 Step 复用已有 `habit_checkins` 表字段和唯一索引，没有修改数据库 schema，也没有执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `curl -I http://localhost:3001/daily` 返回 `200`。
+- 本地开发服务已启动在 `http://localhost:3001/daily`。
+- Faye 已要求更新文档并提交 Git，视为 Step 3.5 验收通过。
+
+尚未完成或暂缓：
+
+- Row Level Security 尚未配置。
+- 当前只接入任务创建、任务状态更新、习惯创建和习惯打卡，日程、随手记录和复盘仍未接真实写入。
 
 ## Not Started
 
 - Row Level Security
-- 习惯打卡
 - 日程、随手记录和复盘的真实业务数据读写
 - AI provider adapter
 
 ## Next Step Candidate
 
-Step 3.5：实现习惯打卡。
+Step 3.6：实现今日日程记录。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
