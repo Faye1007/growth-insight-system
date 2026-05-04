@@ -12,6 +12,7 @@ import {
 
 import {
   createHabitAction,
+  createScheduleItemAction,
   createTaskAction,
   updateHabitCheckinAction,
   updateTaskStatusAction,
@@ -20,6 +21,7 @@ import { db } from "@/db";
 import {
   habitCheckins as habitCheckinTable,
   habits as habitTable,
+  scheduleItems as scheduleItemTable,
   tasks as taskTable,
 } from "@/db/schema";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
@@ -40,6 +42,8 @@ type DailyPageProps = {
     habitCreated?: string;
     habitError?: string;
     habitUpdated?: string;
+    scheduleCreated?: string;
+    scheduleError?: string;
   }>;
 };
 
@@ -81,6 +85,12 @@ const habitUpdatedText: Record<string, string> = {
   skipped: "今日打卡已取消。",
 };
 
+const scheduleErrorText: Record<string, string> = {
+  missing_title: "请先填写日程标题，再保存。",
+  missing_time: "请先选择日程时间，再保存。",
+  invalid_time: "日程时间格式无效，请重新选择时间。",
+};
+
 function getBeijingDateValue(date = new Date()) {
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Shanghai",
@@ -103,6 +113,7 @@ function buildOverviewCards(
   completedTaskCount: number,
   activeHabitCount: number,
   checkedHabitCount: number,
+  scheduleCount: number,
 ) {
   const completionRate = taskCount > 0 ? Math.round((completedTaskCount / taskCount) * 100) : 0;
 
@@ -124,8 +135,8 @@ function buildOverviewCards(
     },
     {
       label: "今日日程",
-      value: "0",
-      note: "暂无固定事项，后续支持手动记录。",
+      value: `${scheduleCount}`,
+      note: scheduleCount > 0 ? "今日已记录的固定事项数量。" : "暂无固定事项，可以先记录今天的第一个日程。",
       tone: "tone-mist",
     },
     {
@@ -170,7 +181,7 @@ const dailySections = [
     eyebrow: "时间",
     description: "用于记录今天的固定事项、开始时间和分类，先做单日记录。",
     emptyTitle: "暂无今日日程",
-    emptyDescription: "后续会按开始时间排序，没有时间的事项排在后面。",
+    emptyDescription: "记录日程后，会按开始时间从早到晚显示。",
     actionLabel: "记录日程",
     Icon: CalendarDays,
     EmptyIcon: CalendarDays,
@@ -265,6 +276,28 @@ async function getActiveHabits(userId: string) {
 
 type TodayTask = Awaited<ReturnType<typeof getTodayTasks>>[number];
 type ActiveHabit = Awaited<ReturnType<typeof getActiveHabits>>[number];
+
+async function getTodayScheduleItems(userId: string, todayDate: string) {
+  return db
+    .select({
+      id: scheduleItemTable.id,
+      title: scheduleItemTable.title,
+      category: scheduleItemTable.category,
+      scheduleDate: scheduleItemTable.scheduleDate,
+      startTime: scheduleItemTable.startTime,
+      endTime: scheduleItemTable.endTime,
+      createdAt: scheduleItemTable.createdAt,
+    })
+    .from(scheduleItemTable)
+    .where(
+      and(
+        eq(scheduleItemTable.userId, userId),
+        eq(scheduleItemTable.scheduleDate, todayDate),
+        isNull(scheduleItemTable.deletedAt),
+      ),
+    )
+    .orderBy(asc(scheduleItemTable.startTime), asc(scheduleItemTable.createdAt));
+}
 
 async function getHabitCheckins(userId: string, habitIds: string[]) {
   if (habitIds.length === 0) {
@@ -383,6 +416,12 @@ function HabitCheckinAction({
   );
 }
 
+function formatScheduleTimeRange(startTime: string | null, endTime: string | null) {
+  const start = startTime ? startTime.slice(0, 5) : "未设置时间";
+
+  return endTime ? `${start}-${endTime.slice(0, 5)}` : start;
+}
+
 export default async function DailyPage({ searchParams }: DailyPageProps) {
   const params = await searchParams;
   const user = await getCurrentUser();
@@ -395,6 +434,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const defaultPostponedDate = getBeijingDateAfter(1, now);
   const todayTasks = user ? await getTodayTasks(user.id, todayDate) : [];
   const activeHabits = user ? await getActiveHabits(user.id) : [];
+  const todayScheduleItems = user ? await getTodayScheduleItems(user.id, todayDate) : [];
   const habitCheckins = user
     ? await getHabitCheckins(
         user.id,
@@ -413,6 +453,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     completedTaskCount,
     activeHabits.length,
     checkedHabitCount,
+    todayScheduleItems.length,
   );
   const taskCreated = params?.taskCreated === "1";
   const taskUpdated = params?.taskUpdated ? taskUpdatedText[params.taskUpdated] ?? "任务状态已更新。" : "";
@@ -421,6 +462,10 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const habitError = params?.habitError ? habitErrorText[params.habitError] ?? "习惯保存失败，请稍后重试。" : "";
   const habitUpdated = params?.habitUpdated
     ? habitUpdatedText[params.habitUpdated] ?? "习惯打卡已更新。"
+    : "";
+  const scheduleCreated = params?.scheduleCreated === "1";
+  const scheduleError = params?.scheduleError
+    ? scheduleErrorText[params.scheduleError] ?? "日程保存失败，请稍后重试。"
     : "";
   const tasksByStatus = taskStatusOrder.map((status) => ({
     status,
@@ -481,7 +526,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
               今日基础状态
             </h2>
           </div>
-          <span className="status-pill w-fit">待接入真实统计</span>
+          <span className="status-pill w-fit">部分真实统计</span>
         </div>
         <div className="daily-summary-grid mt-5">
           {overviewCards.map((card) => (
@@ -500,6 +545,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
           const EmptyIcon = section.EmptyIcon;
           const isTaskSection = section.id === "tasks";
           const isHabitSection = section.id === "habits";
+          const isScheduleSection = section.id === "schedule";
 
           return (
           <article
@@ -518,7 +564,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                   <p className="body-copy mt-2">{section.description}</p>
                 </div>
               </div>
-              {(isTaskSection || isHabitSection) && isLoggedIn ? null : (
+              {(isTaskSection || isHabitSection || isScheduleSection) && isLoggedIn ? null : (
                 <WriteAction isLoggedIn={isLoggedIn} label={section.actionLabel} loginPath={loginPath} />
               )}
             </div>
@@ -712,6 +758,87 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                         </article>
                       );
                     })}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <span className="empty-icon">
+                      <EmptyIcon aria-hidden="true" className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="list-label">{section.emptyTitle}</p>
+                      <p className="body-copy mt-1">{section.emptyDescription}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : isScheduleSection && isLoggedIn ? (
+              <div className="mt-5 grid gap-5">
+                {scheduleError ? (
+                  <p className="auth-message auth-message-error task-message">{scheduleError}</p>
+                ) : null}
+                {scheduleCreated ? (
+                  <p className="auth-message task-message">日程已保存，并已关联到当前账号。</p>
+                ) : null}
+
+                <form action={createScheduleItemAction} className="task-form">
+                  <label className="form-field">
+                    <span>日程标题</span>
+                    <input
+                      name="title"
+                      type="text"
+                      maxLength={120}
+                      placeholder="例如：英语课 / 咨询 / 项目复盘"
+                      required
+                    />
+                  </label>
+
+                  <div className="task-form-grid">
+                    <label className="form-field">
+                      <span>分类</span>
+                      <select name="category" defaultValue="work">
+                        {taskCategories.map((category) => (
+                          <option key={category.value} value={category.value}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="form-field">
+                      <span>日期</span>
+                      <input name="scheduleDate" type="date" defaultValue={todayDate} required />
+                    </label>
+
+                    <label className="form-field">
+                      <span>开始时间</span>
+                      <input name="startTime" type="time" required />
+                    </label>
+
+                    <label className="form-field">
+                      <span>结束时间</span>
+                      <input name="endTime" type="time" />
+                    </label>
+                  </div>
+
+                  <button className="soft-button w-full sm:w-fit" type="submit">
+                    <Plus aria-hidden="true" className="h-4 w-4" />
+                    保存日程
+                  </button>
+                </form>
+
+                {todayScheduleItems.length > 0 ? (
+                  <div className="task-list">
+                    {todayScheduleItems.map((item) => (
+                      <article key={item.id} className="task-list-item">
+                        <div className="min-w-0">
+                          <p className="list-label">{item.title}</p>
+                          <p className="body-copy mt-1">
+                            {formatScheduleTimeRange(item.startTime, item.endTime)} · {getTaskCategoryLabel(item.category)}
+                          </p>
+                        </div>
+                        <span className="status-pill">{item.scheduleDate}</span>
+                      </article>
+                    ))}
                   </div>
                 ) : (
                   <div className="empty-state">

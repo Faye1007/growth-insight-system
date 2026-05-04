@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 3.5：习惯打卡。
+项目已完成 Step 3.6：今日日程记录。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建和习惯打卡能力稳定。
-- 准备进入 Step 3.6：实现今日日程记录。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡和今日日程记录能力稳定。
+- 准备进入 Step 3.7：实现随手记录。
 - 后续逐步接入真实业务数据读写、Row Level Security、基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -426,7 +426,47 @@
 尚未完成或暂缓：
 
 - Row Level Security 尚未配置。
-- 当前只接入任务创建、任务状态更新、习惯创建和习惯打卡，日程、随手记录和复盘仍未接真实写入。
+- 当前只接入任务创建、任务状态更新、习惯创建、习惯打卡和今日日程记录，随手记录和复盘仍未接真实写入。
+
+### Step 3.6：实现今日日程记录
+
+已完成内容：
+
+- 在每日工作台今日日程分区新增日程创建表单。
+- 日程最少包含标题、分类、日期和开始时间。
+- 支持可选结束时间。
+- 日程分类复用任务分类：学习、工作、生活、健康、关系和其他。
+- 默认日期按北京时间落在今天。
+- 新增日程保存 Server Action，写入前必须通过 `requireCurrentUser()` 获取当前登录用户。
+- 保存后的日程会关联到当前用户，并写入 `schedule_items.user_id`。
+- 每日工作台会读取当前登录用户今天的日程，并显示在今日日程列表。
+- 今日日程列表按开始时间和创建时间排序。
+- 今日概览中的日程卡会读取真实今日日程数量。
+- 空标题或缺少开始时间提交会显示清晰提示。
+- 非今日日期的日程不会出现在今日列表。
+- 未登录用户仍保持登录拦截，不允许写入日程。
+- 本 Step 复用已有 `schedule_items` 表字段，没有修改数据库 schema，也没有执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `curl -I http://localhost:3001/daily` 返回 `200`。
+- 本地开发服务已启动在 `http://localhost:3001/daily`。
+- Faye 已要求更新文档并提交 Git，视为 Step 3.6 验收通过。
+
+尚未完成或暂缓：
+
+- Row Level Security 尚未配置。
+- 当前只接入任务创建、任务状态更新、习惯创建、习惯打卡和今日日程记录，随手记录和复盘仍未接真实写入。
 
 ### Step 3.5：实现习惯打卡
 
@@ -469,11 +509,11 @@
 ## Not Started
 
 - Row Level Security
-- 日程、随手记录和复盘的真实业务数据读写
+- 随手记录和复盘的真实业务数据读写
 - AI provider adapter
 
 ## Next Step Candidate
 
-Step 3.6：实现今日日程记录。
+Step 3.7：实现随手记录。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

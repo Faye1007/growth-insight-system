@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { habitCheckins, habits, tasks } from "@/db/schema";
+import { habitCheckins, habits, scheduleItems, tasks } from "@/db/schema";
 import { requireCurrentUser } from "@/lib/auth/session";
 import { isTaskCategory, isTaskStatus } from "@/lib/tasks/options";
 
@@ -32,6 +32,10 @@ function getValidTaskDate(value: string) {
 
 function isValidDateValue(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function isValidTimeValue(value: string) {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 }
 
 export async function createTaskAction(formData: FormData) {
@@ -192,4 +196,40 @@ export async function updateHabitCheckinAction(formData: FormData) {
 
   revalidatePath("/daily");
   redirect(`/daily?habitUpdated=${status}#habits`);
+}
+
+export async function createScheduleItemAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const title = getStringValue(formData, "title");
+
+  if (!title) {
+    redirect("/daily?scheduleError=missing_title#schedule");
+  }
+
+  const categoryValue = getStringValue(formData, "category");
+  const scheduleDateValue = getStringValue(formData, "scheduleDate");
+  const startTimeValue = getStringValue(formData, "startTime");
+  const endTimeValue = getStringValue(formData, "endTime");
+  const category = isTaskCategory(categoryValue) ? categoryValue : "other";
+  const scheduleDate = isValidDateValue(scheduleDateValue) ? scheduleDateValue : getBeijingDateValue();
+
+  if (!isValidTimeValue(startTimeValue)) {
+    redirect("/daily?scheduleError=missing_time#schedule");
+  }
+
+  if (endTimeValue && !isValidTimeValue(endTimeValue)) {
+    redirect("/daily?scheduleError=invalid_time#schedule");
+  }
+
+  await db.insert(scheduleItems).values({
+    userId: user.id,
+    title,
+    category,
+    scheduleDate,
+    startTime: startTimeValue,
+    endTime: endTimeValue || null,
+  });
+
+  revalidatePath("/daily");
+  redirect("/daily?scheduleCreated=1#schedule");
 }
