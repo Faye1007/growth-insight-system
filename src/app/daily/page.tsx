@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 
 const sections = [
@@ -37,6 +38,7 @@ const sections = [
 
 export default async function DailyPage() {
   const user = await getCurrentUser();
+  const loginPath = buildLoginPath({ next: "/daily", message: loginRequiredMessage });
 
   return (
     <div className="page-stack">
@@ -62,7 +64,7 @@ export default async function DailyPage() {
                 你仍然可以浏览每日工作台；创建任务、打卡、记录事件或生成复盘时需要注册或登录。
               </p>
             </div>
-            <Link className="soft-button w-full sm:w-auto" href="/login?next=/daily&message=login_required">
+            <Link className="soft-button w-full sm:w-auto" href={loginPath}>
               登录 / 注册
             </Link>
           </div>
@@ -98,7 +100,7 @@ export default async function DailyPage() {
                   即将接入创建
                 </button>
               ) : (
-                <Link className="soft-button" href="/login?next=/daily&message=login_required">
+                <Link className="soft-button" href={loginPath}>
                   登录后写入
                 </Link>
               )}

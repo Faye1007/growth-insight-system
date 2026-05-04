@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { signInAction, signUpAction } from "@/app/auth/actions";
+import { buildLoginPath, getSafeNextPath } from "@/lib/auth/paths";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -22,14 +23,6 @@ const errorText: Record<string, string> = {
   signup_failed: "注册失败，请稍后重试，或确认这个邮箱是否已经注册。",
   confirm_failed: "邮箱确认失败，请重新打开确认邮件或重新注册。",
 };
-
-function getSafeNextPath(next?: string) {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) {
-    return "/";
-  }
-
-  return next;
-}
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
@@ -81,14 +74,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           {mode === "signup" ? (
             <p className="body-copy">
               已有账号？{" "}
-              <Link className="text-[var(--mist)] font-semibold" href={`/login?mode=login&next=${encodeURIComponent(next)}`}>
+              <Link className="text-[var(--mist)] font-semibold" href={buildLoginPath({ mode: "login", next })}>
                 去登录
               </Link>
             </p>
           ) : (
             <p className="body-copy">
               还没有账号？{" "}
-              <Link className="text-[var(--mist)] font-semibold" href={`/login?mode=signup&next=${encodeURIComponent(next)}`}>
+              <Link className="text-[var(--mist)] font-semibold" href={buildLoginPath({ mode: "signup", next })}>
                 去注册
               </Link>
             </p>

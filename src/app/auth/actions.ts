@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { buildLoginPath, getSafeNextPath } from "@/lib/auth/paths";
 import { createClient } from "@/lib/supabase/server";
 
 function getStringValue(formData: FormData, key: string) {
@@ -11,23 +12,13 @@ function getStringValue(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function getSafeNextPath(formData: FormData) {
-  const next = getStringValue(formData, "next");
-
-  if (!next.startsWith("/") || next.startsWith("//")) {
-    return "/";
-  }
-
-  return next;
-}
-
 export async function signInAction(formData: FormData) {
   const email = getStringValue(formData, "email");
   const password = getStringValue(formData, "password");
-  const next = getSafeNextPath(formData);
+  const next = getSafeNextPath(formData.get("next"));
 
   if (!email || !password) {
-    redirect(`/login?mode=login&error=missing_fields&next=${encodeURIComponent(next)}`);
+    redirect(buildLoginPath({ mode: "login", error: "missing_fields", next }));
   }
 
   const supabase = await createClient();
@@ -37,7 +28,7 @@ export async function signInAction(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/login?mode=login&error=login_failed&next=${encodeURIComponent(next)}`);
+    redirect(buildLoginPath({ mode: "login", error: "login_failed", next }));
   }
 
   redirect(next);
@@ -46,10 +37,10 @@ export async function signInAction(formData: FormData) {
 export async function signUpAction(formData: FormData) {
   const email = getStringValue(formData, "email");
   const password = getStringValue(formData, "password");
-  const next = getSafeNextPath(formData);
+  const next = getSafeNextPath(formData.get("next"));
 
   if (!email || !password) {
-    redirect(`/login?mode=signup&error=missing_fields&next=${encodeURIComponent(next)}`);
+    redirect(buildLoginPath({ mode: "signup", error: "missing_fields", next }));
   }
 
   const requestHeaders = await headers();
@@ -64,10 +55,10 @@ export async function signUpAction(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/login?mode=signup&error=signup_failed&next=${encodeURIComponent(next)}`);
+    redirect(buildLoginPath({ mode: "signup", error: "signup_failed", next }));
   }
 
-  redirect(`/login?mode=login&message=check_email&next=${encodeURIComponent(next)}`);
+  redirect(buildLoginPath({ mode: "login", message: "check_email", next }));
 }
 
 export async function signOutAction() {

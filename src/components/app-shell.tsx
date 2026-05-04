@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { signOutAction } from "@/app/auth/actions";
+import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 
 const navigationItems = [
@@ -25,6 +26,7 @@ const navigationItems = [
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
+  const loginPath = buildLoginPath({ next: "/daily", message: loginRequiredMessage });
 
   return (
     <body>
@@ -102,7 +104,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
                   </button>
                 </form>
               ) : (
-                <Link className="soft-button mt-3 w-full" href="/login?next=/daily&message=login_required">
+                <Link className="soft-button mt-3 w-full" href={loginPath}>
                   <LogIn aria-hidden="true" className="h-4 w-4" />
                   登录 / 注册
                 </Link>

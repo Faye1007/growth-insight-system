@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { buildLoginPath, getSafeNextPath } from "@/lib/auth/paths";
 import { createClient } from "@/lib/supabase/server";
-
-function getSafeNextPath(next: string | null) {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) {
-    return "/";
-  }
-
-  return next;
-}
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -25,6 +18,6 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.redirect(
-    new URL(`/login?mode=login&error=confirm_failed&next=${encodeURIComponent(next)}`, requestUrl.origin),
+    new URL(buildLoginPath({ mode: "login", error: "confirm_failed", next }), requestUrl.origin),
   );
 }

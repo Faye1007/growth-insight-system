@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 2.4A：认证入口和未登录写入拦截基线。
+项目已完成 Step 2.4B：认证安全跳转和登录后写入保护基础。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程和认证入口稳定。
-- 等待进入 Step 2.4B：验证真实注册登录流程，并完善登录后的写入保护基础。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转和写入保护 helper 稳定。
+- 准备进入 Step 3.1：实现每日工作台页面结构。
 - 后续逐步接入真实业务数据读写、Row Level Security、基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -258,6 +258,34 @@
 - 未验证 Supabase Auth 邮件确认完整链路；需要在 Supabase Dashboard 中确认 Redirect URL 允许 `http://localhost:3001/auth/confirm`。
 - 未配置 `SUPABASE_SERVICE_ROLE_KEY`，当前阶段仍不需要。
 
+### Step 2.4B：认证安全跳转和登录后写入保护基础
+
+已完成内容：
+
+- 新增 `src/lib/auth/paths.ts`，统一处理登录页 `next` 参数和登录 URL 生成。
+- 收紧 `next` 参数校验，拒绝外部 URL、双斜杠路径、反斜杠路径和控制字符，避免开放跳转风险。
+- 在 `src/lib/auth/session.ts` 中新增 `requireCurrentUser()`，为后续写入类 Server Action 提供统一登录保护。
+- 更新登录、注册和邮箱确认回调，复用统一的安全跳转逻辑。
+- 更新每日工作台和侧边栏登录入口，统一生成未登录写入提示链接。
+- 未登录用户仍可浏览页面；后续真实写入 Action 接入时，应先调用 `requireCurrentUser()`，并把写入数据关联到返回的当前用户 ID。
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 本地开发服务已存在于 `http://localhost:3001`。
+- `/login`、`/daily` 和 `/settings` 本地响应 `200`。
+- `/auth/confirm?next=/daily` 在缺少确认 code 时正确跳回登录页，并保留安全的 `/daily` 返回路径。
+- `/auth/confirm?next=//evil.example` 被安全降级为 `next=/`。
+- Faye 已要求更新文档并提交 Git，视为 Step 2.4B 验收通过。
+
+尚未完成或暂缓：
+
+- 未实现真实任务、习惯、日程、事件或灵感写入。
+- 未配置 Row Level Security。
+- 未配置 `SUPABASE_SERVICE_ROLE_KEY`，当前阶段仍不需要。
+
 ## Not Started
 
 - Row Level Security
@@ -266,6 +294,6 @@
 
 ## Next Step Candidate
 
-Step 2.4B：验证真实注册登录流程，并完善登录后的写入保护基础。
+Step 3.1：实现每日工作台页面结构。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

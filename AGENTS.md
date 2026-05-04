@@ -49,7 +49,8 @@ cd growth-insight-system && npm run lint
    - 未经 Faye 确认，不写“已完成”状态。
 
 5. **Git 提交**
-   - `git commit` 前必须单独说明提交范围和提交信息，等 Faye 允许。
+   - Faye 已确认本项目内不需要每次重复确认 `git commit`。
+   - `git commit` 前仍需说明提交范围和提交信息；若范围清晰且 Faye 已要求提交，可直接执行。
    - `git push` 必须再次单独询问。
 
 6. **进入下一 Step**
