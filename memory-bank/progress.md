@@ -2,13 +2,13 @@
 
 ## Current Status
 
-项目已完成 Step 2.2：接入 Supabase 数据库代码基线。
+项目已完成 Step 2.3：建立数据库迁移流程，并已将第一批基础表迁移到真实 Supabase 数据库。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、数据模型文档和 Supabase client 工具层稳定。
-- 等待进入 Step 2.3：建立数据库迁移流程。
-- 后续逐步配置真实 Supabase 项目、建立 Drizzle schema、接入认证、真实数据读写和 AI 复盘能力。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema 和迁移流程稳定。
+- 等待进入 Step 2.4：建立注册登录和写入拦截策略。
+- 后续逐步接入认证、真实业务数据读写、基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
 
@@ -183,20 +183,61 @@
 
 尚未完成或暂缓：
 
-- 未修改真实 `.env.local`。
-- 未填写真实 Supabase 项目地址、public key、service role key 或 database URL。
-- 未验证真实 Supabase 项目连接。
-- 未创建 Drizzle schema、数据库迁移或业务表。
+- Step 2.3 已补充真实 `.env.local` 配置、Drizzle schema、迁移流程和真实业务表。
+- 尚未配置 `SUPABASE_SERVICE_ROLE_KEY`，当前阶段暂不需要。
+
+### Step 2.3：建立数据库迁移流程
+
+已完成内容：
+
+- 配置真实 Supabase public client 环境变量和 `DATABASE_URL` 到 `.env.local`。
+- 确认 `.env.local` 被 `.gitignore` 忽略，不会进入 Git。
+- 安装 `drizzle-orm`、`postgres`、`drizzle-kit` 和 `dotenv`。
+- 新增 `drizzle.config.ts`，统一读取 `.env.local` 中的 `DATABASE_URL`。
+- 新增 `src/db/schema.ts`，建立第一批 8 张基础表的 Drizzle schema。
+- 新增 `src/db/index.ts`，作为后续服务端数据库查询入口。
+- 在 `package.json` 中新增 `db:generate`、`db:migrate` 和 `db:studio` 脚本。
+- 生成本地迁移文件 `drizzle/0000_true_silver_sable.sql`。
+- 已执行真实 Supabase 数据库迁移。
+
+本次创建的基础表：
+
+- `tasks`
+- `habits`
+- `habit_checkins`
+- `schedule_items`
+- `life_events`
+- `ideas`
+- `insight_reports`
+- `personal_manuals`
+
+验证记录：
+
+- `npm run db:generate` 通过，确认 8 张表且无新 schema 变更。
+- `npm run db:migrate` 通过，真实 Supabase 数据库迁移成功。
+- 只读查询确认 8 张业务表都已存在。
+- 只读查询确认 Drizzle 迁移记录表 `drizzle.__drizzle_migrations` 已存在。
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 检查通过：迁移 SQL、源码和文档不包含真实 Supabase URL、publishable key、数据库密码或 service role key。
+
+尚未完成或暂缓：
+
+- 未配置 `SUPABASE_SERVICE_ROLE_KEY`。
+- 未启用 Supabase Auth 注册登录。
+- 未配置 Row Level Security。
+- 未实现真实业务数据读写。
 
 ## Not Started
 
-- Supabase 项目真实配置
-- 数据库 schema
-- 数据库迁移
+- Supabase Auth 注册登录
+- Row Level Security
+- 真实业务数据读写
 - AI provider adapter
 
 ## Next Step Candidate
 
-Step 2.3：建立数据库迁移流程。
+Step 2.4：建立注册登录和写入拦截策略。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

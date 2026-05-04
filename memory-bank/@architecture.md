@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 2.2，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范和 Supabase 客户端接入基线。
+当前项目已完成 Step 2.3，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema 和数据库迁移流程。
 
 当前已存在：
 
@@ -20,11 +20,16 @@
 - Supabase SSR/browser client 工具层。
 - `.env.example` 环境变量模板。
 - 设置页 Supabase 配置状态展示。
+- 真实 `.env.local` 本地配置，包含 Supabase public client 配置和 `DATABASE_URL`，但不进入 Git。
+- Drizzle ORM、Drizzle Kit 和 Postgres client 依赖。
+- `drizzle.config.ts` 迁移配置。
+- `src/db/schema.ts` 基础数据表 schema。
+- `src/db/index.ts` 服务端数据库查询入口。
+- `drizzle/0000_true_silver_sable.sql` 第一版迁移 SQL。
+- 真实 Supabase 数据库中的第一批 8 张基础业务表。
 
 尚未开始：
 
-- 真实 Supabase 项目配置和 `.env.local` 写入。
-- Drizzle schema。
 - 注册登录。
 - 真实业务数据读写。
 - AI provider adapter。
@@ -46,15 +51,15 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 2.2 建立应用骨架、目录、页面壳、基础视觉规范和 Supabase 客户端接入基线，不包含真实业务数据读写。各文件职责如下：
+当前 Step 1.1-Step 2.3 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema 和数据库迁移流程，不包含真实业务数据读写。各文件职责如下：
 
-- `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start` 和 `lint`；依赖包括 Supabase SSR/client 包。
+- `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start`、`lint`、`db:generate`、`db:migrate` 和 `db:studio`；依赖包括 Supabase SSR/client 包、Drizzle ORM 和 Postgres client。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
 - `next-env.d.ts`: Next.js 自动类型声明入口。
 - `next.config.ts`: Next.js 配置文件，当前保持最小配置。
 - `postcss.config.mjs`: Tailwind CSS v4 的 PostCSS 插件配置。
 - `eslint.config.mjs`: ESLint flat config，直接导入 Next 16 的 `eslint-config-next/core-web-vitals` 和 `eslint-config-next/typescript`。
-- `package-lock.json`: npm 依赖锁文件，用于固定依赖解析结果，保证后续安装和验证更稳定。
+- `package-lock.json`: npm 依赖锁文件，用于固定依赖解析结果，保证后续安装、数据库工具和验证更稳定。
 - `components.json`: shadcn/ui 配置，指定 UI 组件别名、样式入口和图标库。
 - `.gitignore`: 忽略依赖、构建产物、环境变量、本地调试日志和 TypeScript 构建缓存。
 - `src/app/layout.tsx`: App Router 根布局，定义页面 HTML 语言和全局 metadata。
@@ -75,14 +80,21 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/lib/supabase/config.ts`: 读取 Supabase 环境变量，提供 public client 配置校验和设置页状态检查。
 - `src/lib/supabase/client.ts`: 浏览器端 Supabase client 工厂，只使用 `NEXT_PUBLIC_*` 配置。
 - `src/lib/supabase/server.ts`: 服务端 Supabase client 工厂，使用 Next.js cookies 接入 SSR 会话能力。
+- `drizzle.config.ts`: Drizzle Kit 配置，读取 `.env.local` 中的 `DATABASE_URL`，用于生成和执行迁移。
+- `drizzle/0000_true_silver_sable.sql`: 第一版数据库迁移 SQL，创建基础枚举、8 张基础业务表、索引和内部外键。
+- `drizzle/meta/`: Drizzle 迁移快照和迁移日志元数据，用于后续增量迁移。
+- `src/db/schema.ts`: Drizzle schema，定义 `tasks`、`habits`、`habit_checkins`、`schedule_items`、`life_events`、`ideas`、`insight_reports` 和 `personal_manuals`。
+- `src/db/index.ts`: 服务端数据库入口，使用 `DATABASE_URL` 创建 Drizzle client；当前仅供后续服务端读写使用。
 - `src/lib/utils.ts`: 通用工具函数入口，当前提供 `cn()` 用于合并 Tailwind className。
 
 当前骨架遵循的约束：
 
-- 已接入 Supabase client 工具层，但未配置真实 Supabase 项目，未做真实数据库读写。
+- 已接入 Supabase client 工具层，并已配置真实 Supabase public client 与 `DATABASE_URL` 到本地 `.env.local`。
+- `.env.local` 被 Git 忽略，不能提交真实密钥、token 或连接字符串。
+- 已建立 Drizzle schema 和迁移流程，并已将第一批基础表迁移到真实 Supabase 数据库。
 - 不接认证。
 - 不接 AI。
-- 不写入真实环境变量，只维护 `.env.example` 模板。
+- 不配置 `SUPABASE_SERVICE_ROLE_KEY`，除非后续步骤确实需要并单独确认。
 - 只提供静态页面壳、导航和基础视觉规范。
 - 页面视觉应保持个人 dashboard 风格，不做营销首页。
 - 视觉 token 使用低饱和、温暖、莫兰迪方向；紫色、绿色、蓝色用于区分状态和占位图表。
@@ -145,9 +157,44 @@ Step 2.2 已安装并接入：
 
 当前限制：
 
-- 尚未填写真实 `.env.local`。
-- 尚未验证真实 Supabase 项目连接。
-- 尚未创建 Drizzle schema、迁移或业务表。
+- `.env.local` 只存在本地，不进入 Git。
+- 已验证真实 Supabase 数据库连接和迁移。
+- 尚未配置 `SUPABASE_SERVICE_ROLE_KEY`。
+- 尚未启用 Supabase Auth、Row Level Security 或真实业务数据读写。
+
+### 3.2.2 Drizzle Migration Baseline
+
+Step 2.3 已安装并接入：
+
+- `drizzle-orm`
+- `postgres`
+- `drizzle-kit`
+- `dotenv`
+
+迁移规则：
+
+- `npm run db:generate`: 根据 `src/db/schema.ts` 生成本地迁移 SQL，不修改数据库。
+- `npm run db:migrate`: 读取 `.env.local` 中的 `DATABASE_URL`，连接真实 Supabase Postgres 并执行迁移；执行前必须单独确认。
+- `npm run db:studio`: 打开 Drizzle Studio，用于本地查看数据库结构和数据；如需联网访问真实数据库，也应先说明用途。
+- 每次修改 schema 后，先生成迁移 SQL，检查无误后再执行真实迁移。
+- 迁移文件不能包含真实 URL、key、token、数据库密码或 service role key。
+
+当前已迁移到真实 Supabase 的基础表：
+
+- `tasks`
+- `habits`
+- `habit_checkins`
+- `schedule_items`
+- `life_events`
+- `ideas`
+- `insight_reports`
+- `personal_manuals`
+
+迁移状态：
+
+- 第一版迁移 SQL 为 `drizzle/0000_true_silver_sable.sql`。
+- Drizzle 迁移记录表为 `drizzle.__drizzle_migrations`。
+- 只读查询已确认 8 张业务表和迁移记录表存在。
 
 ### 3.3 Drizzle ORM
 
