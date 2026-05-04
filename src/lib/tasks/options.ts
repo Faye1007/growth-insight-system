@@ -14,6 +14,8 @@ export const taskStatuses = [
   { value: "postponed", label: "延期" },
 ] as const;
 
+export const taskStatusOrder = taskStatuses.map((status) => status.value);
+
 export type TaskCategory = (typeof taskCategories)[number]["value"];
 export type TaskStatus = (typeof taskStatuses)[number]["value"];
 

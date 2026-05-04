@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 3.2，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构和今日任务创建能力。
+当前项目已完成 Step 3.3，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建和任务状态更新能力。
 
 当前已存在：
 
@@ -38,13 +38,16 @@
 - 每日工作台未登录写入拦截提示。
 - 每日工作台今日任务创建表单。
 - 今日任务保存 Server Action。
+- 今日任务状态更新 Server Action。
 - 当前登录用户今日任务读取和列表展示。
-- 今日概览中的任务数量读取真实今日任务数量。
+- 今日任务按状态分组展示。
+- 今日任务状态操作，包括进行中、已完成和延期。
+- 延期任务日期同步更新和延期来源记录。
+- 今日概览中的任务完成率读取真实今日任务数据。
 - 任务分类和状态的统一选项定义。
 
 尚未开始：
 
-- 任务状态更新。
 - 习惯、日程、随手记录和复盘的真实业务数据读写。
 - Row Level Security。
 - AI provider adapter。
@@ -66,7 +69,7 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 3.2 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构和今日任务创建。各文件职责如下：
+当前 Step 1.1-Step 3.3 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建和任务状态更新。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start`、`lint`、`db:generate`、`db:migrate` 和 `db:studio`；依赖包括 Supabase SSR/client 包、Drizzle ORM 和 Postgres client。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
@@ -79,8 +82,8 @@ AI Provider Adapter for scheduled/manual reviews
 - `.gitignore`: 忽略依赖、构建产物、环境变量、本地调试日志和 TypeScript 构建缓存。
 - `src/app/layout.tsx`: App Router 根布局，定义页面 HTML 语言和全局 metadata。
 - `src/app/page.tsx`: 成长主页页面壳，展示今日行动进度、本周指标、最近复盘和每日工作台入口等占位区。
-- `src/app/daily/page.tsx`: 每日工作台页面结构，显示北京时间日期、今日概览、今日任务、习惯打卡、今日日程和随手记录分区；今日任务分区已接入任务创建表单、当前用户今日任务列表和任务数量统计，其他分区仍为占位结构。
-- `src/app/daily/actions.ts`: 每日工作台 Server Actions，当前提供 `createTaskAction()`；写入任务前必须通过 `requireCurrentUser()` 获取当前登录用户，并把任务写入 `tasks.user_id`。
+- `src/app/daily/page.tsx`: 每日工作台页面结构，显示北京时间日期、今日概览、今日任务、习惯打卡、今日日程和随手记录分区；今日任务分区已接入任务创建表单、当前用户今日任务列表、按状态分组展示、状态操作、延期日期选择和任务完成率统计，其他分区仍为占位结构。
+- `src/app/daily/actions.ts`: 每日工作台 Server Actions，当前提供 `createTaskAction()` 和 `updateTaskStatusAction()`；写入任务和更新状态前必须通过 `requireCurrentUser()` 获取当前登录用户，并把任务写入或限定更新到当前用户的 `tasks.user_id`。
 - `src/app/records/page.tsx`: 成长记录页面壳，预留任务、习惯、日程、事件和灵感记录入口，并使用统一列表样式。
 - `src/app/insights/page.tsx`: 洞察报告页面壳，预留今日概览、本周趋势、习惯状态和情绪记录，并使用柔和图表占位样式。
 - `src/app/manual/page.tsx`: 个人说明书页面壳，预留人生阶段、目标、能力画像、情绪模式和常见内耗点，并使用统一字段卡片样式。
@@ -89,7 +92,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/app/login/page.tsx`: 邮箱登录和注册页面，支持 `next` 参数把用户带回原页面。
 - `src/app/auth/actions.ts`: Supabase Auth Server Actions，负责登录、注册和退出。
 - `src/app/auth/confirm/route.ts`: Supabase 邮箱确认回调路由，成功后跳转到安全的 `next` 路径，失败时回到登录页。
-- `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮、导航样式、每日概览卡、工作台面板、空状态、任务表单和任务列表样式。
+- `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮、导航样式、每日概览卡、工作台面板、空状态、任务表单、任务列表、任务状态分组、状态操作按钮和延期日期输入样式。
 - `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区、当前阶段提示、账号状态和退出入口，并把页面内容包裹在统一布局中。
 - `src/components/.gitkeep`: 保留业务组件目录。
 - `src/components/ui/.gitkeep`: 保留 shadcn/ui 组件目录。
@@ -101,7 +104,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/lib/supabase/server.ts`: 服务端 Supabase client 工厂，使用 Next.js cookies 接入 SSR 会话能力。
 - `src/lib/auth/paths.ts`: 认证路径工具，统一校验登录页 `next` 参数，并生成登录、注册和写入拦截提示 URL。
 - `src/lib/auth/session.ts`: 当前用户读取和写入保护 helper，封装 Supabase `auth.getUser()`；`getCurrentUser()` 认证未就绪时返回 `null`，`requireCurrentUser()` 用于后续写入类 Server Action，未登录时跳转登录页。
-- `src/lib/tasks/options.ts`: 任务分类和任务状态的统一选项定义，提供英文枚举值、中文显示文案和合法性校验。
+- `src/lib/tasks/options.ts`: 任务分类和任务状态的统一选项定义，提供英文枚举值、中文显示文案、状态分组顺序和合法性校验。
 - `drizzle.config.ts`: Drizzle Kit 配置，读取 `.env.local` 中的 `DATABASE_URL`，用于生成和执行迁移。
 - `drizzle/0000_true_silver_sable.sql`: 第一版数据库迁移 SQL，创建基础枚举、8 张基础业务表、索引和内部外键。
 - `drizzle/meta/`: Drizzle 迁移快照和迁移日志元数据，用于后续增量迁移。
@@ -117,9 +120,12 @@ AI Provider Adapter for scheduled/manual reviews
 - 已接入认证入口和未登录写入拦截基线。
 - 已建立统一安全跳转逻辑，避免登录和邮箱确认流程出现开放跳转。
 - 已建立 `requireCurrentUser()` 写入保护 helper，后续真实写入 Action 必须先通过它拿到当前用户。
-- 已建立每日工作台页面结构，今日任务创建已优先接入该页面；后续任务状态更新、习惯、日程和记录读写继续接入该页面。
+- 已建立每日工作台页面结构，今日任务创建和状态更新已优先接入该页面；后续习惯、日程和记录读写继续接入该页面。
 - 今日任务创建 Server Action 已调用 `requireCurrentUser()`，并把任务写入当前用户的 `tasks.user_id`。
-- 今日任务列表只按当前登录用户 ID、北京时间今日日期和未软删除条件查询。
+- 今日任务状态更新 Server Action 已调用 `requireCurrentUser()`，并按当前用户 ID 限定任务读取和更新范围。
+- 今日任务列表只按当前登录用户 ID、北京时间今日日期和未软删除条件查询，并按统一状态顺序分组展示。
+- 今日任务支持标记为进行中、已完成和延期；标记已完成时写入 `completed_at`，标记延期时同步更新 `task_date`、`is_postponed`、`postponed_from_date` 和 `postponed_to_date`。
+- 今日任务完成率由程序根据今日任务总数和已完成任务数计算，不调用 AI。
 - 未登录用户仍可浏览页面。
 - 未登录用户触发每日工作台写入入口时跳转登录提示。
 - 登录用户可在侧边栏看到账号状态并退出。

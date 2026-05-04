@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { tasks } from "@/db/schema";
@@ -29,6 +30,10 @@ function getValidTaskDate(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : getBeijingDateValue();
 }
 
+function isValidDateValue(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
 export async function createTaskAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const title = getStringValue(formData, "title");
@@ -54,4 +59,62 @@ export async function createTaskAction(formData: FormData) {
 
   revalidatePath("/daily");
   redirect("/daily?taskCreated=1#tasks");
+}
+
+export async function updateTaskStatusAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const taskId = getStringValue(formData, "taskId");
+  const statusValue = getStringValue(formData, "status");
+
+  if (!taskId || !isTaskStatus(statusValue)) {
+    redirect("/daily?taskError=invalid_status#tasks");
+  }
+
+  const [existingTask] = await db
+    .select({ taskDate: tasks.taskDate })
+    .from(tasks)
+    .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)))
+    .limit(1);
+
+  if (!existingTask) {
+    redirect("/daily?taskError=missing_task#tasks");
+  }
+
+  const now = new Date();
+
+  if (statusValue === "postponed") {
+    const postponedToDate = getStringValue(formData, "postponedToDate");
+
+    if (!isValidDateValue(postponedToDate)) {
+      redirect("/daily?taskError=missing_postponed_date#tasks");
+    }
+
+    await db
+      .update(tasks)
+      .set({
+        status: "postponed",
+        taskDate: postponedToDate,
+        isPostponed: true,
+        postponedFromDate: existingTask.taskDate,
+        postponedToDate,
+        completedAt: null,
+        updatedAt: now,
+      })
+      .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)));
+
+    revalidatePath("/daily");
+    redirect("/daily?taskUpdated=postponed#tasks");
+  }
+
+  await db
+    .update(tasks)
+    .set({
+      status: statusValue,
+      completedAt: statusValue === "completed" ? now : null,
+      updatedAt: now,
+    })
+    .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)));
+
+  revalidatePath("/daily");
+  redirect(`/daily?taskUpdated=${statusValue}#tasks`);
 }

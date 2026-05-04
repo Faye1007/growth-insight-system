@@ -10,7 +10,7 @@ import {
   Repeat2,
 } from "lucide-react";
 
-import { createTaskAction } from "@/app/daily/actions";
+import { createTaskAction, updateTaskStatusAction } from "@/app/daily/actions";
 import { db } from "@/db";
 import { tasks as taskTable } from "@/db/schema";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
@@ -18,6 +18,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import {
   getTaskCategoryLabel,
   getTaskStatusLabel,
+  taskStatusOrder,
   taskCategories,
   taskStatuses,
 } from "@/lib/tasks/options";
@@ -26,6 +27,7 @@ type DailyPageProps = {
   searchParams?: Promise<{
     taskCreated?: string;
     taskError?: string;
+    taskUpdated?: string;
   }>;
 };
 
@@ -45,6 +47,15 @@ const beijingShortDateFormatter = new Intl.DateTimeFormat("zh-CN", {
 
 const taskErrorText: Record<string, string> = {
   missing_title: "请先填写任务标题，再保存。",
+  invalid_status: "任务状态无效，请刷新页面后重试。",
+  missing_postponed_date: "延期任务需要选择新的日期。",
+  missing_task: "没有找到这条任务，请刷新页面后重试。",
+};
+
+const taskUpdatedText: Record<string, string> = {
+  in_progress: "任务已标记为进行中。",
+  completed: "任务已标记为已完成。",
+  postponed: "任务已延期，并同步更新到新的任务日期。",
 };
 
 function getBeijingDateValue(date = new Date()) {
@@ -58,12 +69,20 @@ function getBeijingDateValue(date = new Date()) {
   return formatter.format(date);
 }
 
+function getBeijingDateAfter(days: number, date = new Date()) {
+  const targetDate = new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
+
+  return getBeijingDateValue(targetDate);
+}
+
 function buildOverviewCards(taskCount: number, completedTaskCount: number) {
+  const completionRate = taskCount > 0 ? Math.round((completedTaskCount / taskCount) * 100) : 0;
+
   return [
   {
     label: "今日任务",
-    value: `${taskCount}`,
-    note: taskCount > 0 ? `${completedTaskCount} 项已完成，状态更新会在 Step 3.3 接入。` : "暂无待办，可以先创建今天的第一项任务。",
+    value: `${completionRate}%`,
+    note: taskCount > 0 ? `${completedTaskCount}/${taskCount} 项已完成。` : "暂无待办，可以先创建今天的第一项任务。",
     tone: "tone-lavender",
   },
   {
@@ -176,6 +195,9 @@ async function getTodayTasks(userId: string, todayDate: string) {
       category: taskTable.category,
       status: taskTable.status,
       taskDate: taskTable.taskDate,
+      isPostponed: taskTable.isPostponed,
+      postponedFromDate: taskTable.postponedFromDate,
+      postponedToDate: taskTable.postponedToDate,
       createdAt: taskTable.createdAt,
     })
     .from(taskTable)
@@ -189,6 +211,58 @@ async function getTodayTasks(userId: string, todayDate: string) {
     .orderBy(asc(taskTable.createdAt));
 }
 
+type TodayTask = Awaited<ReturnType<typeof getTodayTasks>>[number];
+
+function TaskStatusAction({
+  task,
+  status,
+  label,
+}: {
+  task: TodayTask;
+  status: "in_progress" | "completed";
+  label: string;
+}) {
+  if (task.status === status) {
+    return null;
+  }
+
+  return (
+    <form action={updateTaskStatusAction}>
+      <input type="hidden" name="taskId" value={task.id} />
+      <input type="hidden" name="status" value={status} />
+      <button className="quiet-button" type="submit">
+        {label}
+      </button>
+    </form>
+  );
+}
+
+function PostponeTaskAction({
+  task,
+  defaultPostponedDate,
+}: {
+  task: TodayTask;
+  defaultPostponedDate: string;
+}) {
+  return (
+    <form action={updateTaskStatusAction} className="postpone-form">
+      <input type="hidden" name="taskId" value={task.id} />
+      <input type="hidden" name="status" value="postponed" />
+      <input
+        aria-label={`${task.title} 的延期日期`}
+        className="compact-date-input"
+        name="postponedToDate"
+        type="date"
+        defaultValue={defaultPostponedDate}
+        required
+      />
+      <button className="quiet-button" type="submit">
+        延期
+      </button>
+    </form>
+  );
+}
+
 export default async function DailyPage({ searchParams }: DailyPageProps) {
   const params = await searchParams;
   const user = await getCurrentUser();
@@ -198,11 +272,17 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const beijingDate = beijingDateFormatter.format(now);
   const shortDate = beijingShortDateFormatter.format(now);
   const todayDate = getBeijingDateValue(now);
+  const defaultPostponedDate = getBeijingDateAfter(1, now);
   const todayTasks = user ? await getTodayTasks(user.id, todayDate) : [];
   const completedTaskCount = todayTasks.filter((task) => task.status === "completed").length;
   const overviewCards = buildOverviewCards(todayTasks.length, completedTaskCount);
   const taskCreated = params?.taskCreated === "1";
+  const taskUpdated = params?.taskUpdated ? taskUpdatedText[params.taskUpdated] ?? "任务状态已更新。" : "";
   const taskError = params?.taskError ? taskErrorText[params.taskError] ?? "任务保存失败，请稍后重试。" : "";
+  const tasksByStatus = taskStatusOrder.map((status) => ({
+    status,
+    tasks: todayTasks.filter((task) => task.status === status),
+  }));
 
   return (
     <div className="page-stack">
@@ -307,6 +387,9 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                 {taskCreated ? (
                   <p className="auth-message task-message">任务已保存，并已关联到当前账号。</p>
                 ) : null}
+                {taskUpdated ? (
+                  <p className="auth-message task-message">{taskUpdated}</p>
+                ) : null}
 
                 <form action={createTaskAction} className="task-form">
                   <label className="form-field">
@@ -357,17 +440,38 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
 
                 {todayTasks.length > 0 ? (
                   <div className="task-list">
-                    {todayTasks.map((task) => (
-                      <article key={task.id} className="task-list-item">
-                        <div>
-                          <p className="list-label">{task.title}</p>
-                          <p className="body-copy mt-1">
-                            {getTaskCategoryLabel(task.category)} · {task.taskDate}
-                          </p>
-                        </div>
-                        <span className="status-pill">{getTaskStatusLabel(task.status)}</span>
-                      </article>
-                    ))}
+                    {tasksByStatus.map((group) =>
+                      group.tasks.length > 0 ? (
+                        <section key={group.status} className="task-status-group">
+                          <div className="task-status-heading">
+                            <span className="status-pill">{getTaskStatusLabel(group.status)}</span>
+                            <span className="body-copy">{group.tasks.length} 项</span>
+                          </div>
+                          <div className="task-group-list">
+                            {group.tasks.map((task) => (
+                              <article key={task.id} className="task-list-item">
+                                <div className="min-w-0">
+                                  <p className="list-label">{task.title}</p>
+                                  <p className="body-copy mt-1">
+                                    {getTaskCategoryLabel(task.category)} · {task.taskDate}
+                                  </p>
+                                  {task.isPostponed ? (
+                                    <p className="body-copy mt-1">
+                                      延期记录：{task.postponedFromDate ?? "未记录"} → {task.postponedToDate ?? "未记录"}
+                                    </p>
+                                  ) : null}
+                                </div>
+                                <div className="task-actions">
+                                  <TaskStatusAction task={task} status="in_progress" label="进行中" />
+                                  <TaskStatusAction task={task} status="completed" label="完成" />
+                                  <PostponeTaskAction task={task} defaultPostponedDate={defaultPostponedDate} />
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                        </section>
+                      ) : null,
+                    )}
                   </div>
                 ) : (
                   <div className="empty-state">
