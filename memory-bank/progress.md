@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 2.4B：认证安全跳转和登录后写入保护基础。
+项目已完成 Step 3.1：每日工作台页面结构。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转和写入保护 helper 稳定。
-- 准备进入 Step 3.1：实现每日工作台页面结构。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper 和每日工作台结构稳定。
+- 准备进入 Step 3.2：实现今日任务创建。
 - 后续逐步接入真实业务数据读写、Row Level Security、基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -286,6 +286,34 @@
 - 未配置 Row Level Security。
 - 未配置 `SUPABASE_SERVICE_ROLE_KEY`，当前阶段仍不需要。
 
+### Step 3.1：实现每日工作台页面结构
+
+已完成内容：
+
+- 重做 `src/app/daily/page.tsx`，从简单占位卡片升级为每日工作台骨架。
+- 页面顶部显示北京时间日期、短日期和基础状态。
+- 建立今日概览区，包含今日任务、习惯打卡、今日日程和随手记录 4 个统计占位卡。
+- 建立每日工作台主分区：今日任务、习惯打卡、今日日程、随手记录。
+- 每个主分区包含用途说明、空状态、后续字段标签和写入入口。
+- 未登录用户仍可浏览页面；写入入口继续跳转登录提示。
+- 已登录用户看到待接入按钮，真实写入保留到后续 Step。
+- 更新 `src/app/globals.css`，补充每日概览卡、工作台面板、空状态和标签行的响应式样式。
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `/daily` 本地响应 `200`。
+- Faye 已要求更新文档并提交 Git，视为 Step 3.1 验收通过。
+
+尚未完成或暂缓：
+
+- 未实现今日任务创建。
+- 未实现任务、习惯、日程、事件或灵感的真实读写。
+- 今日概览仍为静态占位数据。
+- 未配置 Row Level Security。
+
 ## Not Started
 
 - Row Level Security
@@ -294,6 +322,6 @@
 
 ## Next Step Candidate
 
-Step 3.1：实现每日工作台页面结构。
+Step 3.2：实现今日任务创建。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
