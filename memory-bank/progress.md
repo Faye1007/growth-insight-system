@@ -2,13 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 6.5：实现手动生成每日复盘。
+项目已完成 Step 6.6：验证 AI 成本控制规则。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力和手动生成每日复盘能力稳定。
-- 准备进入 Step 6.6：验证 AI 成本控制规则。
-- 后续逐步接入 Row Level Security、更多基础图表和 AI 复盘能力。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力和 AI 成本控制边界稳定。
+- 后续逐步接入 Row Level Security、基础设置和使用安全、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
 
@@ -1102,16 +1101,53 @@
 
 尚未完成或暂缓：
 
-- Step 6.6 尚未系统验证 AI 成本控制规则。
+- Row Level Security 尚未配置。
+
+### Step 6.6：验证 AI 成本控制规则
+
+已完成内容：
+
+- 系统检查普通任务、任务状态更新、习惯创建、习惯打卡、日程记录和随手记录的 Server Action 调用链。
+- 确认普通写入 Action 只做登录校验、字段校验、数据库写入、页面刷新和跳转，不调用 AI。
+- 确认 `generateReview()` 只在 `generateDailyReviewAction()` 中被调用。
+- 确认 OpenAI-compatible 请求入口只存在于服务端 AI 适配层 `src/lib/ai/openai-compatible.ts`。
+- 确认每日工作台页面打开不调用 AI。
+- 确认打开发送预览只生成程序统计、关键摘要和原文候选，不调用 AI。
+- 确认已有今日完成复盘报告时，`generateDailyReviewAction()` 会先展示缓存结果，不重复调用 AI。
+- 修正每日复盘发送预览文案，使其准确说明“只有点击确认生成时才会调用 AI”。
+- 本 Step 未发起真实 AI 请求。
+- 本 Step 未修改 `.env.local`。
+- 本 Step 未填入任何 AI key。
+- 本 Step 不修改数据库 schema，也不执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/page.tsx`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- 源码检查通过：`generateReview()` 只出现在 `generateDailyReviewAction()` 和服务端 AI provider 封装中。
+- 源码检查通过：`fetch()` 和 `Authorization` 只出现在 `src/lib/ai/openai-compatible.ts`。
+- 源码检查通过：`AI_API_KEY` 和 `process.env.AI` 只出现在服务端 AI 配置工具层。
+- 源码检查通过：任务、习惯、日程和随手记录表单绑定的是普通写入 Action，不是 AI 生成 Action。
+- `git diff --check` 通过。
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- Faye 已确认 Step 6.6 通过，并要求更新文档和提交 Git。
+
+尚未完成或暂缓：
+
 - Row Level Security 尚未配置。
 
 ## Not Started
 
 - Row Level Security
-- AI 成本控制规则验证
+- 基础设置和使用安全
 
 ## Next Step Candidate
 
-Step 6.6：验证 AI 成本控制规则。
+Step 7.1：实现设置页基础信息。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

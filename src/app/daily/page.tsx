@@ -657,7 +657,7 @@ function DailyReviewPreview({
             今日复盘发送预览
           </h2>
           <p className="body-copy mt-2">
-            当前只展示将发送给 AI 的内容，不会调用 AI。确认生成会在下一步接入。
+            当前只展示将发送给 AI 的内容，不会调用 AI；只有点击确认生成时才会调用 AI。
           </p>
         </div>
         <div className="overview-detail-row">
