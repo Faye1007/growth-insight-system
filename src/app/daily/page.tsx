@@ -8,6 +8,7 @@ import {
   NotebookPen,
   Plus,
   Repeat2,
+  Sparkles,
 } from "lucide-react";
 
 import {
@@ -30,6 +31,11 @@ import {
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import {
+  buildDailyReviewInputWithSelectedOriginals,
+  buildDailyReviewContext,
+  type DailyReviewContext,
+} from "@/lib/ai/daily-review-context";
+import {
   getTaskCategoryLabel,
   getTaskStatusLabel,
   taskStatusOrder,
@@ -49,6 +55,9 @@ type DailyPageProps = {
     scheduleError?: string;
     recordCreated?: string;
     recordError?: string;
+    reviewPreview?: string;
+    originalSelection?: string;
+    originalEventId?: string | string[];
   }>;
 };
 
@@ -533,6 +542,175 @@ function getRecordPreview(content: string) {
   return content.length > 96 ? `${content.slice(0, 96)}...` : content;
 }
 
+function getSearchParamValues(
+  params: Awaited<DailyPageProps["searchParams"]>,
+  key: "originalEventId",
+) {
+  const value = params?.[key];
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  return value ? [value] : [];
+}
+
+function getStatsSection(stats: Record<string, unknown>, key: string) {
+  const value = stats[key];
+
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function getNumberStat(stats: Record<string, unknown>, section: string, key: string) {
+  const value = getStatsSection(stats, section)[key];
+
+  return typeof value === "number" ? value : 0;
+}
+
+function DailyReviewPreview({
+  context,
+  selectedOriginalEventIds,
+}: {
+  context: DailyReviewContext;
+  selectedOriginalEventIds: string[];
+}) {
+  const previewInput = buildDailyReviewInputWithSelectedOriginals(context, selectedOriginalEventIds);
+  const selectedOriginalIds = new Set(selectedOriginalEventIds);
+  const previewMetrics = [
+    {
+      label: "任务完成率",
+      value: `${getNumberStat(context.stats, "tasks", "completionRate")}%`,
+      detail: `${getNumberStat(context.stats, "tasks", "completed")}/${getNumberStat(context.stats, "tasks", "total")} 项已完成`,
+    },
+    {
+      label: "习惯打卡",
+      value: `${getNumberStat(context.stats, "habits", "checkedToday")}/${getNumberStat(context.stats, "habits", "active")}`,
+      detail: "今日启用习惯完成数",
+    },
+    {
+      label: "今日日程",
+      value: `${getNumberStat(context.stats, "schedules", "total")}`,
+      detail: "今日固定事项数量",
+    },
+    {
+      label: "随手记录",
+      value: `${getNumberStat(context.stats, "records", "events") + getNumberStat(context.stats, "records", "ideas")}`,
+      detail: `事件 ${getNumberStat(context.stats, "records", "events")} · 灵感 ${getNumberStat(context.stats, "records", "ideas")}`,
+    },
+  ];
+
+  return (
+    <section aria-labelledby="daily-review-preview" className="panel-card review-preview-panel">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="page-kicker">晚间总结</p>
+          <h2 id="daily-review-preview" className="section-heading mt-1">
+            今日复盘发送预览
+          </h2>
+          <p className="body-copy mt-2">
+            当前只展示将发送给 AI 的内容，不会调用 AI。确认生成会在下一步接入。
+          </p>
+        </div>
+        <div className="overview-detail-row">
+          <span className="status-pill">不调用 AI</span>
+          <span className="status-pill">
+            原文 {previewInput.selectedOriginals?.length ?? 0}/{context.originalCandidates.length}
+          </span>
+        </div>
+      </div>
+
+      <div className="review-preview-grid mt-5">
+        {previewMetrics.map((metric) => (
+          <article key={metric.label} className="field-tile review-preview-metric">
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+            <p className="body-copy">{metric.detail}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="review-preview-section">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="list-label">关键摘要</h3>
+            <p className="body-copy mt-1">这些内容来自程序整理，不包含未授权原文。</p>
+          </div>
+          <span className="status-pill">{context.highlights.length} 条</span>
+        </div>
+        {context.highlights.length ? (
+          <div className="review-highlight-list mt-3">
+            {context.highlights.slice(0, 10).map((highlight, index) => (
+              <p key={`${highlight}-${index}`} className="review-highlight-item">
+                {highlight}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="body-copy mt-3">今天暂无可发送的关键摘要。</p>
+        )}
+      </div>
+
+      <form action="/daily#daily-review-preview" className="review-preview-section" method="get">
+        <input type="hidden" name="reviewPreview" value="1" />
+        <input type="hidden" name="originalSelection" value="custom" />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="list-label">事件原文候选</h3>
+            <p className="body-copy mt-1">
+              只有允许原文参与、且未命中敏感规则的事件会出现在这里。取消勾选后不会进入后续 AI 输入。
+            </p>
+          </div>
+          <button className="quiet-button w-full sm:w-auto" type="submit">
+            更新预览
+          </button>
+        </div>
+
+        {context.originalCandidates.length ? (
+          <div className="review-original-list mt-3">
+            {context.originalCandidates.map((candidate) => (
+              <label key={candidate.eventId} className="review-original-item">
+                <input
+                  type="checkbox"
+                  name="originalEventId"
+                  value={candidate.eventId}
+                  defaultChecked={selectedOriginalIds.has(candidate.eventId)}
+                />
+                <span>{candidate.content}</span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <p className="body-copy mt-3">今天暂无可发送的事件原文候选。</p>
+        )}
+      </form>
+
+      {context.downgradedEvents.length ? (
+        <div className="review-preview-section">
+          <h3 className="list-label">已降级为摘要的事件</h3>
+          <div className="review-highlight-list mt-3">
+            {context.downgradedEvents.map((event) => (
+              <p key={event.eventId} className="review-highlight-item">
+                {event.summary}
+              </p>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="review-preview-actions">
+        <Link href="/daily" className="quiet-button">
+          取消预览
+        </Link>
+        <button className="soft-button" type="button" disabled>
+          确认生成待接入
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export default async function DailyPage({ searchParams }: DailyPageProps) {
   const params = await searchParams;
   const user = await getCurrentUser();
@@ -548,6 +726,17 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const todayScheduleItems = user ? await getTodayScheduleItems(user.id, todayDate) : [];
   const todayLifeEvents = user ? await getTodayLifeEvents(user.id, todayDate) : [];
   const todayIdeas = user ? await getTodayIdeas(user.id, todayDate) : [];
+  const reviewPreviewOpen = params?.reviewPreview === "1";
+  const dailyReviewContext = user && reviewPreviewOpen
+    ? await buildDailyReviewContext(user.id, todayDate)
+    : null;
+  const selectedOriginalEventIds = dailyReviewContext
+    ? params?.originalSelection === "custom"
+      ? getSearchParamValues(params, "originalEventId").filter((eventId) =>
+          dailyReviewContext.originalCandidates.some((candidate) => candidate.eventId === eventId),
+        )
+      : dailyReviewContext.originalCandidates.map((candidate) => candidate.eventId)
+    : [];
   const habitCheckins = user
     ? await getHabitCheckins(
         user.id,
@@ -673,6 +862,38 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
           ))}
         </div>
       </section>
+
+      <section aria-labelledby="daily-review-entry" className="panel-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="page-kicker">晚间总结</p>
+            <h2 id="daily-review-entry" className="section-heading mt-1">
+              每日复盘
+            </h2>
+            <p className="body-copy mt-2">
+              先预览将发送给 AI 的统计摘要、关键记录和少量事件原文；确认前不会调用 AI。
+            </p>
+          </div>
+          {isLoggedIn ? (
+            <Link className="soft-button w-full sm:w-auto" href="/daily?reviewPreview=1#daily-review-preview">
+              <Sparkles aria-hidden="true" className="h-4 w-4" />
+              预览今日复盘
+            </Link>
+          ) : (
+            <Link className="soft-button w-full sm:w-auto" href={loginPath}>
+              <Sparkles aria-hidden="true" className="h-4 w-4" />
+              登录后生成复盘
+            </Link>
+          )}
+        </div>
+      </section>
+
+      {dailyReviewContext ? (
+        <DailyReviewPreview
+          context={dailyReviewContext}
+          selectedOriginalEventIds={selectedOriginalEventIds}
+        />
+      ) : null}
 
       <section aria-label="每日工作台分区" className="workspace-grid">
         {dailySections.map((section) => {

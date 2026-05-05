@@ -49,6 +49,22 @@ export type DailyReviewContext = {
   aiInput: GenerateReviewInput;
 };
 
+export function buildDailyReviewInputWithSelectedOriginals(
+  context: DailyReviewContext,
+  selectedOriginalEventIds: string[],
+): GenerateReviewInput {
+  const selectedOriginalIds = new Set(selectedOriginalEventIds);
+  const selectedOriginals = context.originalCandidates.filter((candidate) =>
+    selectedOriginalIds.has(candidate.eventId),
+  );
+
+  return {
+    ...context.aiInput,
+    selectedOriginals,
+    sensitiveMode: selectedOriginals.length ? "allow_selected_originals" : "summary_only",
+  };
+}
+
 function getBeijingDateValue(date = new Date()) {
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Shanghai",

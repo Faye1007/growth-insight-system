@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 6.3：生成每日复盘上下文。
+项目已完成 Step 6.4：实现每日复盘发送预览。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力和每日复盘上下文生成能力稳定。
-- 准备进入 Step 6.4：实现每日复盘发送预览。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力和每日复盘发送预览能力稳定。
+- 准备进入 Step 6.5：实现手动生成每日复盘。
 - 后续逐步接入 Row Level Security、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -1015,15 +1015,58 @@
 - 真实 AI 生成和复盘报告缓存读写尚未接入页面。
 - Row Level Security 尚未配置。
 
+### Step 6.4：实现每日复盘发送预览
+
+已完成内容：
+
+- 在每日工作台新增每日复盘入口。
+- 未登录用户点击生成复盘入口时继续跳转登录提示。
+- 登录用户点击“预览今日复盘”后，通过 URL query 参数打开今日复盘发送预览。
+- 发送预览展示程序统计摘要，包括任务完成率、习惯打卡、今日日程和随手记录数量。
+- 发送预览展示关键记录摘要 `highlights`。
+- 发送预览展示允许发送的事件原文候选。
+- 用户可以取消勾选某条事件原文，并通过“更新预览”移除该原文。
+- 被移除的事件原文不会进入后续 `aiInput.selectedOriginals`。
+- 取消预览会回到普通每日工作台。
+- “确认生成”按钮保持禁用，真实生成留到 Step 6.5。
+- 本 Step 不调用 AI。
+- 本 Step 未修改 `.env.local`。
+- 本 Step 未读取 AI key。
+- 本 Step 不修改数据库 schema，也不执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/page.tsx`
+- `src/app/globals.css`
+- `src/lib/ai/daily-review-context.ts`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `/daily` 返回 `200`。
+- `/daily?reviewPreview=1` 返回 `200`。
+- 源码检查通过：`src/app/daily` 和 `src/lib/ai/daily-review-context.ts` 中未发现 `generateReview()`、`AI_API_KEY` 或 `Authorization`。
+- Faye 已要求更新文档并提交 Git，视为 Step 6.4 验收通过。
+
+尚未完成或暂缓：
+
+- 确认发送预览后调用 AI 尚未接入。
+- AI 输出保存为今日复盘报告尚未实现。
+- 同一天已有报告时展示缓存报告尚未实现。
+- Row Level Security 尚未配置。
+
 ## Not Started
 
 - Row Level Security
 - 复盘的真实业务数据读写
-- AI 复盘发送预览
 - 手动生成每日复盘
 
 ## Next Step Candidate
 
-Step 6.4：实现每日复盘发送预览。
+Step 6.5：实现手动生成每日复盘。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

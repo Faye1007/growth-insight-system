@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 6.3，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查能力、AI Provider Adapter 基础能力和每日复盘上下文生成能力。
+当前项目已完成 Step 6.4，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力和每日复盘发送预览能力。
 
 当前已存在：
 
@@ -81,6 +81,8 @@
 - AI 配置状态 helper。
 - AI Provider Adapter 基础类型、运行时配置读取和 OpenAI-compatible 调用入口。
 - 每日复盘上下文生成服务。
+- 每日工作台每日复盘发送预览入口。
+- 每日复盘事件原文候选勾选与移除交互。
 - 事件原文敏感内容基础判定规则。
 - 任务分类和状态的统一选项定义。
 
@@ -88,7 +90,7 @@
 
 - 复盘的真实业务数据读写。
 - Row Level Security。
-- AI 复盘发送预览和真实调用。
+- AI 复盘真实调用。
 - 其他交互组件视觉细化。
 
 目标技术方向：
@@ -107,7 +109,7 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 6.3 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力和每日复盘上下文生成能力。各文件职责如下：
+当前 Step 1.1-Step 6.4 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力和每日复盘发送预览能力。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start`、`lint`、`db:generate`、`db:migrate` 和 `db:studio`；依赖包括 Supabase SSR/client 包、Drizzle ORM、Postgres client 和 Recharts。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
@@ -120,7 +122,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `.gitignore`: 忽略依赖、构建产物、环境变量、本地调试日志和 TypeScript 构建缓存。
 - `src/app/layout.tsx`: App Router 根布局，定义页面 HTML 语言和全局 metadata。
 - `src/app/page.tsx`: 成长主页页面壳，展示今日行动进度、本周指标、最近复盘和每日工作台入口等占位区。
-- `src/app/daily/page.tsx`: 每日工作台页面结构，显示北京时间日期、今日概览、今日任务、习惯打卡、今日日程和随手记录分区；今日概览已接入真实程序统计，显示任务完成率、习惯完成数、日程数量、随手记录数量、任务细分和记录细分，不调用 AI；今日任务分区已接入任务创建表单、当前用户今日任务列表、按状态分组展示、状态操作、延期日期选择和任务完成率统计；习惯打卡分区已接入习惯创建表单、当前用户启用习惯列表、今日打卡状态、累计打卡次数、连续打卡天数和今日习惯完成数统计；今日日程分区已接入日程创建表单、当前用户今日日程列表和今日日程数量统计；随手记录分区已接入事件/灵感创建表单、当前用户今日事件和灵感列表、情绪标签和 AI 分析权限显示。
+- `src/app/daily/page.tsx`: 每日工作台页面结构，显示北京时间日期、今日概览、今日任务、习惯打卡、今日日程、随手记录和每日复盘入口；今日概览已接入真实程序统计，显示任务完成率、习惯完成数、日程数量、随手记录数量、任务细分和记录细分，不调用 AI；今日任务分区已接入任务创建表单、当前用户今日任务列表、按状态分组展示、状态操作、延期日期选择和任务完成率统计；习惯打卡分区已接入习惯创建表单、当前用户启用习惯列表、今日打卡状态、累计打卡次数、连续打卡天数和今日习惯完成数统计；今日日程分区已接入日程创建表单、当前用户今日日程列表和今日日程数量统计；随手记录分区已接入事件/灵感创建表单、当前用户今日事件和灵感列表、情绪标签和 AI 分析权限显示；每日复盘入口支持登录用户打开发送预览，展示统计摘要、关键摘要和事件原文候选，用户可以取消勾选某条原文，确认生成按钮在 Step 6.4 保持禁用，不调用 AI。
 - `src/app/daily/actions.ts`: 每日工作台 Server Actions，当前提供 `createTaskAction()`、`updateTaskStatusAction()`、`createHabitAction()`、`updateHabitCheckinAction()`、`createScheduleItemAction()` 和 `createQuickRecordAction()`；写入任务、更新任务状态、创建习惯、更新习惯打卡、创建日程和保存随手记录前必须通过 `requireCurrentUser()` 获取当前登录用户，并把数据写入或限定更新到当前用户的 `user_id`。
 - `src/app/records/page.tsx`: 成长记录页面，服务端读取当前登录用户的近期任务、习惯打卡、日程、事件和灵感，按创建时间倒序合并为统一时间线；页面顶部显示按记录类型统计的当前载入数量；支持通过 URL query 参数按记录类型筛选和日期范围筛选，当前类型包括全部、任务、习惯、日程、事件和灵感，日期范围包括全部近期、今天和最近 7 天；未登录用户可以浏览页面结构并看到登录提示，登录返回路径会保留当前筛选 URL；时间线条目链接到对应详情页。
 - `src/app/records/[kind]/[id]/page.tsx`: 成长记录详情页，支持 `task`、`habit`、`schedule`、`event` 和 `idea` 五类记录详情；只读展示当前记录字段，不提供编辑；未登录用户看到登录提示；登录用户只能查询当前用户 ID 下的数据；不存在、已删除或不属于当前账号的记录显示未找到/无权限状态。
@@ -131,7 +133,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/app/login/page.tsx`: 邮箱登录和注册页面，支持 `next` 参数把用户带回原页面。
 - `src/app/auth/actions.ts`: Supabase Auth Server Actions，负责登录、注册和退出。
 - `src/app/auth/confirm/route.ts`: Supabase 邮箱确认回调路由，成功后跳转到安全的 `next` 路径，失败时回到登录页。
-- `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮、导航样式、每日概览卡、今日概览进度条、洞察报告统计网格、洞察报告趋势卡、任务完成率图表容器、习惯打卡图表容器和点阵、记录数量趋势图表容器、情绪基础统计图表容器、成长记录时间线、记录概览统计、成长记录筛选控件、记录详情字段、工作台面板、空状态、任务表单、任务列表、任务状态分组、状态操作按钮、延期日期输入、习惯统计标签行、文本域和表单提示样式。
+- `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮、导航样式、每日概览卡、今日概览进度条、洞察报告统计网格、洞察报告趋势卡、任务完成率图表容器、习惯打卡图表容器和点阵、记录数量趋势图表容器、情绪基础统计图表容器、成长记录时间线、记录概览统计、成长记录筛选控件、记录详情字段、工作台面板、空状态、任务表单、任务列表、任务状态分组、状态操作按钮、延期日期输入、习惯统计标签行、每日复盘预览区、文本域和表单提示样式。
 - `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区、当前阶段提示、账号状态和退出入口，并把页面内容包裹在统一布局中。
 - `src/components/insights/task-completion-chart.tsx`: 任务完成率图表客户端组件，使用 Recharts 渲染最近 7 天每日任务完成率；只接收服务端页面整理后的图表数据，不读取数据库，不接触密钥。
 - `src/components/insights/habit-checkin-chart.tsx`: 习惯打卡图表客户端组件，使用 Recharts 渲染启用习惯最近 7 天完成数，并用点阵展示每日是否打卡；只接收服务端页面整理后的图表数据，不读取数据库，不接触密钥。
@@ -145,7 +147,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/lib/ai/types.ts`: AI Provider Adapter 的共享类型，定义 `ReviewType`、`GenerateReviewInput`、`GenerateReviewOutput` 和 `AiProviderClient`。
 - `src/lib/ai/openai-compatible.ts`: OpenAI-compatible provider 实现，负责构造 `chat/completions` 请求、发送服务端请求、解析 JSON 复盘结果并规范化输出。
 - `src/lib/ai/provider.ts`: AI Provider Adapter 统一入口，当前根据复盘类型读取运行时配置，并提供 `generateReview()`；缺少 AI 配置时抛出 `AiConfigurationError`，不会回退到前端或暴露密钥。
-- `src/lib/ai/daily-review-context.ts`: 每日复盘上下文生成服务，按当前用户和北京时间日期读取任务、启用习惯、习惯打卡、日程、事件和灵感，生成结构化统计、关键摘要、事件原文候选、敏感降级事件和后续 AI adapter 可用的 `aiInput`；该过程不调用 AI。
+- `src/lib/ai/daily-review-context.ts`: 每日复盘上下文生成服务，按当前用户和北京时间日期读取任务、启用习惯、习惯打卡、日程、事件和灵感，生成结构化统计、关键摘要、事件原文候选、敏感降级事件和后续 AI adapter 可用的 `aiInput`；并提供按用户勾选的事件 ID 过滤原文候选的 helper；该过程不调用 AI。
 - `src/lib/ai/sensitive-rules.ts`: 事件原文敏感内容基础判定规则，当前识别手机号、身份证、银行卡、详细地址、密钥/token、医疗隐私和高度私密关系内容；命中后供每日复盘上下文服务降级为摘要参与。
 - `src/lib/supabase/config.ts`: 读取 Supabase 环境变量，提供 public client 配置校验和设置页状态检查。
 - `src/lib/supabase/client.ts`: 浏览器端 Supabase client 工厂，只使用 `NEXT_PUBLIC_*` 配置。
@@ -197,7 +199,7 @@ AI Provider Adapter for scheduled/manual reviews
 - 未登录用户触发每日工作台写入入口时跳转登录提示。
 - 登录用户可在侧边栏看到账号状态并退出。
 - Supabase Auth 邮件确认完整链路需要在 Supabase Dashboard 中确认 Redirect URL 允许 `http://localhost:3001/auth/confirm`。
-- 当前已建立 AI Provider Adapter 基础能力和每日复盘上下文生成能力，但页面流程尚未接入发送预览或真实 AI 调用。
+- 当前已建立 AI Provider Adapter 基础能力、每日复盘上下文生成能力和每日复盘发送预览能力，但页面流程尚未接入真实 AI 调用。
 - 不配置 `SUPABASE_SERVICE_ROLE_KEY`，除非后续步骤确实需要并单独确认。
 - 只提供静态页面壳、导航和基础视觉规范。
 - 页面视觉应保持个人 dashboard 风格，不做营销首页。

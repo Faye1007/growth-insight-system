@@ -175,6 +175,82 @@ select {
     padding: 1.25rem;
   }
 
+  .review-preview-panel {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .review-preview-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .review-preview-metric {
+    display: grid;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .review-preview-metric span {
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+    font-weight: 650;
+  }
+
+  .review-preview-metric strong {
+    color: var(--foreground);
+    font-size: 1.25rem;
+    line-height: 1.15;
+  }
+
+  .review-preview-section {
+    border-top: 1px solid var(--border);
+    padding-top: 1.25rem;
+  }
+
+  .review-highlight-list,
+  .review-original-list {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .review-highlight-item,
+  .review-original-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+
+  .review-highlight-item {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .review-original-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem;
+  }
+
+  .review-original-item input {
+    margin-top: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .review-original-item span {
+    min-width: 0;
+  }
+
+  .review-preview-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
   .empty-state {
     display: flex;
     min-height: 6rem;
@@ -800,6 +876,10 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .review-preview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .insight-kpi-grid,
   .insight-emotion-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -829,6 +909,10 @@ select {
   }
 
   .insight-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .review-preview-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
