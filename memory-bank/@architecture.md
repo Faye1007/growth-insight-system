@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 5.5，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势和情绪基础统计能力。
+当前项目已完成 Step 6.1，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计和 AI 配置检查能力。
 
 当前已存在：
 
@@ -20,6 +20,7 @@
 - Supabase SSR/browser client 工具层。
 - `.env.example` 环境变量模板。
 - 设置页 Supabase 配置状态展示。
+- 设置页 AI 配置状态展示。
 - 真实 `.env.local` 本地配置，包含 Supabase public client 配置和 `DATABASE_URL`，但不进入 Git。
 - Drizzle ORM、Drizzle Kit 和 Postgres client 依赖。
 - `drizzle.config.ts` 迁移配置。
@@ -77,6 +78,7 @@
 - 习惯打卡图表组件。
 - 记录数量趋势图表组件。
 - 情绪基础统计图表组件。
+- AI 配置状态 helper。
 - 任务分类和状态的统一选项定义。
 
 尚未开始：
@@ -84,6 +86,7 @@
 - 复盘的真实业务数据读写。
 - Row Level Security。
 - AI provider adapter。
+- AI 复盘上下文生成、发送预览和真实调用。
 - 其他交互组件视觉细化。
 
 目标技术方向：
@@ -102,7 +105,7 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 5.5 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势和情绪基础统计。各文件职责如下：
+当前 Step 1.1-Step 6.1 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计和 AI 配置检查。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start`、`lint`、`db:generate`、`db:migrate` 和 `db:studio`；依赖包括 Supabase SSR/client 包、Drizzle ORM、Postgres client 和 Recharts。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
@@ -122,7 +125,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/app/insights/page.tsx`: 洞察报告页面，服务端读取当前登录用户最近 7 天任务、启用习惯、习惯打卡、日程、事件和灵感数据；页面分区包括今日概览、本周趋势、记录数量趋势、习惯状态、情绪记录和后续复盘提示；本周趋势区已接入最近 7 天任务完成率图表和每日趋势卡；记录数量趋势区已接入最近 7 天事件和灵感堆叠柱状图；习惯状态区已接入最近 7 天习惯打卡图表、每日点阵、今日状态、最近 7 天完成数和连续天数；情绪记录区已接入最近 7 天手动情绪标签统计图表和计数卡片；当前只做程序统计，不调用 AI。
 - `src/app/manual/page.tsx`: 个人说明书页面壳，预留人生阶段、目标、能力画像、情绪模式和常见内耗点，并使用统一字段卡片样式。
 - `.env.example`: 环境变量模板，只列出需要配置的字段，不保存真实密钥。
-- `src/app/settings/page.tsx`: 设置页展示应用、Supabase 配置状态和账号登录状态，只显示是否配置，不展示密钥、token 或连接字符串。
+- `src/app/settings/page.tsx`: 设置页展示应用、Supabase 配置状态、AI 配置状态和账号登录状态；只显示是否配置，不展示密钥、token、API key 或连接字符串。
 - `src/app/login/page.tsx`: 邮箱登录和注册页面，支持 `next` 参数把用户带回原页面。
 - `src/app/auth/actions.ts`: Supabase Auth Server Actions，负责登录、注册和退出。
 - `src/app/auth/confirm/route.ts`: Supabase 邮箱确认回调路由，成功后跳转到安全的 `next` 路径，失败时回到登录页。
@@ -136,7 +139,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/components/ui/.gitkeep`: 保留 shadcn/ui 组件目录。
 - `src/contexts/.gitkeep`: 保留 React context 目录。
 - `src/db/.gitkeep`: 保留数据库 schema 和 query 目录。
-- `src/lib/ai/.gitkeep`: 保留 AI provider adapter 目录。
+- `src/lib/ai/config.ts`: AI 配置状态 helper，读取 `AI_PROVIDER`、`AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL_DAILY`、`AI_MODEL_WEEKLY` 和 `AI_MODEL_MONTHLY` 是否存在，并给设置页提供状态；不暴露 `AI_API_KEY` 明文，不调用 AI。
 - `src/lib/supabase/config.ts`: 读取 Supabase 环境变量，提供 public client 配置校验和设置页状态检查。
 - `src/lib/supabase/client.ts`: 浏览器端 Supabase client 工厂，只使用 `NEXT_PUBLIC_*` 配置。
 - `src/lib/supabase/server.ts`: 服务端 Supabase client 工厂，使用 Next.js cookies 接入 SSR 会话能力。

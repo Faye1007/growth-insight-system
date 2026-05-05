@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 5.5：实现情绪基础统计。
+项目已完成 Step 6.1：建立 AI 配置检查。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势和情绪基础统计能力稳定。
-- 准备进入 Step 6.1：建立 AI 配置检查。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计和 AI 配置检查能力稳定。
+- 准备进入 Step 6.2：建立 AI Provider Adapter 基础能力。
 - 后续逐步接入 Row Level Security、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -898,6 +898,42 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
+### Step 6.1：建立 AI 配置检查
+
+已完成内容：
+
+- 新增 AI 配置状态 helper，统一读取 AI 环境变量是否存在。
+- 设置页新增 AI 配置状态区。
+- 设置页显示 `AI_PROVIDER`、`AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL_DAILY`、`AI_MODEL_WEEKLY` 和 `AI_MODEL_MONTHLY` 的配置状态。
+- `AI_API_KEY` 只显示“已配置/未配置”，不展示明文。
+- 设置页显示每日复盘是否已满足基本 AI 配置条件。
+- 未配置 AI 时，普通记录、程序统计和图表仍可正常使用。
+- 本 Step 未修改 `.env.local`。
+- 本 Step 未填入任何 AI key。
+- 本 Step 不调用 AI，不接入 AI Provider Adapter。
+
+本次新增或更新的文件：
+
+- `src/lib/ai/config.ts`
+- `src/app/settings/page.tsx`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `curl -I http://localhost:3001/settings` 返回 `200`。
+- 本地开发服务已启动并在检查后停止。
+- Faye 已要求更新文档并提交 Git，视为 Step 6.1 验收通过。
+
+尚未完成或暂缓：
+
+- AI Provider Adapter 尚未接入。
+- 复盘的上下文生成、发送预览和真实生成尚未实现。
+- Row Level Security 尚未配置。
+
 ## Not Started
 
 - Row Level Security
@@ -906,6 +942,6 @@
 
 ## Next Step Candidate
 
-Step 6.1：建立 AI 配置检查。
+Step 6.2：建立 AI Provider Adapter 基础能力。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
