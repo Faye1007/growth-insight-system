@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 5.2：实现任务完成率图表。
+项目已完成 Step 5.3：实现习惯打卡图表。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳和任务完成率图表能力稳定。
-- 准备进入 Step 5.3：实现习惯打卡图表。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表和习惯打卡图表能力稳定。
+- 准备进入 Step 5.4：实现记录数量趋势。
 - 后续逐步接入 Row Level Security、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -783,7 +783,44 @@
 
 尚未完成或暂缓：
 
-- Step 5.3 习惯打卡图表尚未实现。
+- Row Level Security 尚未配置。
+- 复盘仍未接真实写入。
+- AI provider adapter 尚未接入。
+
+### Step 5.3：实现习惯打卡图表
+
+已完成内容：
+
+- 新增习惯打卡图表客户端组件，专门负责 Recharts 和 7 天打卡点阵渲染。
+- 洞察报告页继续由服务端读取当前登录用户的启用习惯和习惯打卡数据，不把数据库查询逻辑放到前端。
+- 在 `/insights` 习惯状态区新增最近 7 天习惯打卡图表。
+- 图表展示每个启用习惯最近 7 天完成数。
+- 打卡点阵展示每个启用习惯最近 7 天每日是否完成。
+- 习惯列表补充连续天数显示。
+- 连续天数使用该习惯所有历史 `checked` 打卡日期从北京时间今天向前计算，不被最近 7 天窗口截断。
+- 没有启用习惯时显示空状态。
+- 本 Step 不修改数据库 schema，不执行迁移，不接入 AI。
+
+本次新增或更新的文件：
+
+- `src/components/insights/habit-checkin-chart.tsx`
+- `src/app/insights/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `curl -I http://localhost:3001/insights` 返回 `200`。
+- 本地开发服务已启动并在检查后停止。
+- Faye 已要求更新文档并提交 Git，视为 Step 5.3 验收通过。
+
+尚未完成或暂缓：
+
+- Step 5.4 记录数量趋势尚未实现。
 - Row Level Security 尚未配置。
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
@@ -796,6 +833,6 @@
 
 ## Next Step Candidate
 
-Step 5.3：实现习惯打卡图表。
+Step 5.4：实现记录数量趋势。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

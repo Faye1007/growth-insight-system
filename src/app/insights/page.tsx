@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, eq, gte, isNull, lte } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNull, lte } from "drizzle-orm";
 import {
   BarChart3,
   CalendarDays,
@@ -18,6 +18,7 @@ import {
   scheduleItems as scheduleItemTable,
   tasks as taskTable,
 } from "@/db/schema";
+import { HabitCheckinChart } from "@/components/insights/habit-checkin-chart";
 import { TaskCompletionChart } from "@/components/insights/task-completion-chart";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -56,6 +57,23 @@ function formatDateValue(value: string) {
 
 function getRate(completed: number, total: number) {
   return total > 0 ? Math.round((completed / total) * 100) : 0;
+}
+
+function getHabitStreakCount(checkedDates: Set<string>, today: string) {
+  let streakCount = 0;
+
+  if (!checkedDates.has(today)) {
+    return streakCount;
+  }
+
+  let cursorDate = today;
+
+  while (checkedDates.has(cursorDate)) {
+    streakCount += 1;
+    cursorDate = getBeijingDateAfter(-1, new Date(`${cursorDate}T00:00:00+08:00`));
+  }
+
+  return streakCount;
 }
 
 function getRecordCountByDate<T, K extends keyof T>(
@@ -159,6 +177,25 @@ async function getInsightData(userId: string) {
   ]);
 
   const activeHabitIds = new Set(activeHabits.map((habit) => habit.id));
+  const allHabitCheckins = activeHabits.length
+    ? await db
+        .select({
+          habitId: habitCheckinTable.habitId,
+          checkinDate: habitCheckinTable.checkinDate,
+          status: habitCheckinTable.status,
+        })
+        .from(habitCheckinTable)
+        .where(
+          and(
+            eq(habitCheckinTable.userId, userId),
+            inArray(
+              habitCheckinTable.habitId,
+              activeHabits.map((habit) => habit.id),
+            ),
+          ),
+        )
+        .orderBy(asc(habitCheckinTable.checkinDate))
+    : [];
   const todayTasks = tasks.filter((task) => task.taskDate === today);
   const todayCompletedTasks = todayTasks.filter((task) => task.status === "completed");
   const todayCheckedHabitIds = new Set(
@@ -204,16 +241,27 @@ async function getInsightData(userId: string) {
   });
 
   const habitRows = activeHabits.slice(0, maxHabitRows).map((habit) => {
+    const checkedDates = new Set(
+      allHabitCheckins
+        .filter((checkin) => checkin.habitId === habit.id && checkin.status === "checked")
+        .map((checkin) => checkin.checkinDate),
+    );
     const recentCheckedCount = habitCheckins.filter(
       (checkin) => checkin.habitId === habit.id && checkin.status === "checked",
     ).length;
 
     return {
+      checkins: weekDates.map((dateValue) => ({
+        checked: checkedDates.has(dateValue),
+        dateValue,
+        label: formatDateValue(dateValue),
+      })),
       id: habit.id,
       name: habit.name,
       categoryLabel: getTaskCategoryLabel(habit.category),
       checkedToday: todayCheckedHabitIds.has(habit.id),
       recentCheckedCount,
+      streakCount: getHabitStreakCount(checkedDates, today),
     };
   });
 
@@ -444,22 +492,36 @@ export default async function InsightsPage() {
           </div>
 
           {insightData?.habitRows.length ? (
-            <div className="insight-list mt-5">
-              {insightData.habitRows.map((habit) => (
-                <div key={habit.id} className="insight-list-row">
+            <>
+              <div className="insight-chart-card mt-5">
+                <div className="record-item-heading">
                   <div>
-                    <p className="list-label">{habit.name}</p>
-                    <p className="body-copy mt-1">{habit.categoryLabel}</p>
+                    <p className="list-label">习惯打卡图表</p>
+                    <p className="body-copy mt-1">显示每个启用习惯最近 7 天完成数和每日打卡状态。</p>
                   </div>
-                  <div className="overview-detail-row justify-start sm:justify-end">
-                    <span className="status-pill">
-                      {habit.checkedToday ? "今日已完成" : "今日未打卡"}
-                    </span>
-                    <span className="status-pill">7天 {habit.recentCheckedCount}</span>
-                  </div>
+                  <span className="status-pill">来自习惯打卡表</span>
                 </div>
-              ))}
-            </div>
+                <HabitCheckinChart data={insightData.habitRows} />
+              </div>
+
+              <div className="insight-list mt-5">
+                {insightData.habitRows.map((habit) => (
+                  <div key={habit.id} className="insight-list-row">
+                    <div>
+                      <p className="list-label">{habit.name}</p>
+                      <p className="body-copy mt-1">{habit.categoryLabel}</p>
+                    </div>
+                    <div className="overview-detail-row justify-start sm:justify-end">
+                      <span className="status-pill">
+                        {habit.checkedToday ? "今日已完成" : "今日未打卡"}
+                      </span>
+                      <span className="status-pill">7天 {habit.recentCheckedCount}</span>
+                      <span className="status-pill">连续 {habit.streakCount} 天</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
             <div className="empty-state mt-5">
               <span className="empty-icon">
