@@ -2,13 +2,13 @@
 
 ## Current Status
 
-项目已完成 Step 4.3：实现记录详情查看。
+项目已完成 Step 5.1：实现洞察报告页面壳。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选和记录详情查看能力稳定。
-- 准备进入 Step 5.1：实现洞察报告页面壳。
-- 后续逐步接入真实业务数据读写、Row Level Security、基础图表和 AI 复盘能力。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看和洞察报告页面壳能力稳定。
+- 准备进入 Step 5.2：实现任务完成率图表。
+- 后续逐步接入 Row Level Security、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
 
@@ -624,7 +624,7 @@
 
 尚未完成或暂缓：
 
-- Step 4.3 记录详情查看尚未实现。
+- Step 4.2 基础筛选和 Step 4.3 记录详情查看已在后续步骤完成。
 - Row Level Security 尚未配置。
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
@@ -712,6 +712,43 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
+### Step 5.1：实现洞察报告页面壳
+
+已完成内容：
+
+- 将洞察报告页 `/insights` 从静态占位升级为可读取真实业务数据的页面壳。
+- 页面分区包括今日概览、本周趋势、习惯状态、情绪记录和后续复盘提示。
+- 今日概览读取当前登录用户今天的任务完成率、习惯打卡完成数、日程数量、事件数量和灵感数量。
+- 本周趋势读取最近 7 天任务、习惯打卡和记录数量，并以轻量进度条和统计标签展示。
+- 习惯状态读取当前登录用户的启用习惯，展示今日是否打卡和最近 7 天打卡次数。
+- 情绪记录统计最近 7 天事件记录中的手动情绪标签出现次数。
+- 未登录用户仍可浏览洞察报告页结构，并看到登录提示。
+- 洞察报告页明确标注当前只做程序统计，不调用 AI。
+- 当前 Step 不修改数据库 schema，不执行迁移，不安装新依赖，不接入 AI。
+
+本次新增或更新的文件：
+
+- `src/app/insights/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `curl -I http://localhost:3001/insights` 返回 `200`。
+- 本地开发服务已启动在 `http://localhost:3001/insights`。
+- Faye 已要求更新文档并提交 Git，视为 Step 5.1 验收通过。
+
+尚未完成或暂缓：
+
+- Step 5.2 任务完成率图表尚未实现。
+- Row Level Security 尚未配置。
+- 复盘仍未接真实写入。
+- AI provider adapter 尚未接入。
+
 ## Not Started
 
 - Row Level Security
@@ -720,6 +757,6 @@
 
 ## Next Step Candidate
 
-Step 5.1：实现洞察报告页面壳。
+Step 5.2：实现任务完成率图表。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

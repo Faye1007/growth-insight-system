@@ -578,6 +578,60 @@ select {
     white-space: pre-wrap;
   }
 
+  .insight-kpi-grid,
+  .insight-day-grid,
+  .insight-section-grid,
+  .insight-emotion-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .insight-day-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    padding: 1rem;
+  }
+
+  .insight-bar-stack,
+  .insight-list {
+    display: grid;
+    gap: 0.875rem;
+  }
+
+  .insight-bar-row {
+    display: grid;
+    gap: 0.5rem;
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+    font-weight: 650;
+  }
+
+  .insight-list-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    padding: 0.875rem 1rem;
+  }
+
+  .insight-emotion-grid .field-tile {
+    display: flex;
+    min-height: 3.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .insight-emotion-grid strong {
+    color: var(--foreground);
+    font-size: 1.125rem;
+    line-height: 1;
+  }
+
   .tone-lavender {
     --accent: var(--lavender);
     background: linear-gradient(180deg, var(--lavender-soft), var(--card) 44%);
@@ -637,6 +691,10 @@ select {
     flex-direction: column;
   }
 
+  .insight-list-row {
+    flex-direction: column;
+  }
+
   .task-actions,
   .postpone-form {
     width: 100%;
@@ -661,6 +719,11 @@ select {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .insight-kpi-grid,
+  .insight-emotion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .detail-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -682,6 +745,18 @@ select {
 
   .record-summary-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .insight-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .insight-day-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .insight-section-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .detail-grid {
