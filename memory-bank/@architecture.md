@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 6.2，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查能力和 AI Provider Adapter 基础能力。
+当前项目已完成 Step 6.3，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查能力、AI Provider Adapter 基础能力和每日复盘上下文生成能力。
 
 当前已存在：
 
@@ -80,13 +80,15 @@
 - 情绪基础统计图表组件。
 - AI 配置状态 helper。
 - AI Provider Adapter 基础类型、运行时配置读取和 OpenAI-compatible 调用入口。
+- 每日复盘上下文生成服务。
+- 事件原文敏感内容基础判定规则。
 - 任务分类和状态的统一选项定义。
 
 尚未开始：
 
 - 复盘的真实业务数据读写。
 - Row Level Security。
-- AI 复盘上下文生成、发送预览和真实调用。
+- AI 复盘发送预览和真实调用。
 - 其他交互组件视觉细化。
 
 目标技术方向：
@@ -105,7 +107,7 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 6.2 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查和 AI Provider Adapter 基础能力。各文件职责如下：
+当前 Step 1.1-Step 6.3 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力和每日复盘上下文生成能力。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start`、`lint`、`db:generate`、`db:migrate` 和 `db:studio`；依赖包括 Supabase SSR/client 包、Drizzle ORM、Postgres client 和 Recharts。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
@@ -143,6 +145,8 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/lib/ai/types.ts`: AI Provider Adapter 的共享类型，定义 `ReviewType`、`GenerateReviewInput`、`GenerateReviewOutput` 和 `AiProviderClient`。
 - `src/lib/ai/openai-compatible.ts`: OpenAI-compatible provider 实现，负责构造 `chat/completions` 请求、发送服务端请求、解析 JSON 复盘结果并规范化输出。
 - `src/lib/ai/provider.ts`: AI Provider Adapter 统一入口，当前根据复盘类型读取运行时配置，并提供 `generateReview()`；缺少 AI 配置时抛出 `AiConfigurationError`，不会回退到前端或暴露密钥。
+- `src/lib/ai/daily-review-context.ts`: 每日复盘上下文生成服务，按当前用户和北京时间日期读取任务、启用习惯、习惯打卡、日程、事件和灵感，生成结构化统计、关键摘要、事件原文候选、敏感降级事件和后续 AI adapter 可用的 `aiInput`；该过程不调用 AI。
+- `src/lib/ai/sensitive-rules.ts`: 事件原文敏感内容基础判定规则，当前识别手机号、身份证、银行卡、详细地址、密钥/token、医疗隐私和高度私密关系内容；命中后供每日复盘上下文服务降级为摘要参与。
 - `src/lib/supabase/config.ts`: 读取 Supabase 环境变量，提供 public client 配置校验和设置页状态检查。
 - `src/lib/supabase/client.ts`: 浏览器端 Supabase client 工厂，只使用 `NEXT_PUBLIC_*` 配置。
 - `src/lib/supabase/server.ts`: 服务端 Supabase client 工厂，使用 Next.js cookies 接入 SSR 会话能力。
@@ -193,7 +197,7 @@ AI Provider Adapter for scheduled/manual reviews
 - 未登录用户触发每日工作台写入入口时跳转登录提示。
 - 登录用户可在侧边栏看到账号状态并退出。
 - Supabase Auth 邮件确认完整链路需要在 Supabase Dashboard 中确认 Redirect URL 允许 `http://localhost:3001/auth/confirm`。
-- 当前已建立 AI Provider Adapter 基础能力，但页面流程尚未接入真实 AI 调用。
+- 当前已建立 AI Provider Adapter 基础能力和每日复盘上下文生成能力，但页面流程尚未接入发送预览或真实 AI 调用。
 - 不配置 `SUPABASE_SERVICE_ROLE_KEY`，除非后续步骤确实需要并单独确认。
 - 只提供静态页面壳、导航和基础视觉规范。
 - 页面视觉应保持个人 dashboard 风格，不做营销首页。

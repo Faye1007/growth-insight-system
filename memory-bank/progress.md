@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 6.2：建立 AI Provider Adapter 基础能力。
+项目已完成 Step 6.3：生成每日复盘上下文。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查和 AI Provider Adapter 基础能力稳定。
-- 准备进入 Step 6.3：生成每日复盘上下文。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力和每日复盘上下文生成能力稳定。
+- 准备进入 Step 6.4：实现每日复盘发送预览。
 - 后续逐步接入 Row Level Security、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -973,16 +973,57 @@
 - 复盘报告缓存读写尚未接入页面。
 - Row Level Security 尚未配置。
 
+### Step 6.3：生成每日复盘上下文
+
+已完成内容：
+
+- 新增每日复盘上下文生成服务。
+- 从当前用户指定日期的任务、启用习惯、习惯打卡、日程、事件和灵感生成结构化摘要。
+- 摘要包含任务完成率、任务状态分布、任务分类分布、习惯今日完成数、习惯连续天数、日程分类、事件数量、灵感数量、情绪标签统计和普通标签统计。
+- 生成关键记录摘要 `highlights`，用于后续发送预览和 AI 复盘输入。
+- 灵感只进入摘要，不进入事件原文候选。
+- `ai_analysis_permission = none` 的事件不进入 AI 内容。
+- `ai_analysis_permission = summary_only` 的事件只进入摘要。
+- 只有 `ai_analysis_permission = allow_original` 且未命中敏感规则的事件进入原文候选。
+- 新增事件原文敏感内容基础规则，当前覆盖手机号、身份证、银行卡、详细地址、密钥/token、医疗隐私和高度私密关系内容。
+- 命中敏感规则的事件会降级为摘要参与，不发送原文。
+- 原文候选最多 5 条，单条原文截断到 600 字。
+- 生成后续 AI adapter 可用的 `aiInput`，但本 Step 不调用 AI。
+- 本 Step 未修改 `.env.local`。
+- 本 Step 未读取 AI key。
+- 本 Step 不修改数据库 schema，也不执行迁移。
+
+本次新增或更新的文件：
+
+- `src/lib/ai/daily-review-context.ts`
+- `src/lib/ai/sensitive-rules.ts`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 源码检查通过：新增 Step 6.3 文件中未发现 `generateReview()`、`AI_API_KEY` 或 `Authorization`。
+- Faye 已要求更新文档并提交 Git，视为 Step 6.3 验收通过。
+
+尚未完成或暂缓：
+
+- 每日复盘发送预览尚未接入页面。
+- 用户移除某条事件原文的交互尚未实现。
+- 真实 AI 生成和复盘报告缓存读写尚未接入页面。
+- Row Level Security 尚未配置。
+
 ## Not Started
 
 - Row Level Security
 - 复盘的真实业务数据读写
-- AI 复盘上下文生成
 - AI 复盘发送预览
 - 手动生成每日复盘
 
 ## Next Step Candidate
 
-Step 6.3：生成每日复盘上下文。
+Step 6.4：实现每日复盘发送预览。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
