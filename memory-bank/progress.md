@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 6.6：验证 AI 成本控制规则。
+项目已完成 Step 7.1：实现设置页基础信息。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力和 AI 成本控制边界稳定。
-- 后续逐步接入 Row Level Security、基础设置和使用安全、更多基础图表和 AI 复盘能力。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界和设置页基础状态展示稳定。
+- 后续逐步接入 Row Level Security、错误提示规范、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
 
@@ -1141,13 +1141,50 @@
 
 - Row Level Security 尚未配置。
 
+### Step 7.1：实现设置页基础信息
+
+已完成内容：
+
+- 设置页继续展示当前应用运行状态和账号登录状态。
+- 设置页继续展示 Supabase public client 配置状态。
+- 设置页新增数据库只读健康检查，使用服务端 `DATABASE_URL` 执行 `select 1`。
+- 数据库健康检查使用独立短连接和 3 秒连接超时，避免设置页被远端数据库连接长时间拖慢。
+- 数据库未配置时显示“未配置”，配置存在但连接失败时显示“连接异常”，不展示底层错误堆栈。
+- 数据库连接正常时显示“连接正常”和“数据库只读健康检查已通过”。
+- 设置页继续展示 AI provider、AI base URL、AI API key、每日复盘模型、周复盘模型和月度复盘模型配置状态。
+- AI API key 只显示“已配置/未配置”，不显示明文。
+- 本 Step 未修改 `.env.local`。
+- 本 Step 未填入任何 AI key。
+- 本 Step 不修改数据库 schema，也不执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/settings/page.tsx`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `git diff --check` 通过。
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- 本地 `/settings` 返回 `200`。
+- 页面正文检查通过：显示“连接正常”“数据库只读健康检查已通过”“每日复盘待配置”和“AI API key 未配置”。
+- 源码检查通过：设置页不展示真实数据库连接字符串、AI key 或底层错误信息。
+- Faye 已确认 Step 7.1 通过，并要求更新文档和提交 Git。
+
+尚未完成或暂缓：
+
+- Row Level Security 尚未配置。
+- Step 7.2 错误提示规范尚未开始。
+
 ## Not Started
 
 - Row Level Security
-- 基础设置和使用安全
+- 错误提示规范
 
 ## Next Step Candidate
 
-Step 7.1：实现设置页基础信息。
+Step 7.2：建立错误提示规范。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

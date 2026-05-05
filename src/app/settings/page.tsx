@@ -2,9 +2,50 @@ import { getAiConfigStatus } from "@/lib/ai/config";
 import { getSupabaseConfigStatus } from "@/lib/supabase/config";
 import { getCurrentUser } from "@/lib/auth/session";
 
+type DatabaseHealthStatus = {
+  label: string;
+  detail: string;
+};
+
+async function getDatabaseHealthStatus(hasDatabaseUrl: boolean): Promise<DatabaseHealthStatus> {
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+
+  if (!hasDatabaseUrl || !databaseUrl) {
+    return {
+      label: "未配置",
+      detail: "缺少数据库连接配置，真实数据读写暂不可用。",
+    };
+  }
+
+  const { default: postgres } = await import("postgres");
+  const client = postgres(databaseUrl, {
+    max: 1,
+    prepare: false,
+    ssl: "require",
+    connect_timeout: 3,
+  });
+
+  try {
+    await client`select 1`;
+
+    return {
+      label: "连接正常",
+      detail: "数据库只读健康检查已通过。",
+    };
+  } catch {
+    return {
+      label: "连接异常",
+      detail: "数据库配置已存在，但当前连接检查失败。请稍后重试或检查服务端配置。",
+    };
+  } finally {
+    await client.end({ timeout: 3 });
+  }
+}
+
 export default async function SettingsPage() {
   const aiStatus = getAiConfigStatus();
   const supabaseStatus = getSupabaseConfigStatus();
+  const databaseHealth = await getDatabaseHealthStatus(supabaseStatus.hasDatabaseUrl);
   const user = await getCurrentUser();
   const supabaseSettings = [
     {
@@ -22,6 +63,10 @@ export default async function SettingsPage() {
     {
       label: "Database URL",
       status: supabaseStatus.hasDatabaseUrl ? "已配置" : "未配置",
+    },
+    {
+      label: "数据库连接检查",
+      status: databaseHealth.label,
     },
   ];
   const aiSettings = [
@@ -85,10 +130,14 @@ export default async function SettingsPage() {
               项目配置。
             </p>
           </div>
-          <span className="status-pill">
-            {supabaseStatus.isPublicClientReady ? "客户端已就绪" : "等待配置"}
-          </span>
+          <div className="overview-detail-row">
+            <span className="status-pill">
+              {supabaseStatus.isPublicClientReady ? "客户端已就绪" : "等待配置"}
+            </span>
+            <span className="status-pill">{databaseHealth.label}</span>
+          </div>
         </div>
+        <p className="body-copy mt-4">{databaseHealth.detail}</p>
         <div className="panel-list">
           {supabaseSettings.map((item) => (
             <div key={item.label} className="list-row">
