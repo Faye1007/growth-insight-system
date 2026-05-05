@@ -602,14 +602,16 @@ select {
 
   .task-completion-chart,
   .habit-checkin-chart,
-  .record-trend-chart {
+  .record-trend-chart,
+  .emotion-stats-chart {
     margin-top: 1rem;
     min-height: 17.5rem;
   }
 
   .task-completion-chart .recharts-default-tooltip,
   .habit-checkin-chart .recharts-default-tooltip,
-  .record-trend-chart .recharts-default-tooltip {
+  .record-trend-chart .recharts-default-tooltip,
+  .emotion-stats-chart .recharts-default-tooltip {
     border: 1px solid var(--border) !important;
     border-radius: var(--radius-control);
     background: var(--card) !important;

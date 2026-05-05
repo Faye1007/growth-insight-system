@@ -18,6 +18,7 @@ import {
   scheduleItems as scheduleItemTable,
   tasks as taskTable,
 } from "@/db/schema";
+import { EmotionStatsChart } from "@/components/insights/emotion-stats-chart";
 import { HabitCheckinChart } from "@/components/insights/habit-checkin-chart";
 import { RecordTrendChart } from "@/components/insights/record-trend-chart";
 import { TaskCompletionChart } from "@/components/insights/task-completion-chart";
@@ -328,6 +329,8 @@ export default async function InsightsPage() {
   const weeklyIdeaCount =
     insightData?.daySummaries.reduce((total, day) => total + day.ideaCount, 0) ?? 0;
   const weeklyRecordCount = weeklyEventCount + weeklyIdeaCount;
+  const weeklyEmotionCount =
+    insightData?.emotionRows.reduce((total, emotion) => total + emotion.count, 0) ?? 0;
 
   return (
     <div className="page-stack">
@@ -599,14 +602,27 @@ export default async function InsightsPage() {
           </div>
 
           {insightData?.emotionRows.length ? (
-            <div className="insight-emotion-grid mt-5">
-              {insightData.emotionRows.map((emotion) => (
-                <div key={emotion.emotion} className="field-tile">
-                  <span>{emotion.emotion}</span>
-                  <strong>{emotion.count}</strong>
+            <>
+              <div className="insight-chart-card mt-5">
+                <div className="record-item-heading">
+                  <div>
+                    <p className="list-label">情绪标签图表</p>
+                    <p className="body-copy mt-1">只统计事件记录中手动选择的情绪标签。</p>
+                  </div>
+                  <span className="status-pill">总计 {weeklyEmotionCount} 次</span>
                 </div>
-              ))}
-            </div>
+                <EmotionStatsChart data={insightData.emotionRows} />
+              </div>
+
+              <div className="insight-emotion-grid mt-5">
+                {insightData.emotionRows.map((emotion) => (
+                  <div key={emotion.emotion} className="field-tile">
+                    <span>{emotion.emotion}</span>
+                    <strong>{emotion.count}</strong>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
             <div className="empty-state mt-5">
               <span className="empty-icon">
