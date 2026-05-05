@@ -20,6 +20,7 @@ import {
   updateHabitCheckinAction,
   updateTaskStatusAction,
 } from "@/app/daily/actions";
+import { FeedbackMessage } from "@/components/feedback-message";
 import { db } from "@/db";
 import {
   habitCheckins as habitCheckinTable,
@@ -44,6 +45,23 @@ import {
   taskCategories,
   taskStatuses,
 } from "@/lib/tasks/options";
+import {
+  dailyHabitErrorFeedback,
+  dailyHabitUpdatedFeedback,
+  dailyRecordCreatedFeedback,
+  dailyRecordErrorFeedback,
+  dailyReviewErrorFeedback,
+  dailyScheduleErrorFeedback,
+  dailyTaskErrorFeedback,
+  dailyTaskUpdatedFeedback,
+  defaultHabitErrorFeedback,
+  defaultRecordErrorFeedback,
+  defaultReviewErrorFeedback,
+  defaultScheduleErrorFeedback,
+  defaultTaskErrorFeedback,
+  getFeedbackByCode,
+  type FeedbackMessage as FeedbackMessageData,
+} from "@/lib/feedback";
 
 type DailyPageProps = {
   searchParams?: Promise<{
@@ -88,51 +106,6 @@ const beijingDateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
   hour: "2-digit",
   minute: "2-digit",
 });
-
-const taskErrorText: Record<string, string> = {
-  missing_title: "请先填写任务标题，再保存。",
-  invalid_status: "任务状态无效，请刷新页面后重试。",
-  missing_postponed_date: "延期任务需要选择新的日期。",
-  missing_task: "没有找到这条任务，请刷新页面后重试。",
-};
-
-const taskUpdatedText: Record<string, string> = {
-  in_progress: "任务已标记为进行中。",
-  completed: "任务已标记为已完成。",
-  postponed: "任务已延期，并同步更新到新的任务日期。",
-};
-
-const habitErrorText: Record<string, string> = {
-  missing_name: "请先填写习惯名称，再保存。",
-  invalid_checkin: "习惯打卡操作无效，请刷新页面后重试。",
-  missing_habit: "没有找到这个启用习惯，请刷新页面后重试。",
-};
-
-const habitUpdatedText: Record<string, string> = {
-  checked: "今日习惯已打卡。",
-  skipped: "今日打卡已取消。",
-};
-
-const scheduleErrorText: Record<string, string> = {
-  missing_title: "请先填写日程标题，再保存。",
-  missing_time: "请先选择日程时间，再保存。",
-  invalid_time: "日程时间格式无效，请重新选择时间。",
-};
-
-const recordErrorText: Record<string, string> = {
-  missing_content: "请先填写记录内容，再保存。",
-  invalid_type: "记录类型无效，请刷新页面后重试。",
-};
-
-const recordCreatedText: Record<string, string> = {
-  event: "事件已保存，不会自动触发 AI 分析。",
-  idea: "灵感已保存为待处理状态。",
-};
-
-const reviewErrorText: Record<string, string> = {
-  missing_ai_config: "AI 配置还不完整，请先在服务端配置 AI provider、base URL、API key 和每日复盘模型。",
-  provider_failed: "AI 生成失败，请稍后重试；普通记录和统计不受影响。",
-};
 
 const emotionOptions = [
   "平静",
@@ -865,28 +838,85 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     todayIdeas.length,
   );
   const taskCreated = params?.taskCreated === "1";
-  const taskUpdated = params?.taskUpdated ? taskUpdatedText[params.taskUpdated] ?? "任务状态已更新。" : "";
-  const taskError = params?.taskError ? taskErrorText[params.taskError] ?? "任务保存失败，请稍后重试。" : "";
+  const taskCreatedFeedback: FeedbackMessageData | null = taskCreated
+    ? {
+        tone: "success",
+        title: "任务已保存",
+        detail: "这条任务已关联到当前账号。",
+      }
+    : null;
+  const taskUpdatedFeedback = getFeedbackByCode(params?.taskUpdated, dailyTaskUpdatedFeedback, {
+    tone: "success",
+    title: "任务已更新",
+    detail: "任务状态已保存。",
+  });
+  const taskErrorFeedback = getFeedbackByCode(
+    params?.taskError,
+    dailyTaskErrorFeedback,
+    defaultTaskErrorFeedback,
+  );
   const habitCreated = params?.habitCreated === "1";
-  const habitError = params?.habitError ? habitErrorText[params.habitError] ?? "习惯保存失败，请稍后重试。" : "";
-  const habitUpdated = params?.habitUpdated
-    ? habitUpdatedText[params.habitUpdated] ?? "习惯打卡已更新。"
-    : "";
+  const habitCreatedFeedback: FeedbackMessageData | null = habitCreated
+    ? {
+        tone: "success",
+        title: "习惯已保存",
+        detail: "这个习惯已关联到当前账号，默认处于启用状态。",
+      }
+    : null;
+  const habitErrorFeedback = getFeedbackByCode(
+    params?.habitError,
+    dailyHabitErrorFeedback,
+    defaultHabitErrorFeedback,
+  );
+  const habitUpdatedFeedback = getFeedbackByCode(params?.habitUpdated, dailyHabitUpdatedFeedback, {
+    tone: "success",
+    title: "习惯已更新",
+    detail: "习惯打卡状态已保存。",
+  });
   const scheduleCreated = params?.scheduleCreated === "1";
-  const scheduleError = params?.scheduleError
-    ? scheduleErrorText[params.scheduleError] ?? "日程保存失败，请稍后重试。"
-    : "";
-  const recordCreated = params?.recordCreated
-    ? recordCreatedText[params.recordCreated] ?? "记录已保存。"
-    : "";
-  const recordError = params?.recordError
-    ? recordErrorText[params.recordError] ?? "记录保存失败，请稍后重试。"
-    : "";
+  const scheduleCreatedFeedback: FeedbackMessageData | null = scheduleCreated
+    ? {
+        tone: "success",
+        title: "日程已保存",
+        detail: "这条日程已关联到当前账号。",
+      }
+    : null;
+  const scheduleErrorFeedback = getFeedbackByCode(
+    params?.scheduleError,
+    dailyScheduleErrorFeedback,
+    defaultScheduleErrorFeedback,
+  );
+  const recordCreatedFeedback = getFeedbackByCode(params?.recordCreated, dailyRecordCreatedFeedback, {
+    tone: "success",
+    title: "记录已保存",
+    detail: "这条记录已关联到当前账号。",
+  });
+  const recordErrorFeedback = getFeedbackByCode(
+    params?.recordError,
+    dailyRecordErrorFeedback,
+    defaultRecordErrorFeedback,
+  );
   const reviewGenerated = params?.reviewGenerated === "1";
   const reviewCached = params?.reviewCached === "1";
-  const reviewError = params?.reviewError
-    ? reviewErrorText[params.reviewError] ?? "今日复盘生成失败，请稍后重试。"
-    : "";
+  const reviewGeneratedFeedback: FeedbackMessageData | null = reviewGenerated
+    ? {
+        tone: "success",
+        title: "今日复盘已生成",
+        detail: "复盘报告已保存，后续再次打开会优先展示缓存结果。",
+      }
+    : null;
+  const reviewCachedFeedback: FeedbackMessageData | null = reviewCached
+    ? {
+        tone: "info",
+        title: "已展示缓存复盘",
+        detail: "今天已有复盘报告，本次没有重复调用 AI。",
+      }
+    : null;
+  const reviewErrorFeedback = getFeedbackByCode(
+    params?.reviewError,
+    dailyReviewErrorFeedback,
+    defaultReviewErrorFeedback,
+  );
   const tasksByStatus = taskStatusOrder.map((status) => ({
     status,
     tasks: todayTasks.filter((task) => task.status === status),
@@ -992,15 +1022,9 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
             </Link>
           )}
         </div>
-        {reviewError ? (
-          <p className="auth-message auth-message-error task-message mt-4">{reviewError}</p>
-        ) : null}
-        {reviewGenerated ? (
-          <p className="auth-message task-message mt-4">今日复盘已生成并保存。</p>
-        ) : null}
-        {reviewCached ? (
-          <p className="auth-message task-message mt-4">今天已有复盘报告，已直接展示缓存结果。</p>
-        ) : null}
+        <FeedbackMessage feedback={reviewErrorFeedback} className="mt-4" />
+        <FeedbackMessage feedback={reviewGeneratedFeedback} className="mt-4" />
+        <FeedbackMessage feedback={reviewCachedFeedback} className="mt-4" />
       </section>
 
       {todayDailyReviewReport ? (
@@ -1047,15 +1071,9 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
 
             {isTaskSection && isLoggedIn ? (
               <div className="mt-5 grid gap-5">
-                {taskError ? (
-                  <p className="auth-message auth-message-error task-message">{taskError}</p>
-                ) : null}
-                {taskCreated ? (
-                  <p className="auth-message task-message">任务已保存，并已关联到当前账号。</p>
-                ) : null}
-                {taskUpdated ? (
-                  <p className="auth-message task-message">{taskUpdated}</p>
-                ) : null}
+                <FeedbackMessage feedback={taskErrorFeedback} />
+                <FeedbackMessage feedback={taskCreatedFeedback} />
+                <FeedbackMessage feedback={taskUpdatedFeedback} />
 
                 <form action={createTaskAction} className="task-form">
                   <label className="form-field">
@@ -1153,15 +1171,9 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
               </div>
             ) : isHabitSection && isLoggedIn ? (
               <div className="mt-5 grid gap-5">
-                {habitError ? (
-                  <p className="auth-message auth-message-error task-message">{habitError}</p>
-                ) : null}
-                {habitCreated ? (
-                  <p className="auth-message task-message">习惯已保存，并已关联到当前账号。</p>
-                ) : null}
-                {habitUpdated ? (
-                  <p className="auth-message task-message">{habitUpdated}</p>
-                ) : null}
+                <FeedbackMessage feedback={habitErrorFeedback} />
+                <FeedbackMessage feedback={habitCreatedFeedback} />
+                <FeedbackMessage feedback={habitUpdatedFeedback} />
 
                 <form action={createHabitAction} className="task-form">
                   <label className="form-field">
@@ -1249,12 +1261,8 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
               </div>
             ) : isScheduleSection && isLoggedIn ? (
               <div className="mt-5 grid gap-5">
-                {scheduleError ? (
-                  <p className="auth-message auth-message-error task-message">{scheduleError}</p>
-                ) : null}
-                {scheduleCreated ? (
-                  <p className="auth-message task-message">日程已保存，并已关联到当前账号。</p>
-                ) : null}
+                <FeedbackMessage feedback={scheduleErrorFeedback} />
+                <FeedbackMessage feedback={scheduleCreatedFeedback} />
 
                 <form action={createScheduleItemAction} className="task-form">
                   <label className="form-field">
@@ -1330,12 +1338,8 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
               </div>
             ) : isNotesSection && isLoggedIn ? (
               <div className="mt-5 grid gap-5">
-                {recordError ? (
-                  <p className="auth-message auth-message-error task-message">{recordError}</p>
-                ) : null}
-                {recordCreated ? (
-                  <p className="auth-message task-message">{recordCreated}</p>
-                ) : null}
+                <FeedbackMessage feedback={recordErrorFeedback} />
+                <FeedbackMessage feedback={recordCreatedFeedback} />
 
                 <form action={createQuickRecordAction} className="task-form">
                   <div className="task-form-grid">

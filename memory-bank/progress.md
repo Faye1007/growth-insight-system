@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 7.1：实现设置页基础信息。
+项目已完成 Step 7.2：建立错误提示规范。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界和设置页基础状态展示稳定。
-- 后续逐步接入 Row Level Security、错误提示规范、更多基础图表和 AI 复盘能力。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界、设置页基础状态展示和统一错误提示规范稳定。
+- 后续逐步接入 Row Level Security 和基础闭环手工验收。
 
 ## Confirmed Decisions
 
@@ -1176,15 +1176,52 @@
 尚未完成或暂缓：
 
 - Row Level Security 尚未配置。
-- Step 7.2 错误提示规范尚未开始。
+
+### Step 7.2：建立错误提示规范
+
+已完成内容：
+
+- 新增统一错误提示文案层，集中管理登录、每日工作台写入和每日复盘生成相关提示。
+- 新增统一 `FeedbackMessage` 组件，提示结构统一为标题和详情。
+- 登录页改为使用统一提示组件展示登录失败、注册失败、邮箱确认失败和需要登录等提示。
+- 每日工作台改为使用统一提示组件展示任务、习惯、日程、随手记录和每日复盘相关提示。
+- 每日工作台写入类 Server Action 增加保存失败兜底，数据库写入失败时返回对应页面区块并展示可理解提示。
+- 每日复盘生成流程区分复盘上下文准备失败、AI 配置缺失、AI provider 调用失败和复盘保存失败。
+- 新增应用级加载失败页，页面加载异常时显示可理解的重试提示，不展示技术堆栈。
+- 错误提示不展示数据库连接字符串、API key、底层错误堆栈或 provider 原始错误。
+- 本 Step 不修改 `.env.local`。
+- 本 Step 不修改数据库 schema，也不执行迁移。
+
+本次新增或更新的文件：
+
+- `src/lib/feedback.ts`
+- `src/components/feedback-message.tsx`
+- `src/app/error.tsx`
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/login/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 本地 `/daily?taskError=save_failed` 返回 `200`。
+- 本地 `/daily?reviewError=context_failed` 返回 `200`。
+- 本地 `/login?error=login_failed&next=/daily` 返回 `200`。
+- 本地 `/settings` 返回 `200`。
+- 源码检查通过：新增统一提示组件和文案层不读取或展示真实密钥、数据库连接字符串、`AI_API_KEY` 或 `Authorization`。
+- Faye 已确认 Step 7.2 通过，并要求更新文档和提交 Git。
 
 ## Not Started
 
 - Row Level Security
-- 错误提示规范
 
 ## Next Step Candidate
 
-Step 7.2：建立错误提示规范。
+Step 7.3：完成基础闭环手工验收。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

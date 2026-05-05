@@ -567,7 +567,8 @@ select {
     font-size: 0.8125rem;
   }
 
-  .auth-message {
+  .auth-message,
+  .feedback-message {
     margin-bottom: 1rem;
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
@@ -578,8 +579,27 @@ select {
     line-height: 1.6;
   }
 
-  .auth-message-error {
+  .auth-message-error,
+  .feedback-message-error {
     background: var(--clay-soft);
+  }
+
+  .feedback-message-info {
+    background: var(--mist-soft);
+  }
+
+  .feedback-title {
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .feedback-detail {
+    margin-top: 0.25rem;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    line-height: 1.6;
   }
 
   .field-tile {

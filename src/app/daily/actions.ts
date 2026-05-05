@@ -18,8 +18,10 @@ import { requireCurrentUser } from "@/lib/auth/session";
 import {
   buildDailyReviewContext,
   buildDailyReviewInputWithSelectedOriginals,
+  type DailyReviewContext,
 } from "@/lib/ai/daily-review-context";
 import { AiConfigurationError, generateReview } from "@/lib/ai/provider";
+import type { GenerateReviewOutput } from "@/lib/ai/types";
 import { isTaskCategory, isTaskStatus } from "@/lib/tasks/options";
 
 function getStringValue(formData: FormData, key: string) {
@@ -85,14 +87,18 @@ export async function createTaskAction(formData: FormData) {
   const category = isTaskCategory(categoryValue) ? categoryValue : "other";
   const status = isTaskStatus(statusValue) ? statusValue : "todo";
 
-  await db.insert(tasks).values({
-    userId: user.id,
-    title,
-    category,
-    status,
-    taskDate,
-    completedAt: status === "completed" ? new Date() : null,
-  });
+  try {
+    await db.insert(tasks).values({
+      userId: user.id,
+      title,
+      category,
+      status,
+      taskDate,
+      completedAt: status === "completed" ? new Date() : null,
+    });
+  } catch {
+    redirect("/daily?taskError=save_failed#tasks");
+  }
 
   revalidatePath("/daily");
   redirect("/daily?taskCreated=1#tasks");
@@ -107,11 +113,17 @@ export async function updateTaskStatusAction(formData: FormData) {
     redirect("/daily?taskError=invalid_status#tasks");
   }
 
-  const [existingTask] = await db
-    .select({ taskDate: tasks.taskDate })
-    .from(tasks)
-    .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)))
-    .limit(1);
+  let existingTask: { taskDate: string } | undefined;
+
+  try {
+    [existingTask] = await db
+      .select({ taskDate: tasks.taskDate })
+      .from(tasks)
+      .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)))
+      .limit(1);
+  } catch {
+    redirect("/daily?taskError=save_failed#tasks");
+  }
 
   if (!existingTask) {
     redirect("/daily?taskError=missing_task#tasks");
@@ -126,31 +138,39 @@ export async function updateTaskStatusAction(formData: FormData) {
       redirect("/daily?taskError=missing_postponed_date#tasks");
     }
 
-    await db
-      .update(tasks)
-      .set({
-        status: "postponed",
-        taskDate: postponedToDate,
-        isPostponed: true,
-        postponedFromDate: existingTask.taskDate,
-        postponedToDate,
-        completedAt: null,
-        updatedAt: now,
-      })
-      .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)));
+    try {
+      await db
+        .update(tasks)
+        .set({
+          status: "postponed",
+          taskDate: postponedToDate,
+          isPostponed: true,
+          postponedFromDate: existingTask.taskDate,
+          postponedToDate,
+          completedAt: null,
+          updatedAt: now,
+        })
+        .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)));
+    } catch {
+      redirect("/daily?taskError=save_failed#tasks");
+    }
 
     revalidatePath("/daily");
     redirect("/daily?taskUpdated=postponed#tasks");
   }
 
-  await db
-    .update(tasks)
-    .set({
-      status: statusValue,
-      completedAt: statusValue === "completed" ? now : null,
-      updatedAt: now,
-    })
-    .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)));
+  try {
+    await db
+      .update(tasks)
+      .set({
+        status: statusValue,
+        completedAt: statusValue === "completed" ? now : null,
+        updatedAt: now,
+      })
+      .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)));
+  } catch {
+    redirect("/daily?taskError=save_failed#tasks");
+  }
 
   revalidatePath("/daily");
   redirect(`/daily?taskUpdated=${statusValue}#tasks`);
@@ -169,13 +189,17 @@ export async function createHabitAction(formData: FormData) {
   const category = isTaskCategory(categoryValue) ? categoryValue : "other";
   const startDate = isValidDateValue(startDateValue) ? startDateValue : getBeijingDateValue();
 
-  await db.insert(habits).values({
-    userId: user.id,
-    name,
-    category,
-    isActive: true,
-    startDate,
-  });
+  try {
+    await db.insert(habits).values({
+      userId: user.id,
+      name,
+      category,
+      isActive: true,
+      startDate,
+    });
+  } catch {
+    redirect("/daily?habitError=save_failed#habits");
+  }
 
   revalidatePath("/daily");
   redirect("/daily?habitCreated=1#habits");
@@ -191,18 +215,24 @@ export async function updateHabitCheckinAction(formData: FormData) {
     redirect("/daily?habitError=invalid_checkin#habits");
   }
 
-  const [existingHabit] = await db
-    .select({ id: habits.id })
-    .from(habits)
-    .where(
-      and(
-        eq(habits.id, habitId),
-        eq(habits.userId, user.id),
-        eq(habits.isActive, true),
-        isNull(habits.deletedAt),
-      ),
-    )
-    .limit(1);
+  let existingHabit: { id: string } | undefined;
+
+  try {
+    [existingHabit] = await db
+      .select({ id: habits.id })
+      .from(habits)
+      .where(
+        and(
+          eq(habits.id, habitId),
+          eq(habits.userId, user.id),
+          eq(habits.isActive, true),
+          isNull(habits.deletedAt),
+        ),
+      )
+      .limit(1);
+  } catch {
+    redirect("/daily?habitError=save_failed#habits");
+  }
 
   if (!existingHabit) {
     redirect("/daily?habitError=missing_habit#habits");
@@ -210,22 +240,26 @@ export async function updateHabitCheckinAction(formData: FormData) {
 
   const status = intent === "check" ? "checked" : "skipped";
 
-  await db
-    .insert(habitCheckins)
-    .values({
-      userId: user.id,
-      habitId,
-      checkinDate: todayDate,
-      status,
-      updatedAt: new Date(),
-    })
-    .onConflictDoUpdate({
-      target: [habitCheckins.habitId, habitCheckins.checkinDate],
-      set: {
+  try {
+    await db
+      .insert(habitCheckins)
+      .values({
+        userId: user.id,
+        habitId,
+        checkinDate: todayDate,
         status,
         updatedAt: new Date(),
-      },
-    });
+      })
+      .onConflictDoUpdate({
+        target: [habitCheckins.habitId, habitCheckins.checkinDate],
+        set: {
+          status,
+          updatedAt: new Date(),
+        },
+      });
+  } catch {
+    redirect("/daily?habitError=save_failed#habits");
+  }
 
   revalidatePath("/daily");
   redirect(`/daily?habitUpdated=${status}#habits`);
@@ -254,14 +288,18 @@ export async function createScheduleItemAction(formData: FormData) {
     redirect("/daily?scheduleError=invalid_time#schedule");
   }
 
-  await db.insert(scheduleItems).values({
-    userId: user.id,
-    title,
-    category,
-    scheduleDate,
-    startTime: startTimeValue,
-    endTime: endTimeValue || null,
-  });
+  try {
+    await db.insert(scheduleItems).values({
+      userId: user.id,
+      title,
+      category,
+      scheduleDate,
+      startTime: startTimeValue,
+      endTime: endTimeValue || null,
+    });
+  } catch {
+    redirect("/daily?scheduleError=save_failed#schedule");
+  }
 
   revalidatePath("/daily");
   redirect("/daily?scheduleCreated=1#schedule");
@@ -285,26 +323,34 @@ export async function createQuickRecordAction(formData: FormData) {
       ? aiPermissionValue
       : "summary_only";
 
-    await db.insert(lifeEvents).values({
-      userId: user.id,
-      eventDate: recordDate,
-      content,
-      emotionTags: getStringValues(formData, "emotionTags"),
-      tags: getTagsValue(getStringValue(formData, "tags")),
-      aiAnalysisPermission,
-    });
+    try {
+      await db.insert(lifeEvents).values({
+        userId: user.id,
+        eventDate: recordDate,
+        content,
+        emotionTags: getStringValues(formData, "emotionTags"),
+        tags: getTagsValue(getStringValue(formData, "tags")),
+        aiAnalysisPermission,
+      });
+    } catch {
+      redirect("/daily?recordError=save_failed#notes");
+    }
 
     revalidatePath("/daily");
     redirect("/daily?recordCreated=event#notes");
   }
 
   if (recordType === "idea") {
-    await db.insert(ideas).values({
-      userId: user.id,
-      ideaDate: recordDate,
-      content,
-      status: "to_review",
-    });
+    try {
+      await db.insert(ideas).values({
+        userId: user.id,
+        ideaDate: recordDate,
+        content,
+        status: "to_review",
+      });
+    } catch {
+      redirect("/daily?recordError=save_failed#notes");
+    }
 
     revalidatePath("/daily");
     redirect("/daily?recordCreated=idea#notes");
@@ -316,35 +362,58 @@ export async function createQuickRecordAction(formData: FormData) {
 export async function generateDailyReviewAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const todayDate = getBeijingDateValue();
-  const [existingReport] = await db
-    .select({ id: insightReports.id })
-    .from(insightReports)
-    .where(
-      and(
-        eq(insightReports.userId, user.id),
-        eq(insightReports.reportType, "daily"),
-        eq(insightReports.periodStart, todayDate),
-        eq(insightReports.periodEnd, todayDate),
-        eq(insightReports.generationStatus, "completed"),
-      ),
-    )
-    .limit(1);
+  let existingReport: { id: string } | undefined;
+
+  try {
+    [existingReport] = await db
+      .select({ id: insightReports.id })
+      .from(insightReports)
+      .where(
+        and(
+          eq(insightReports.userId, user.id),
+          eq(insightReports.reportType, "daily"),
+          eq(insightReports.periodStart, todayDate),
+          eq(insightReports.periodEnd, todayDate),
+          eq(insightReports.generationStatus, "completed"),
+        ),
+      )
+      .limit(1);
+  } catch {
+    redirect("/daily?reviewError=context_failed#daily-review-entry");
+  }
 
   if (existingReport) {
     redirect("/daily?reviewCached=1#daily-review-report");
   }
 
-  const context = await buildDailyReviewContext(user.id, todayDate);
+  let context: DailyReviewContext;
+
+  try {
+    context = await buildDailyReviewContext(user.id, todayDate);
+  } catch {
+    redirect("/daily?reviewError=context_failed#daily-review-entry");
+  }
   const selectedOriginalEventIds = getStringValues(formData, "originalEventId");
   const reviewInput = buildDailyReviewInputWithSelectedOriginals(
     context,
     selectedOriginalEventIds,
   );
 
-  try {
-    const output = await generateReview(reviewInput);
-    const now = new Date();
+  let output: GenerateReviewOutput;
 
+  try {
+    output = await generateReview(reviewInput);
+  } catch (error) {
+    if (error instanceof AiConfigurationError) {
+      redirect("/daily?reviewError=missing_ai_config#daily-review-entry");
+    }
+
+    redirect("/daily?reviewError=provider_failed#daily-review-entry");
+  }
+
+  const now = new Date();
+
+  try {
     await db
       .insert(insightReports)
       .values({
@@ -391,12 +460,8 @@ export async function generateDailyReviewAction(formData: FormData) {
           updatedAt: now,
         },
       });
-  } catch (error) {
-    if (error instanceof AiConfigurationError) {
-      redirect("/daily?reviewError=missing_ai_config#daily-review-entry");
-    }
-
-    redirect("/daily?reviewError=provider_failed#daily-review-entry");
+  } catch {
+    redirect("/daily?reviewError=save_failed#daily-review-entry");
   }
 
   revalidatePath("/daily");

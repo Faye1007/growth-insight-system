@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 7.1，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界验证和设置页基础信息展示。
+当前项目已完成 Step 7.2，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界验证、设置页基础信息展示和统一错误提示规范。
 
 当前已存在：
 
@@ -87,13 +87,16 @@
 - 今日复盘报告缓存展示。
 - AI 成本控制边界已验证：普通任务、习惯、日程、随手记录、页面打开和发送预览不调用 AI；只有确认生成复盘时才进入 AI provider adapter；已有今日复盘报告时读取缓存。
 - 设置页数据库只读健康检查，使用服务端 `DATABASE_URL` 执行 `select 1`，只展示连接状态，不展示连接字符串或底层错误。
+- 统一错误提示文案层和提示组件。
+- 每日工作台写入失败兜底提示。
+- 每日复盘生成失败分类提示。
+- 应用级加载失败页。
 - 事件原文敏感内容基础判定规则。
 - 任务分类和状态的统一选项定义。
 
 尚未开始：
 
 - Row Level Security。
-- 错误提示规范。
 - 其他交互组件视觉细化。
 
 目标技术方向：
@@ -112,7 +115,7 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 7.1 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界验证和设置页基础信息展示。各文件职责如下：
+当前 Step 1.1-Step 7.2 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界验证、设置页基础信息展示和统一错误提示规范。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start`、`lint`、`db:generate`、`db:migrate` 和 `db:studio`；依赖包括 Supabase SSR/client 包、Drizzle ORM、Postgres client 和 Recharts。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
@@ -124,9 +127,10 @@ AI Provider Adapter for scheduled/manual reviews
 - `components.json`: shadcn/ui 配置，指定 UI 组件别名、样式入口和图标库。
 - `.gitignore`: 忽略依赖、构建产物、环境变量、本地调试日志和 TypeScript 构建缓存。
 - `src/app/layout.tsx`: App Router 根布局，定义页面 HTML 语言和全局 metadata。
+- `src/app/error.tsx`: 应用级加载失败页，页面加载异常时显示面向用户的重试提示，不展示底层技术堆栈。
 - `src/app/page.tsx`: 成长主页页面壳，展示今日行动进度、本周指标、最近复盘和每日工作台入口等占位区。
 - `src/app/daily/page.tsx`: 每日工作台页面结构，显示北京时间日期、今日概览、今日任务、习惯打卡、今日日程、随手记录和每日复盘入口；今日概览已接入真实程序统计，显示任务完成率、习惯完成数、日程数量、随手记录数量、任务细分和记录细分，不调用 AI；今日任务分区已接入任务创建表单、当前用户今日任务列表、按状态分组展示、状态操作、延期日期选择和任务完成率统计；习惯打卡分区已接入习惯创建表单、当前用户启用习惯列表、今日打卡状态、累计打卡次数、连续打卡天数和今日习惯完成数统计；今日日程分区已接入日程创建表单、当前用户今日日程列表和今日日程数量统计；随手记录分区已接入事件/灵感创建表单、当前用户今日事件和灵感列表、情绪标签和 AI 分析权限显示；每日复盘入口支持登录用户打开发送预览，展示统计摘要、关键摘要和事件原文候选，用户可以取消勾选某条原文；确认生成提交到服务端 Action，生成后展示今日复盘报告；同一天已有完成报告时展示缓存报告，不自动重复调用 AI。
-- `src/app/daily/actions.ts`: 每日工作台 Server Actions，当前提供 `createTaskAction()`、`updateTaskStatusAction()`、`createHabitAction()`、`updateHabitCheckinAction()`、`createScheduleItemAction()`、`createQuickRecordAction()` 和 `generateDailyReviewAction()`；写入任务、更新任务状态、创建习惯、更新习惯打卡、创建日程、保存随手记录和生成每日复盘前必须通过 `requireCurrentUser()` 获取当前登录用户，并把数据写入或限定更新到当前用户的 `user_id`；每日复盘生成 Action 会先查同一天缓存报告，已有完成报告时直接返回缓存，不调用 AI；无缓存时才按发送预览选择调用 AI Provider Adapter，并把输出保存到 `insight_reports`。
+- `src/app/daily/actions.ts`: 每日工作台 Server Actions，当前提供 `createTaskAction()`、`updateTaskStatusAction()`、`createHabitAction()`、`updateHabitCheckinAction()`、`createScheduleItemAction()`、`createQuickRecordAction()` 和 `generateDailyReviewAction()`；写入任务、更新任务状态、创建习惯、更新习惯打卡、创建日程、保存随手记录和生成每日复盘前必须通过 `requireCurrentUser()` 获取当前登录用户，并把数据写入或限定更新到当前用户的 `user_id`；任务、习惯、打卡、日程、事件和灵感写入失败时会跳回对应页面区块并展示统一错误提示，不展示底层错误；每日复盘生成 Action 会先查同一天缓存报告，已有完成报告时直接返回缓存，不调用 AI；无缓存时才按发送预览选择调用 AI Provider Adapter，并把输出保存到 `insight_reports`；每日复盘生成失败按上下文准备失败、AI 配置缺失、AI provider 调用失败和复盘保存失败分类提示。
 - `src/app/records/page.tsx`: 成长记录页面，服务端读取当前登录用户的近期任务、习惯打卡、日程、事件和灵感，按创建时间倒序合并为统一时间线；页面顶部显示按记录类型统计的当前载入数量；支持通过 URL query 参数按记录类型筛选和日期范围筛选，当前类型包括全部、任务、习惯、日程、事件和灵感，日期范围包括全部近期、今天和最近 7 天；未登录用户可以浏览页面结构并看到登录提示，登录返回路径会保留当前筛选 URL；时间线条目链接到对应详情页。
 - `src/app/records/[kind]/[id]/page.tsx`: 成长记录详情页，支持 `task`、`habit`、`schedule`、`event` 和 `idea` 五类记录详情；只读展示当前记录字段，不提供编辑；未登录用户看到登录提示；登录用户只能查询当前用户 ID 下的数据；不存在、已删除或不属于当前账号的记录显示未找到/无权限状态。
 - `src/app/insights/page.tsx`: 洞察报告页面，服务端读取当前登录用户最近 7 天任务、启用习惯、习惯打卡、日程、事件和灵感数据；页面分区包括今日概览、本周趋势、记录数量趋势、习惯状态、情绪记录和后续复盘提示；本周趋势区已接入最近 7 天任务完成率图表和每日趋势卡；记录数量趋势区已接入最近 7 天事件和灵感堆叠柱状图；习惯状态区已接入最近 7 天习惯打卡图表、每日点阵、今日状态、最近 7 天完成数和连续天数；情绪记录区已接入最近 7 天手动情绪标签统计图表和计数卡片；当前只做程序统计，不调用 AI。
@@ -138,6 +142,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/app/auth/confirm/route.ts`: Supabase 邮箱确认回调路由，成功后跳转到安全的 `next` 路径，失败时回到登录页。
 - `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮、导航样式、每日概览卡、今日概览进度条、洞察报告统计网格、洞察报告趋势卡、任务完成率图表容器、习惯打卡图表容器和点阵、记录数量趋势图表容器、情绪基础统计图表容器、成长记录时间线、记录概览统计、成长记录筛选控件、记录详情字段、工作台面板、空状态、任务表单、任务列表、任务状态分组、状态操作按钮、延期日期输入、习惯统计标签行、每日复盘预览区、每日复盘报告区、文本域和表单提示样式。
 - `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区、当前阶段提示、账号状态和退出入口，并把页面内容包裹在统一布局中。
+- `src/components/feedback-message.tsx`: 统一提示组件，接收 `FeedbackMessage` 数据后按成功、错误或信息提示渲染标题和详情；错误提示使用 `alert` 语义，普通提示使用 `status` 语义。
 - `src/components/insights/task-completion-chart.tsx`: 任务完成率图表客户端组件，使用 Recharts 渲染最近 7 天每日任务完成率；只接收服务端页面整理后的图表数据，不读取数据库，不接触密钥。
 - `src/components/insights/habit-checkin-chart.tsx`: 习惯打卡图表客户端组件，使用 Recharts 渲染启用习惯最近 7 天完成数，并用点阵展示每日是否打卡；只接收服务端页面整理后的图表数据，不读取数据库，不接触密钥。
 - `src/components/insights/record-trend-chart.tsx`: 记录数量趋势图表客户端组件，使用 Recharts 渲染最近 7 天事件和灵感数量堆叠柱状图；只接收服务端页面整理后的图表数据，不读取数据库，不接触密钥，不调用 AI。
@@ -157,6 +162,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/lib/supabase/server.ts`: 服务端 Supabase client 工厂，使用 Next.js cookies 接入 SSR 会话能力。
 - `src/lib/auth/paths.ts`: 认证路径工具，统一校验登录页 `next` 参数，并生成登录、注册和写入拦截提示 URL。
 - `src/lib/auth/session.ts`: 当前用户读取和写入保护 helper，封装 Supabase `auth.getUser()`；`getCurrentUser()` 认证未就绪时返回 `null`，`requireCurrentUser()` 用于后续写入类 Server Action，未登录时跳转登录页。
+- `src/lib/feedback.ts`: 统一错误和状态提示文案层，集中管理登录、每日工作台写入、每日复盘生成等 query code 对应的用户提示；文案只说明发生了什么和下一步怎么做，不包含技术堆栈、连接字符串或密钥。
 - `src/lib/tasks/options.ts`: 任务分类和任务状态的统一选项定义，提供英文枚举值、中文显示文案、状态分组顺序和合法性校验。
 - `drizzle.config.ts`: Drizzle Kit 配置，读取 `.env.local` 中的 `DATABASE_URL`，用于生成和执行迁移。
 - `drizzle/0000_true_silver_sable.sql`: 第一版数据库迁移 SQL，创建基础枚举、8 张基础业务表、索引和内部外键。

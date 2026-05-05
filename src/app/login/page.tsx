@@ -1,7 +1,14 @@
 import Link from "next/link";
 
 import { signInAction, signUpAction } from "@/app/auth/actions";
+import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, getSafeNextPath } from "@/lib/auth/paths";
+import {
+  authErrorFeedback,
+  authMessageFeedback,
+  defaultAuthErrorFeedback,
+  getFeedbackByCode,
+} from "@/lib/feedback";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -12,23 +19,17 @@ type LoginPageProps = {
   }>;
 };
 
-const messageText: Record<string, string> = {
-  check_email: "注册邮件已发送，请按邮件提示完成确认后再登录。",
-  login_required: "保存个人数据前需要先注册或登录。",
-};
-
-const errorText: Record<string, string> = {
-  missing_fields: "请填写邮箱和密码。",
-  login_failed: "登录失败，请检查邮箱和密码。",
-  signup_failed: "注册失败，请稍后重试，或确认这个邮箱是否已经注册。",
-  confirm_failed: "邮箱确认失败，请重新打开确认邮件或重新注册。",
-};
-
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const mode = params?.mode === "signup" ? "signup" : "login";
   const next = getSafeNextPath(params?.next);
   const formAction = mode === "signup" ? signUpAction : signInAction;
+  const messageFeedback = getFeedbackByCode(params?.message, authMessageFeedback, {
+    tone: "info",
+    title: "操作已完成",
+    detail: "可以继续下一步。",
+  });
+  const errorFeedback = getFeedbackByCode(params?.error, authErrorFeedback, defaultAuthErrorFeedback);
 
   return (
     <div className="page-stack">
@@ -41,14 +42,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       </header>
 
       <section className="panel-card max-w-xl">
-        {params?.message ? (
-          <p className="auth-message">{messageText[params.message] ?? "操作已完成。"}</p>
-        ) : null}
-        {params?.error ? (
-          <p className="auth-message auth-message-error">
-            {errorText[params.error] ?? "操作失败，请稍后重试。"}
-          </p>
-        ) : null}
+        <FeedbackMessage feedback={messageFeedback} />
+        <FeedbackMessage feedback={errorFeedback} />
 
         <form action={formAction} className="auth-form">
           <input type="hidden" name="next" value={next} />
