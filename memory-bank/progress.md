@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 6.1：建立 AI 配置检查。
+项目已完成 Step 6.2：建立 AI Provider Adapter 基础能力。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计和 AI 配置检查能力稳定。
-- 准备进入 Step 6.2：建立 AI Provider Adapter 基础能力。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查和 AI Provider Adapter 基础能力稳定。
+- 准备进入 Step 6.3：生成每日复盘上下文。
 - 后续逐步接入 Row Level Security、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -934,14 +934,55 @@
 - 复盘的上下文生成、发送预览和真实生成尚未实现。
 - Row Level Security 尚未配置。
 
+### Step 6.2：建立 AI Provider Adapter 基础能力
+
+已完成内容：
+
+- 新增统一 AI Provider Adapter 类型定义。
+- 新增按复盘类型选择模型的运行时配置读取能力。
+- 新增 OpenAI-compatible `chat/completions` 调用实现。
+- 新增统一 `generateReview()` 服务端入口。
+- 新增缺失 AI 配置时的 `AiConfigurationError`。
+- 保留后续按 `daily`、`weekly`、`monthly` 切换模型的能力。
+- 所有运行时 AI 配置和 API key 读取都限制在服务端 AI 工具层。
+- 本 Step 未修改 `.env.local`。
+- 本 Step 未填入任何 AI key。
+- 本 Step 未接入每日工作台或洞察报告页面，不会因打开页面触发 AI 请求。
+- 本 Step 不修改数据库 schema，也不执行迁移。
+
+本次新增或更新的文件：
+
+- `src/lib/ai/config.ts`
+- `src/lib/ai/types.ts`
+- `src/lib/ai/openai-compatible.ts`
+- `src/lib/ai/provider.ts`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 源码检查通过：`src/app` 和 `src/components` 中未发现 `AI_API_KEY`、`process.env.AI` 或 `Authorization`。
+- Faye 已要求更新文档并提交 Git，视为 Step 6.2 验收通过。
+
+尚未完成或暂缓：
+
+- 复盘的上下文生成、发送预览和真实生成尚未实现。
+- 复盘报告缓存读写尚未接入页面。
+- Row Level Security 尚未配置。
+
 ## Not Started
 
 - Row Level Security
 - 复盘的真实业务数据读写
-- AI provider adapter
+- AI 复盘上下文生成
+- AI 复盘发送预览
+- 手动生成每日复盘
 
 ## Next Step Candidate
 
-Step 6.2：建立 AI Provider Adapter 基础能力。
+Step 6.3：生成每日复盘上下文。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
