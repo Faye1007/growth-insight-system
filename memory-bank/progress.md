@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 6.4：实现每日复盘发送预览。
+项目已完成 Step 6.5：实现手动生成每日复盘。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力和每日复盘发送预览能力稳定。
-- 准备进入 Step 6.5：实现手动生成每日复盘。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力和手动生成每日复盘能力稳定。
+- 准备进入 Step 6.6：验证 AI 成本控制规则。
 - 后续逐步接入 Row Level Security、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -1059,14 +1059,59 @@
 - 同一天已有报告时展示缓存报告尚未实现。
 - Row Level Security 尚未配置。
 
+### Step 6.5：实现手动生成每日复盘
+
+已完成内容：
+
+- 每日复盘发送预览中的“确认生成今日复盘”已接入 Server Action。
+- 新增 `generateDailyReviewAction()`，生成前必须通过 `requireCurrentUser()` 获取当前登录用户。
+- 生成前先查询同一用户、同一日期、`report_type = daily` 的完成报告缓存。
+- 同一天已有完成报告时，直接展示缓存结果，不重复调用 AI。
+- 无缓存时，按发送预览中保留的事件原文 ID 构造 AI 输入。
+- 只有确认生成表单提交时才调用 `generateReview()`。
+- AI 输出会写入 `insight_reports`，保存标题、摘要、模式、建议、下一步行动、模型供应商、模型名称、来源统计、关键摘要和选中原文事件 ID。
+- 保存使用 `insight_reports_user_period_unique` 唯一约束做 upsert，避免同一用户同一天重复有效报告。
+- 每日工作台会读取并展示今日已完成复盘报告。
+- 复盘报告展示标题、摘要、观察到的模式、行动建议、下一步行动、模型供应商、模型名称和生成时间。
+- 未配置 AI 时，确认生成会回到每日工作台并显示明确提示，不让页面崩溃。
+- Provider 调用失败时，确认生成会回到每日工作台并显示可理解错误。
+- 页面打开不调用 AI。
+- 打开发送预览不调用 AI。
+- 本 Step 未修改 `.env.local`。
+- 本 Step 未填入任何 AI key。
+- 本 Step 不修改数据库 schema，也不执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `/daily` 返回 `200`。
+- `/daily?reviewPreview=1` 返回 `200`。
+- `/daily?reviewError=missing_ai_config` 返回 `200`。
+- 源码检查通过：`generateReview()` 只出现在 `generateDailyReviewAction()` 中。
+- Faye 已要求更新文档并提交 Git，视为 Step 6.5 验收通过。
+
+尚未完成或暂缓：
+
+- Step 6.6 尚未系统验证 AI 成本控制规则。
+- Row Level Security 尚未配置。
+
 ## Not Started
 
 - Row Level Security
-- 复盘的真实业务数据读写
-- 手动生成每日复盘
+- AI 成本控制规则验证
 
 ## Next Step Candidate
 
-Step 6.5：实现手动生成每日复盘。
+Step 6.6：验证 AI 成本控制规则。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

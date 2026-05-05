@@ -5,8 +5,21 @@ import { redirect } from "next/navigation";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { habitCheckins, habits, ideas, lifeEvents, scheduleItems, tasks } from "@/db/schema";
+import {
+  habitCheckins,
+  habits,
+  ideas,
+  insightReports,
+  lifeEvents,
+  scheduleItems,
+  tasks,
+} from "@/db/schema";
 import { requireCurrentUser } from "@/lib/auth/session";
+import {
+  buildDailyReviewContext,
+  buildDailyReviewInputWithSelectedOriginals,
+} from "@/lib/ai/daily-review-context";
+import { AiConfigurationError, generateReview } from "@/lib/ai/provider";
 import { isTaskCategory, isTaskStatus } from "@/lib/tasks/options";
 
 function getStringValue(formData: FormData, key: string) {
@@ -298,4 +311,94 @@ export async function createQuickRecordAction(formData: FormData) {
   }
 
   redirect("/daily?recordError=invalid_type#notes");
+}
+
+export async function generateDailyReviewAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const todayDate = getBeijingDateValue();
+  const [existingReport] = await db
+    .select({ id: insightReports.id })
+    .from(insightReports)
+    .where(
+      and(
+        eq(insightReports.userId, user.id),
+        eq(insightReports.reportType, "daily"),
+        eq(insightReports.periodStart, todayDate),
+        eq(insightReports.periodEnd, todayDate),
+        eq(insightReports.generationStatus, "completed"),
+      ),
+    )
+    .limit(1);
+
+  if (existingReport) {
+    redirect("/daily?reviewCached=1#daily-review-report");
+  }
+
+  const context = await buildDailyReviewContext(user.id, todayDate);
+  const selectedOriginalEventIds = getStringValues(formData, "originalEventId");
+  const reviewInput = buildDailyReviewInputWithSelectedOriginals(
+    context,
+    selectedOriginalEventIds,
+  );
+
+  try {
+    const output = await generateReview(reviewInput);
+    const now = new Date();
+
+    await db
+      .insert(insightReports)
+      .values({
+        userId: user.id,
+        reportType: "daily",
+        periodStart: todayDate,
+        periodEnd: todayDate,
+        title: output.title,
+        summary: output.summary,
+        patterns: output.patterns,
+        suggestions: output.suggestions,
+        nextActions: output.nextActions,
+        sourceStats: reviewInput.stats,
+        sourceHighlights: reviewInput.highlights,
+        selectedOriginalEventIds: reviewInput.selectedOriginals?.map((item) => item.eventId) ?? [],
+        modelProvider: output.modelProvider,
+        modelName: output.modelName,
+        generationStatus: "completed",
+        errorMessage: null,
+        generatedAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: [
+          insightReports.userId,
+          insightReports.reportType,
+          insightReports.periodStart,
+          insightReports.periodEnd,
+        ],
+        set: {
+          title: output.title,
+          summary: output.summary,
+          patterns: output.patterns,
+          suggestions: output.suggestions,
+          nextActions: output.nextActions,
+          sourceStats: reviewInput.stats,
+          sourceHighlights: reviewInput.highlights,
+          selectedOriginalEventIds: reviewInput.selectedOriginals?.map((item) => item.eventId) ?? [],
+          modelProvider: output.modelProvider,
+          modelName: output.modelName,
+          generationStatus: "completed",
+          errorMessage: null,
+          generatedAt: now,
+          updatedAt: now,
+        },
+      });
+  } catch (error) {
+    if (error instanceof AiConfigurationError) {
+      redirect("/daily?reviewError=missing_ai_config#daily-review-entry");
+    }
+
+    redirect("/daily?reviewError=provider_failed#daily-review-entry");
+  }
+
+  revalidatePath("/daily");
+  redirect("/daily?reviewGenerated=1#daily-review-report");
 }

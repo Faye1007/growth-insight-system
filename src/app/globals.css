@@ -251,6 +251,31 @@ select {
     gap: 0.75rem;
   }
 
+  .review-report-card {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .review-report-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .review-report-section {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    padding: 1rem;
+  }
+
+  .review-report-list {
+    margin: 0.75rem 0 0;
+    padding-left: 1.25rem;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    line-height: 1.75;
+  }
+
   .empty-state {
     display: flex;
     min-height: 6rem;
@@ -878,6 +903,10 @@ select {
 
   .review-preview-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .review-report-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .insight-kpi-grid,

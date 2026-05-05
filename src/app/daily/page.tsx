@@ -16,6 +16,7 @@ import {
   createQuickRecordAction,
   createScheduleItemAction,
   createTaskAction,
+  generateDailyReviewAction,
   updateHabitCheckinAction,
   updateTaskStatusAction,
 } from "@/app/daily/actions";
@@ -24,6 +25,7 @@ import {
   habitCheckins as habitCheckinTable,
   habits as habitTable,
   ideas as ideaTable,
+  insightReports as insightReportTable,
   lifeEvents as lifeEventTable,
   scheduleItems as scheduleItemTable,
   tasks as taskTable,
@@ -56,6 +58,9 @@ type DailyPageProps = {
     recordCreated?: string;
     recordError?: string;
     reviewPreview?: string;
+    reviewGenerated?: string;
+    reviewCached?: string;
+    reviewError?: string;
     originalSelection?: string;
     originalEventId?: string | string[];
   }>;
@@ -73,6 +78,15 @@ const beijingShortDateFormatter = new Intl.DateTimeFormat("zh-CN", {
   timeZone: "Asia/Shanghai",
   month: "2-digit",
   day: "2-digit",
+});
+
+const beijingDateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
 });
 
 const taskErrorText: Record<string, string> = {
@@ -113,6 +127,11 @@ const recordErrorText: Record<string, string> = {
 const recordCreatedText: Record<string, string> = {
   event: "事件已保存，不会自动触发 AI 分析。",
   idea: "灵感已保存为待处理状态。",
+};
+
+const reviewErrorText: Record<string, string> = {
+  missing_ai_config: "AI 配置还不完整，请先在服务端配置 AI provider、base URL、API key 和每日复盘模型。",
+  provider_failed: "AI 生成失败，请稍后重试；普通记录和统计不受影响。",
 };
 
 const emotionOptions = [
@@ -411,6 +430,34 @@ async function getTodayIdeas(userId: string, todayDate: string) {
     .orderBy(desc(ideaTable.createdAt));
 }
 
+async function getTodayDailyReviewReport(userId: string, todayDate: string) {
+  const [report] = await db
+    .select({
+      id: insightReportTable.id,
+      title: insightReportTable.title,
+      summary: insightReportTable.summary,
+      patterns: insightReportTable.patterns,
+      suggestions: insightReportTable.suggestions,
+      nextActions: insightReportTable.nextActions,
+      modelProvider: insightReportTable.modelProvider,
+      modelName: insightReportTable.modelName,
+      generatedAt: insightReportTable.generatedAt,
+    })
+    .from(insightReportTable)
+    .where(
+      and(
+        eq(insightReportTable.userId, userId),
+        eq(insightReportTable.reportType, "daily"),
+        eq(insightReportTable.periodStart, todayDate),
+        eq(insightReportTable.periodEnd, todayDate),
+        eq(insightReportTable.generationStatus, "completed"),
+      ),
+    )
+    .limit(1);
+
+  return report ?? null;
+}
+
 async function getHabitCheckins(userId: string, habitIds: string[]) {
   if (habitIds.length === 0) {
     return [];
@@ -703,9 +750,62 @@ function DailyReviewPreview({
         <Link href="/daily" className="quiet-button">
           取消预览
         </Link>
-        <button className="soft-button" type="button" disabled>
-          确认生成待接入
-        </button>
+        <form action={generateDailyReviewAction}>
+          {selectedOriginalEventIds.map((eventId) => (
+            <input key={eventId} type="hidden" name="originalEventId" value={eventId} />
+          ))}
+          <button className="soft-button" type="submit">
+            确认生成今日复盘
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
+type DailyReviewReport = NonNullable<Awaited<ReturnType<typeof getTodayDailyReviewReport>>>;
+
+function ReviewListSection({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="review-report-section">
+      <h3 className="list-label">{title}</h3>
+      {items.length ? (
+        <ul className="review-report-list">
+          {items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="body-copy mt-2">暂无记录</p>
+      )}
+    </div>
+  );
+}
+
+function DailyReviewReportCard({ report }: { report: DailyReviewReport }) {
+  return (
+    <section id="daily-review-report" aria-labelledby="daily-review-report-title" className="panel-card review-report-card">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="page-kicker">今日复盘报告</p>
+          <h2 id="daily-review-report-title" className="section-heading mt-1">
+            {report.title}
+          </h2>
+          <p className="body-copy mt-2">{report.summary}</p>
+        </div>
+        <div className="overview-detail-row">
+          <span className="status-pill">{report.modelProvider}</span>
+          <span className="status-pill">{report.modelName}</span>
+          {report.generatedAt ? (
+            <span className="status-pill">{beijingDateTimeFormatter.format(report.generatedAt)}</span>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="review-report-grid">
+        <ReviewListSection title="观察到的模式" items={report.patterns} />
+        <ReviewListSection title="行动建议" items={report.suggestions} />
+        <ReviewListSection title="下一步行动" items={report.nextActions} />
       </div>
     </section>
   );
@@ -726,6 +826,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const todayScheduleItems = user ? await getTodayScheduleItems(user.id, todayDate) : [];
   const todayLifeEvents = user ? await getTodayLifeEvents(user.id, todayDate) : [];
   const todayIdeas = user ? await getTodayIdeas(user.id, todayDate) : [];
+  const todayDailyReviewReport = user ? await getTodayDailyReviewReport(user.id, todayDate) : null;
   const reviewPreviewOpen = params?.reviewPreview === "1";
   const dailyReviewContext = user && reviewPreviewOpen
     ? await buildDailyReviewContext(user.id, todayDate)
@@ -780,6 +881,11 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     : "";
   const recordError = params?.recordError
     ? recordErrorText[params.recordError] ?? "记录保存失败，请稍后重试。"
+    : "";
+  const reviewGenerated = params?.reviewGenerated === "1";
+  const reviewCached = params?.reviewCached === "1";
+  const reviewError = params?.reviewError
+    ? reviewErrorText[params.reviewError] ?? "今日复盘生成失败，请稍后重试。"
     : "";
   const tasksByStatus = taskStatusOrder.map((status) => ({
     status,
@@ -886,7 +992,20 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
             </Link>
           )}
         </div>
+        {reviewError ? (
+          <p className="auth-message auth-message-error task-message mt-4">{reviewError}</p>
+        ) : null}
+        {reviewGenerated ? (
+          <p className="auth-message task-message mt-4">今日复盘已生成并保存。</p>
+        ) : null}
+        {reviewCached ? (
+          <p className="auth-message task-message mt-4">今天已有复盘报告，已直接展示缓存结果。</p>
+        ) : null}
       </section>
+
+      {todayDailyReviewReport ? (
+        <DailyReviewReportCard report={todayDailyReviewReport} />
+      ) : null}
 
       {dailyReviewContext ? (
         <DailyReviewPreview
