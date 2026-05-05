@@ -19,6 +19,7 @@ import {
   tasks as taskTable,
 } from "@/db/schema";
 import { HabitCheckinChart } from "@/components/insights/habit-checkin-chart";
+import { RecordTrendChart } from "@/components/insights/record-trend-chart";
 import { TaskCompletionChart } from "@/components/insights/task-completion-chart";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -228,6 +229,8 @@ async function getInsightData(userId: string) {
     const recordCount =
       getRecordCountByDate(lifeEvents, "eventDate", dateValue) +
       getRecordCountByDate(ideas, "ideaDate", dateValue);
+    const eventCount = getRecordCountByDate(lifeEvents, "eventDate", dateValue);
+    const ideaCount = getRecordCountByDate(ideas, "ideaDate", dateValue);
 
     return {
       dateValue,
@@ -236,6 +239,8 @@ async function getInsightData(userId: string) {
       completedTaskCount,
       taskCompletionRate: getRate(completedTaskCount, dayTasks.length),
       checkedHabitCount,
+      eventCount,
+      ideaCount,
       recordCount,
     };
   });
@@ -315,6 +320,14 @@ export default async function InsightsPage() {
   const hasWeeklyTaskData = Boolean(
     insightData?.daySummaries.some((day) => day.taskCount > 0),
   );
+  const hasWeeklyRecordData = Boolean(
+    insightData?.daySummaries.some((day) => day.recordCount > 0),
+  );
+  const weeklyEventCount =
+    insightData?.daySummaries.reduce((total, day) => total + day.eventCount, 0) ?? 0;
+  const weeklyIdeaCount =
+    insightData?.daySummaries.reduce((total, day) => total + day.ideaCount, 0) ?? 0;
+  const weeklyRecordCount = weeklyEventCount + weeklyIdeaCount;
 
   return (
     <div className="page-stack">
@@ -474,6 +487,45 @@ export default async function InsightsPage() {
             <div>
               <p className="list-label">暂无趋势数据</p>
               <p className="body-copy mt-1">登录后会显示最近 7 天的任务、习惯和记录变化。</p>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section aria-labelledby="record-trend" className="panel-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="page-kicker">记录数量趋势</p>
+            <h2 id="record-trend" className="section-heading mt-1">
+              最近 7 天随手记录
+            </h2>
+          </div>
+          <div className="overview-detail-row">
+            <span className="status-pill">总数 {weeklyRecordCount}</span>
+            <span className="status-pill">事件 {weeklyEventCount}</span>
+            <span className="status-pill">灵感 {weeklyIdeaCount}</span>
+          </div>
+        </div>
+
+        {insightData && hasWeeklyRecordData ? (
+          <div className="insight-chart-card mt-5">
+            <div className="record-item-heading">
+              <div>
+                <p className="list-label">随手记录趋势图表</p>
+                <p className="body-copy mt-1">按北京时间统计最近 7 天事件和灵感数量。</p>
+              </div>
+              <span className="status-pill">不使用 AI 归纳</span>
+            </div>
+            <RecordTrendChart data={insightData.daySummaries} />
+          </div>
+        ) : (
+          <div className="empty-state mt-5">
+            <span className="empty-icon">
+              <NotebookPen aria-hidden="true" className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="list-label">暂无记录趋势数据</p>
+              <p className="body-copy mt-1">最近 7 天没有事件或灵感记录。保存随手记录后会显示趋势。</p>
             </div>
           </div>
         )}

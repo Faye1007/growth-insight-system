@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 5.3：实现习惯打卡图表。
+项目已完成 Step 5.4：实现记录数量趋势。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表和习惯打卡图表能力稳定。
-- 准备进入 Step 5.4：实现记录数量趋势。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表和记录数量趋势能力稳定。
+- 准备进入 Step 5.5：实现情绪基础统计。
 - 后续逐步接入 Row Level Security、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -820,7 +820,44 @@
 
 尚未完成或暂缓：
 
-- Step 5.4 记录数量趋势尚未实现。
+- Row Level Security 尚未配置。
+- 复盘仍未接真实写入。
+- AI provider adapter 尚未接入。
+
+### Step 5.4：实现记录数量趋势
+
+已完成内容：
+
+- 新增记录数量趋势图表客户端组件，专门负责 Recharts 渲染。
+- 洞察报告页继续由服务端读取当前登录用户最近 7 天事件和灵感数据，不把数据库查询逻辑放到前端。
+- 在 `/insights` 新增记录数量趋势区块。
+- 最近 7 天按天统计事件数量、灵感数量和随手记录总数。
+- 图表使用堆叠柱状图区分事件和灵感。
+- 区块顶部展示最近 7 天记录总数、事件总数和灵感总数。
+- 没有最近 7 天事件或灵感记录时显示空状态。
+- 本 Step 不使用 AI 归纳记录内容。
+- 本 Step 不修改数据库 schema，不执行迁移，不接入 AI。
+
+本次新增或更新的文件：
+
+- `src/components/insights/record-trend-chart.tsx`
+- `src/app/insights/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `curl -I http://localhost:3001/insights` 返回 `200`。
+- 本地开发服务已启动并在检查后停止。
+- Faye 已要求更新文档并提交 Git，视为 Step 5.4 验收通过。
+
+尚未完成或暂缓：
+
+- Step 5.5 情绪基础统计尚未实现。
 - Row Level Security 尚未配置。
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
@@ -833,6 +870,6 @@
 
 ## Next Step Candidate
 
-Step 5.4：实现记录数量趋势。
+Step 5.5：实现情绪基础统计。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
