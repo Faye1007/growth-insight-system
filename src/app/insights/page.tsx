@@ -18,6 +18,7 @@ import {
   scheduleItems as scheduleItemTable,
   tasks as taskTable,
 } from "@/db/schema";
+import { TaskCompletionChart } from "@/components/insights/task-completion-chart";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getTaskCategoryLabel } from "@/lib/tasks/options";
@@ -263,6 +264,9 @@ export default async function InsightsPage() {
   const weekDatesText = insightData
     ? `${formatDateValue(insightData.weekStart)}-${formatDateValue(insightData.today)}`
     : "最近 7 天";
+  const hasWeeklyTaskData = Boolean(
+    insightData?.daySummaries.some((day) => day.taskCount > 0),
+  );
 
   return (
     <div className="page-stack">
@@ -362,31 +366,58 @@ export default async function InsightsPage() {
         </div>
 
         {insightData ? (
-          <div className="insight-day-grid mt-5">
-            {insightData.daySummaries.map((day) => (
-              <article key={day.dateValue} className="insight-day-card">
+          <>
+            {hasWeeklyTaskData ? (
+              <div className="insight-chart-card mt-5">
                 <div className="record-item-heading">
-                  <span className="list-label">{day.label}</span>
-                  <span className="status-pill">{day.taskCompletionRate}%</span>
+                  <div>
+                    <p className="list-label">任务完成率图表</p>
+                    <p className="body-copy mt-1">按北京时间统计最近 7 天每日任务完成率。</p>
+                  </div>
+                  <span className="status-pill">来自任务表</span>
                 </div>
-                <div className="insight-bar-stack mt-4">
-                  <div className="insight-bar-row">
-                    <span>任务</span>
-                    <div className="overview-progress">
-                      <span style={{ width: `${day.taskCompletionRate}%` }} />
+                <TaskCompletionChart data={insightData.daySummaries} />
+              </div>
+            ) : (
+              <div className="empty-state mt-5">
+                <span className="empty-icon">
+                  <BarChart3 aria-hidden="true" className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="list-label">暂无任务图表数据</p>
+                  <p className="body-copy mt-1">
+                    最近 7 天没有任务记录。创建任务后，这里会显示每日完成率。
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="insight-day-grid mt-5">
+              {insightData.daySummaries.map((day) => (
+                <article key={day.dateValue} className="insight-day-card">
+                  <div className="record-item-heading">
+                    <span className="list-label">{day.label}</span>
+                    <span className="status-pill">{day.taskCompletionRate}%</span>
+                  </div>
+                  <div className="insight-bar-stack mt-4">
+                    <div className="insight-bar-row">
+                      <span>任务</span>
+                      <div className="overview-progress">
+                        <span style={{ width: `${day.taskCompletionRate}%` }} />
+                      </div>
+                    </div>
+                    <div className="overview-detail-row">
+                      <span className="status-pill">
+                        {day.completedTaskCount}/{day.taskCount} 任务
+                      </span>
+                      <span className="status-pill">{day.checkedHabitCount} 习惯</span>
+                      <span className="status-pill">{day.recordCount} 记录</span>
                     </div>
                   </div>
-                  <div className="overview-detail-row">
-                    <span className="status-pill">
-                      {day.completedTaskCount}/{day.taskCount} 任务
-                    </span>
-                    <span className="status-pill">{day.checkedHabitCount} 习惯</span>
-                    <span className="status-pill">{day.recordCount} 记录</span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="empty-state mt-5">
             <span className="empty-icon">

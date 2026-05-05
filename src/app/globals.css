@@ -593,6 +593,26 @@ select {
     padding: 1rem;
   }
 
+  .insight-chart-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    padding: 1rem;
+  }
+
+  .task-completion-chart {
+    margin-top: 1rem;
+    min-height: 17.5rem;
+  }
+
+  .task-completion-chart .recharts-default-tooltip {
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-control);
+    background: var(--card) !important;
+    color: var(--foreground);
+    box-shadow: var(--shadow-soft);
+  }
+
   .insight-bar-stack,
   .insight-list {
     display: grid;

@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 5.1：实现洞察报告页面壳。
+项目已完成 Step 5.2：实现任务完成率图表。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看和洞察报告页面壳能力稳定。
-- 准备进入 Step 5.2：实现任务完成率图表。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳和任务完成率图表能力稳定。
+- 准备进入 Step 5.3：实现习惯打卡图表。
 - 后续逐步接入 Row Level Security、更多基础图表和 AI 复盘能力。
 
 ## Confirmed Decisions
@@ -744,7 +744,46 @@
 
 尚未完成或暂缓：
 
-- Step 5.2 任务完成率图表尚未实现。
+- Row Level Security 尚未配置。
+- 复盘仍未接真实写入。
+- AI provider adapter 尚未接入。
+
+### Step 5.2：实现任务完成率图表
+
+已完成内容：
+
+- 安装并接入 `recharts`。
+- 新增任务完成率图表客户端组件，专门负责 Recharts 渲染。
+- 洞察报告页继续由服务端读取当前登录用户最近 7 天任务数据，不把数据库查询逻辑放到前端。
+- 在 `/insights` 本周趋势区新增最近 7 天任务完成率柱状图。
+- 图表按北京时间展示最近 7 天每日完成率。
+- 图表 tooltip 展示当天完成率和已完成/总任务数。
+- 没有最近 7 天任务数据时显示空状态。
+- 保留原有每日趋势卡，继续展示任务、习惯和记录数量概览。
+- 本 Step 不修改数据库 schema，不执行迁移，不接入 AI。
+
+本次新增或更新的文件：
+
+- `package.json`
+- `package-lock.json`
+- `src/components/insights/task-completion-chart.tsx`
+- `src/app/insights/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `curl -I http://localhost:3001/insights` 返回 `200`。
+- 本地开发服务已启动在 `http://localhost:3001/insights`。
+- Faye 已要求更新文档并提交 Git，视为 Step 5.2 验收通过。
+
+尚未完成或暂缓：
+
+- Step 5.3 习惯打卡图表尚未实现。
 - Row Level Security 尚未配置。
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
@@ -757,6 +796,6 @@
 
 ## Next Step Candidate
 
-Step 5.2：实现任务完成率图表。
+Step 5.3：实现习惯打卡图表。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
