@@ -2,11 +2,11 @@
 
 ## Current Status
 
-项目已完成 Step 7.3：完成基础闭环手工验收。
+项目已完成 Step 8.1：更新架构文档。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范和基础闭环手工验收结果稳定。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果和 Step 8.1 架构文档完成态稳定。
 - 后续逐步接入 Row Level Security。
 
 ## Confirmed Decisions
@@ -1256,12 +1256,37 @@
 - 命令行页面检查没有浏览器登录态，因此页面响应验证覆盖未登录可打开；登录用户数据可见性通过真实数据库按用户和日期聚合验证。
 - Faye 已要求更新文档和提交 Git。
 
+### Step 8.1：更新架构文档
+
+已完成内容：
+
+- 更新 `memory-bank/@architecture.md`，补充 Step 7.3 后的基础闭环完成态快照。
+- 写清当前实际用户流程：登录、每日工作台记录、今日概览、成长记录、洞察报告、每日复盘发送预览、确认生成或读取缓存复盘。
+- 写清当前基础闭环已覆盖任务、习惯、日程、事件、灵感、程序统计、成长记录、基础图表、每日复盘、设置页状态和统一错误提示。
+- 修正过期表述：每日复盘已经接入真实写入和缓存展示，不再写成“复盘仍未接真实写入”。
+- 将数据模型章节从草案说明更新为当前真实数据模型说明，并注明实际结构以 `src/db/schema.ts` 和 `drizzle/0000_true_silver_sable.sql` 为准。
+- 补充 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 环境变量说明，并保留对旧命名 `NEXT_PUBLIC_SUPABASE_ANON_KEY` 的兼容说明。
+- 写清当前仍未完成：Row Level Security、个人说明书真实编辑、周复盘、月度复盘、纪念日、礼物记录、场景工具箱和 Obsidian 导入导出。
+- 本 Step 只修改架构文档，不修改应用代码、数据库 schema、迁移文件、`.env.local` 或真实数据库数据。
+
+本次新增或更新的文件：
+
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- 对照 `src/app`、`src/db/schema.ts`、`src/lib/ai` 和 `src/app/daily/actions.ts` 检查架构说明。
+- `git diff --check -- memory-bank/@architecture.md` 通过。
+- 本 Step 只修改文档，未运行 `npm run lint` 或 `npm run build`。
+- Faye 已确认 Step 8.1 通过，并要求更新文档和提交 Git。
+
 ## Not Started
 
 - Row Level Security
 
 ## Next Step Candidate
 
-Step 8.1：更新架构文档。
+Step 8.2：更新进度文档。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
