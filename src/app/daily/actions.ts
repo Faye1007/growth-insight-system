@@ -20,7 +20,9 @@ import {
   getCompletedDailyReviewReportIdForUser,
   getTaskDateForUser,
   postponeTaskForUser,
+  softDeleteTaskForUser,
   updateTaskStatusForUser,
+  updateTaskForUser,
   upsertDailyReviewReportForUser,
   upsertHabitCheckinForUser,
 } from "@/lib/data/user-data";
@@ -168,6 +170,96 @@ export async function updateTaskStatusAction(formData: FormData) {
 
   revalidatePath("/daily");
   redirect(`/daily?taskUpdated=${statusValue}#tasks`);
+}
+
+export async function updateTaskAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const taskId = getStringValue(formData, "taskId");
+  const title = getStringValue(formData, "title");
+  const source = getStringValue(formData, "source");
+  const errorPath =
+    source === "detail" && taskId ? `/records/task/${taskId}?taskError=save_failed` : "/daily?taskError=save_failed#tasks";
+
+  if (!taskId) {
+    redirect("/daily?taskError=missing_task#tasks");
+  }
+
+  if (!title) {
+    redirect(source === "detail" ? `/records/task/${taskId}?taskError=missing_title` : "/daily?taskError=missing_title#tasks");
+  }
+
+  const categoryValue = getStringValue(formData, "category");
+  const statusValue = getStringValue(formData, "status");
+  const taskDateValue = getStringValue(formData, "taskDate");
+  const category = isTaskCategory(categoryValue) ? categoryValue : "other";
+  const status = isTaskStatus(statusValue) ? statusValue : "todo";
+  const taskDate = isValidDateValue(taskDateValue) ? taskDateValue : getBeijingDateValue();
+  const description = getStringValue(formData, "description") || null;
+  const reviewNote = getStringValue(formData, "reviewNote") || null;
+  const updatedAt = new Date();
+
+  try {
+    await updateTaskForUser({
+      userId: user.id,
+      taskId,
+      title,
+      description,
+      category,
+      status,
+      taskDate,
+      reviewNote,
+      completedAt: status === "completed" ? updatedAt : null,
+      updatedAt,
+    });
+  } catch {
+    redirect(errorPath);
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+  revalidatePath(`/records/task/${taskId}`);
+
+  if (source === "detail") {
+    redirect(`/records/task/${taskId}?taskUpdated=edited`);
+  }
+
+  redirect("/daily?taskUpdated=edited#tasks");
+}
+
+export async function softDeleteTaskAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const taskId = getStringValue(formData, "taskId");
+  const source = getStringValue(formData, "source");
+
+  if (!taskId) {
+    redirect("/daily?taskError=missing_task#tasks");
+  }
+
+  try {
+    await softDeleteTaskForUser({
+      userId: user.id,
+      taskId,
+      deletedAt: new Date(),
+    });
+  } catch {
+    redirect(
+      source === "detail"
+        ? `/records/task/${taskId}?taskError=save_failed`
+        : "/daily?taskError=save_failed#tasks",
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+  revalidatePath(`/records/task/${taskId}`);
+
+  if (source === "detail") {
+    redirect("/records?taskDeleted=1");
+  }
+
+  redirect("/daily?taskUpdated=deleted#tasks");
 }
 
 export async function createHabitAction(formData: FormData) {

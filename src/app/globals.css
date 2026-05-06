@@ -421,6 +421,16 @@ select {
     background: var(--mist-soft);
   }
 
+  .danger-button {
+    border-color: rgb(168 78 78 / 35%);
+    color: rgb(126 53 53);
+  }
+
+  .danger-button:hover {
+    border-color: rgb(168 78 78 / 50%);
+    background: rgb(168 78 78 / 9%);
+  }
+
   .auth-form {
     display: grid;
     gap: 1rem;
@@ -505,6 +515,7 @@ select {
 
   .task-list-item {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
@@ -519,6 +530,48 @@ select {
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 0.5rem;
+  }
+
+  .task-edit-disclosure {
+    flex-basis: 100%;
+  }
+
+  .task-edit-disclosure > summary {
+    width: fit-content;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .task-edit-disclosure > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .task-edit-form {
+    display: grid;
+    gap: 1rem;
+    margin-top: 0.875rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-card);
+    background: var(--card-muted);
+    padding: 1rem;
+  }
+
+  .task-edit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .danger-zone {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid rgb(168 78 78 / 24%);
+    border-radius: var(--radius-card);
+    background: rgb(168 78 78 / 6%);
+    padding: 1rem;
   }
 
   .habit-stat-row {

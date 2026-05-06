@@ -5,9 +5,11 @@ import {
   ClipboardList,
   Lightbulb,
   NotebookPen,
+  Pencil,
   Plus,
   Repeat2,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 
 import {
@@ -16,6 +18,8 @@ import {
   createScheduleItemAction,
   createTaskAction,
   generateDailyReviewAction,
+  softDeleteTaskAction,
+  updateTaskAction,
   updateHabitCheckinAction,
   updateTaskStatusAction,
 } from "@/app/daily/actions";
@@ -364,6 +368,100 @@ function PostponeTaskAction({
       />
       <button className="quiet-button" type="submit">
         延期
+      </button>
+    </form>
+  );
+}
+
+function TaskEditDisclosure({ task }: { task: TodayTask }) {
+  return (
+    <details className="task-edit-disclosure">
+      <summary className="quiet-button">
+        <Pencil aria-hidden="true" className="h-4 w-4" />
+        编辑
+      </summary>
+      <form action={updateTaskAction} className="task-edit-form">
+        <input type="hidden" name="taskId" value={task.id} />
+        <input type="hidden" name="source" value="daily" />
+
+        <label className="form-field">
+          <span>任务标题</span>
+          <input name="title" type="text" maxLength={120} defaultValue={task.title} required />
+        </label>
+
+        <div className="task-form-grid">
+          <label className="form-field">
+            <span>分类</span>
+            <select name="category" defaultValue={task.category}>
+              {taskCategories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="form-field">
+            <span>日期</span>
+            <input name="taskDate" type="date" defaultValue={task.taskDate} required />
+          </label>
+
+          <label className="form-field">
+            <span>状态</span>
+            <select name="status" defaultValue={task.status}>
+              {taskStatuses.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <label className="form-field">
+          <span>任务说明</span>
+          <textarea
+            name="description"
+            rows={3}
+            defaultValue={task.description ?? ""}
+            placeholder="补充背景、范围或执行标准"
+          />
+        </label>
+
+        <label className="form-field">
+          <span>复盘 / 备注</span>
+          <textarea
+            name="reviewNote"
+            rows={3}
+            defaultValue={task.reviewNote ?? ""}
+            placeholder="记录完成情况、延期原因或复盘想法"
+          />
+        </label>
+
+        <div className="task-edit-actions">
+          <button className="soft-button" type="submit">
+            保存修改
+          </button>
+        </div>
+      </form>
+    </details>
+  );
+}
+
+function DeleteTaskAction({
+  taskId,
+  source = "daily",
+}: {
+  taskId: string;
+  source?: "daily" | "detail";
+}) {
+  return (
+    <form action={softDeleteTaskAction}>
+      <input type="hidden" name="taskId" value={taskId} />
+      <input type="hidden" name="source" value={source} />
+      <button className="quiet-button danger-button" type="submit">
+        <Trash2 aria-hidden="true" className="h-4 w-4" />
+        删除
       </button>
     </form>
   );
@@ -1018,10 +1116,15 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                                   ) : null}
                                 </div>
                                 <div className="task-actions">
+                                  <Link className="quiet-button" href={`/records/task/${task.id}`}>
+                                    详情
+                                  </Link>
                                   <TaskStatusAction task={task} status="in_progress" label="进行中" />
                                   <TaskStatusAction task={task} status="completed" label="完成" />
                                   <PostponeTaskAction task={task} defaultPostponedDate={defaultPostponedDate} />
+                                  <DeleteTaskAction taskId={task.id} />
                                 </div>
+                                <TaskEditDisclosure task={task} />
                               </article>
                             ))}
                           </div>

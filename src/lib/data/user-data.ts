@@ -140,12 +140,14 @@ type InsightReportRow = {
 export type TodayTask = {
   id: string;
   title: string;
+  description: string | null;
   category: TaskCategory;
   status: TaskStatus;
   taskDate: string;
   isPostponed: boolean;
   postponedFromDate: string | null;
   postponedToDate: string | null;
+  reviewNote: string | null;
   createdAt: Date;
 };
 
@@ -404,12 +406,14 @@ function mapTodayTask(row: TaskRow): TodayTask {
   return {
     id: row.id,
     title: row.title,
+    description: row.description,
     category: row.category,
     status: row.status,
     taskDate: row.task_date,
     isPostponed: row.is_postponed,
     postponedFromDate: row.postponed_from_date,
     postponedToDate: row.postponed_to_date,
+    reviewNote: row.review_note,
     createdAt: new Date(row.created_at),
   };
 }
@@ -463,6 +467,7 @@ export async function getTaskDateForUser(userId: string, taskId: string) {
     .select("task_date")
     .eq("id", taskId)
     .eq("user_id", userId)
+    .is("deleted_at", null)
     .returns<{ task_date: string }>()
     .maybeSingle();
   const row = assertRow(data as { task_date: string } | null, error);
@@ -486,7 +491,8 @@ export async function updateTaskStatusForUser(input: {
       updated_at: input.updatedAt.toISOString(),
     })
     .eq("id", input.taskId)
-    .eq("user_id", input.userId);
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
 
   if (error) {
     throw error;
@@ -513,7 +519,71 @@ export async function postponeTaskForUser(input: {
       updated_at: input.updatedAt.toISOString(),
     })
     .eq("id", input.taskId)
-    .eq("user_id", input.userId);
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updateTaskForUser(input: {
+  userId: string;
+  taskId: string;
+  title: string;
+  description: string | null;
+  category: TaskCategory;
+  status: TaskStatus;
+  taskDate: string;
+  reviewNote: string | null;
+  completedAt: Date | null;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const updatePayload: Partial<TaskRow> = {
+    title: input.title,
+    description: input.description,
+    category: input.category,
+    status: input.status,
+    task_date: input.taskDate,
+    review_note: input.reviewNote,
+    completed_at: input.completedAt?.toISOString() ?? null,
+    updated_at: input.updatedAt.toISOString(),
+  };
+
+  if (input.status === "postponed") {
+    updatePayload.is_postponed = true;
+    updatePayload.postponed_to_date = input.taskDate;
+  }
+
+  const { error } = await supabase
+    .from("tasks")
+    .update(updatePayload)
+    .eq("id", input.taskId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function softDeleteTaskForUser(input: {
+  userId: string;
+  taskId: string;
+  deletedAt: Date;
+}) {
+  const deletedAtIso = input.deletedAt.toISOString();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      deleted_at: deletedAtIso,
+      updated_at: deletedAtIso,
+    })
+    .eq("id", input.taskId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
 
   if (error) {
     throw error;
@@ -714,7 +784,7 @@ export async function getTodayTasksForUser(userId: string, todayDate: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tasks")
-    .select("id,title,category,status,task_date,is_postponed,postponed_from_date,postponed_to_date,created_at")
+    .select("id,title,description,category,status,task_date,is_postponed,postponed_from_date,postponed_to_date,review_note,created_at")
     .eq("user_id", userId)
     .eq("task_date", todayDate)
     .is("deleted_at", null)

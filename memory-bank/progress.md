@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整和 Vercel 正式部署基础验收。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试和 Step 10.1 任务编辑与软删除。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
-- 首版朋友试用按无 AI 优先部署准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
 
@@ -22,7 +22,7 @@
 - 访问方向：未登录用户可浏览基础界面和展示数据
 - 注册方向：第一版开放注册登录
 - AI 策略：低成本优先，普通统计不用 AI，复盘分析才调用 AI
-- 部署策略：首版朋友试用不强制配置 AI；程序统计、基础图表和程序复盘摘要应在无 AI 环境变量时正常可用
+- 部署策略：首版部署不强制配置 AI；程序统计、基础图表和程序复盘摘要应在无 AI 环境变量时正常可用
 - AI 接入：OpenAI-compatible provider adapter，不绑定 OpenAI
 - AI 上下文策略：每日复盘默认使用统计和摘要，少量事件原文可在权限允许、敏感规则通过并经用户确认后发送
 - 成长知识库：第一版暂缓，Obsidian 继续作为学习笔记主阵地
@@ -1451,14 +1451,69 @@ Supabase Auth Redirect URL 需要配置：
 - Faye 已确认 Supabase 侧设置完成，并已完成线上测试。
 - 本 Step 未配置 AI 环境变量，AI 待配置属于预期状态。
 
+### Step 9.3：部署前最终测试
+
+已完成内容：
+
+- Faye 已确认部署前最终测试完成。
+- 部署前测试统一按首版部署前测试记录。
+- 测试重点覆盖正式部署站点的核心闭环：任务、习惯、打卡、日程、事件、灵感、程序复盘、成长记录和洞察报告。
+- 确认未配置 AI 环境变量时，程序统计、基础图表和程序复盘摘要仍作为首版可用能力保留。
+- 确认登录、退出、未登录浏览和未登录写入拦截仍按当前访问规则运行。
+- 确认设置页和页面提示不展示数据库连接串、API key、service role key、Bearer token 或底层错误堆栈。
+- 本 Step 未修改 `.env.local`，未配置 AI 环境变量，未修改数据库 schema，未执行迁移，未 push。
+
+验证记录：
+
+- 正式站点核心路由已在 Step 9.2 验证可访问。
+- Faye 已完成线上部署前测试。
+- 当前首版部署继续采用无 AI 配置路线，AI 待配置属于预期状态。
+- 本 Step 只补充部署前测试完成态文档，未修改应用代码。
+
+### Step 10.1：任务编辑与删除
+
+已完成内容：
+
+- 在每日工作台今日任务列表中加入任务详情入口、编辑入口和软删除入口。
+- 支持编辑任务标题、分类、日期、状态、任务说明和复盘备注。
+- 在任务详情页加入完整编辑表单，支持编辑同一批字段。
+- 支持软删除任务，写入 `tasks.deleted_at` 和 `updated_at`，不做物理删除。
+- 删除后的任务不再出现在每日工作台、成长记录、洞察统计和每日复盘上下文中。
+- 任务编辑和软删除 Server Action 写入前都必须通过 `requireCurrentUser()` 获取当前登录用户。
+- 任务编辑和软删除的数据访问层继续使用 Supabase SSR client，并显式限定当前 `user_id` 和 `deleted_at is null`。
+- 用户 A 不能通过页面操作编辑或软删除用户 B 的任务；不存在、已删除或不属于当前账号的任务会被视为找不到。
+- 本 Step 复用已有 `tasks.deleted_at` 字段，没有修改数据库 schema，也没有执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/records/page.tsx`
+- `src/app/records/[kind]/[id]/page.tsx`
+- `src/lib/data/user-data.ts`
+- `src/lib/feedback.ts`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 生产构建本地服务 `http://localhost:3005/daily` 返回 `200`。
+- 生产构建本地服务 `http://localhost:3005/records` 返回 `200`。
+- 生产构建本地服务 `http://localhost:3005/records/task/00000000-0000-0000-0000-000000000000` 返回 `200`。
+- 生产构建本地服务 `http://localhost:3005/insights` 返回 `200`。
+- 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
+
 ## Not Started
 
-- 少量朋友试用前的最终手工闭环记录
 - 自定义正式域名绑定
 - AI 复盘生产环境变量配置
 
 ## Next Step Candidate
 
-Step 9.3：少量朋友试用前最终检查。
+Step 10.2：日程编辑与删除。
 
-进入下一步前，建议用 Faye 账号完整跑一次任务、习惯、打卡、日程、事件、灵感、程序复盘、成长记录和洞察报告闭环。
+下一步建议继续补齐基础记录可维护能力，为日程加入编辑、软删除和详情页编辑入口。

@@ -8,6 +8,7 @@ import {
   Repeat2,
 } from "lucide-react";
 
+import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import {
@@ -72,6 +73,7 @@ type RecordsPageProps = {
   searchParams?: Promise<{
     type?: string;
     range?: string;
+    taskDeleted?: string;
   }>;
 };
 
@@ -313,6 +315,14 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
     recordTypeOptions.find((option) => option.value === typeFilter)?.label ?? "全部";
   const rangeFilterLabel =
     dateRangeOptions.find((option) => option.value === rangeFilter)?.label ?? "全部近期";
+  const taskDeletedFeedback =
+    params?.taskDeleted === "1"
+      ? {
+          tone: "success" as const,
+          title: "任务已删除",
+          detail: "这条任务已从成长记录和统计中移除。",
+        }
+      : null;
 
   return (
     <div className="page-stack">
@@ -328,6 +338,8 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
           按创建时间倒序汇总任务、习惯打卡、日程、事件和灵感。当前支持按记录类型和日期范围做基础筛选。
         </p>
       </header>
+
+      <FeedbackMessage feedback={taskDeletedFeedback} />
 
       {!isLoggedIn ? (
         <section className="panel-card">

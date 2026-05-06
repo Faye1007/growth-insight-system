@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { softDeleteTaskAction, updateTaskAction } from "@/app/daily/actions";
+import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import {
@@ -10,13 +12,28 @@ import {
   getScheduleDetailForUser,
   getTaskDetailForUser,
 } from "@/lib/data/user-data";
-import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
+import {
+  getTaskCategoryLabel,
+  getTaskStatusLabel,
+  taskCategories,
+  taskStatuses,
+} from "@/lib/tasks/options";
+import {
+  dailyTaskErrorFeedback,
+  dailyTaskUpdatedFeedback,
+  defaultTaskErrorFeedback,
+  getFeedbackByCode,
+} from "@/lib/feedback";
 
 type RecordKind = "task" | "habit" | "schedule" | "event" | "idea";
 type DetailPageProps = {
   params: Promise<{
     kind?: string;
     id?: string;
+  }>;
+  searchParams?: Promise<{
+    taskError?: string;
+    taskUpdated?: string;
   }>;
 };
 
@@ -119,8 +136,9 @@ function NotFoundState() {
   );
 }
 
-export default async function RecordDetailPage({ params }: DetailPageProps) {
+export default async function RecordDetailPage({ params, searchParams }: DetailPageProps) {
   const { kind, id } = await params;
+  const resolvedSearchParams = await searchParams;
   const user = await getCurrentUser();
   const detailPath = isRecordKind(kind) && id ? `/records/${kind}/${id}` : "/records";
   const loginPath = buildLoginPath({ next: detailPath, message: loginRequiredMessage });
@@ -162,6 +180,15 @@ export default async function RecordDetailPage({ params }: DetailPageProps) {
 
   if (kind === "task") {
     const task = await getTaskDetailForUser(user.id, id);
+    const taskErrorFeedback = getFeedbackByCode(
+      resolvedSearchParams?.taskError,
+      dailyTaskErrorFeedback,
+      defaultTaskErrorFeedback,
+    );
+    const taskUpdatedFeedback = getFeedbackByCode(
+      resolvedSearchParams?.taskUpdated,
+      dailyTaskUpdatedFeedback,
+    );
 
     if (!task) {
       return <NotFoundDetail kindLabel={kindLabels[kind]} />;
@@ -169,6 +196,8 @@ export default async function RecordDetailPage({ params }: DetailPageProps) {
 
     return (
       <DetailLayout kindLabel={kindLabels[kind]} title={task.title}>
+        <FeedbackMessage feedback={taskErrorFeedback} />
+        <FeedbackMessage feedback={taskUpdatedFeedback} />
         <section className="panel-card">
           <div className="detail-grid">
             <DetailField label="分类" value={getTaskCategoryLabel(task.category)} />
@@ -195,6 +224,7 @@ export default async function RecordDetailPage({ params }: DetailPageProps) {
           <h2 className="section-heading">复盘 / 备注</h2>
           <p className="detail-copy mt-3">{task.reviewNote || "未记录"}</p>
         </section>
+        <TaskDetailEditSection taskId={id} task={task} />
       </DetailLayout>
     );
   }
@@ -322,6 +352,93 @@ export default async function RecordDetailPage({ params }: DetailPageProps) {
         <p className="detail-copy mt-3">{idea.solutionNote || "未记录"}</p>
       </section>
     </DetailLayout>
+  );
+}
+
+function TaskDetailEditSection({
+  taskId,
+  task,
+}: {
+  taskId: string;
+  task: {
+    title: string;
+    description: string | null;
+    category: (typeof taskCategories)[number]["value"];
+    status: (typeof taskStatuses)[number]["value"];
+    taskDate: string;
+    reviewNote: string | null;
+  };
+}) {
+  return (
+    <section className="panel-card">
+      <h2 className="section-heading">编辑任务</h2>
+      <form action={updateTaskAction} className="task-form mt-4">
+        <input type="hidden" name="taskId" value={taskId} />
+        <input type="hidden" name="source" value="detail" />
+
+        <label className="form-field">
+          <span>任务标题</span>
+          <input name="title" type="text" maxLength={120} defaultValue={task.title} required />
+        </label>
+
+        <div className="task-form-grid">
+          <label className="form-field">
+            <span>分类</span>
+            <select name="category" defaultValue={task.category}>
+              {taskCategories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="form-field">
+            <span>日期</span>
+            <input name="taskDate" type="date" defaultValue={task.taskDate} required />
+          </label>
+
+          <label className="form-field">
+            <span>状态</span>
+            <select name="status" defaultValue={task.status}>
+              {taskStatuses.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <label className="form-field">
+          <span>任务说明</span>
+          <textarea name="description" rows={4} defaultValue={task.description ?? ""} />
+        </label>
+
+        <label className="form-field">
+          <span>复盘 / 备注</span>
+          <textarea name="reviewNote" rows={4} defaultValue={task.reviewNote ?? ""} />
+        </label>
+
+        <div className="task-edit-actions">
+          <button className="soft-button" type="submit">
+            保存任务
+          </button>
+        </div>
+      </form>
+
+      <form action={softDeleteTaskAction} className="danger-zone mt-4">
+        <input type="hidden" name="taskId" value={taskId} />
+        <input type="hidden" name="source" value="detail" />
+        <div>
+          <h3 className="list-label">删除任务</h3>
+          <p className="body-copy mt-1">删除后，这条任务不会再出现在工作台、成长记录和统计里。</p>
+        </div>
+        <button className="quiet-button danger-button" type="submit">
+          删除任务
+        </button>
+      </form>
+    </section>
   );
 }
 

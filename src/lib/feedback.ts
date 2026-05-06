@@ -98,6 +98,16 @@ export const dailyTaskUpdatedFeedback: Record<string, FeedbackMessage> = {
     title: "任务已延期",
     detail: "任务日期已同步更新到新的延期日期。",
   },
+  edited: {
+    tone: "success",
+    title: "任务已保存",
+    detail: "任务标题、分类、日期、状态或备注已更新。",
+  },
+  deleted: {
+    tone: "success",
+    title: "任务已删除",
+    detail: "这条任务已从每日工作台、成长记录和统计中移除。",
+  },
 };
 
 export const dailyHabitErrorFeedback: Record<string, FeedbackMessage> = {
