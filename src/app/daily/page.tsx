@@ -85,6 +85,7 @@ import {
 
 type DailyPageProps = {
   searchParams?: Promise<{
+    create?: string;
     taskCreated?: string;
     taskError?: string;
     taskUpdated?: string;
@@ -208,6 +209,9 @@ function buildOverviewCards(
             ]
           : ["总数 0", "完成率 0%"],
       tone: "tone-lavender",
+      sectionId: "tasks",
+      createKey: "task",
+      actionLabel: "新建",
     },
     {
       label: "习惯打卡",
@@ -219,6 +223,9 @@ function buildOverviewCards(
           ? [`启用 ${activeHabitCount}`, `已打卡 ${checkedHabitCount}`]
           : ["启用 0", "已打卡 0"],
       tone: "tone-sage",
+      sectionId: "habits",
+      createKey: "habit",
+      actionLabel: "添加",
     },
     {
       label: "今日日程",
@@ -227,6 +234,9 @@ function buildOverviewCards(
       note: scheduleCount > 0 ? "今日已记录的固定事项数量。" : "暂无固定事项，可以先记录今天的第一个日程。",
       details: [`日程 ${scheduleCount}`],
       tone: "tone-mist",
+      sectionId: "schedule",
+      createKey: "schedule",
+      actionLabel: "记录",
     },
     {
       label: "随手记录",
@@ -235,6 +245,9 @@ function buildOverviewCards(
       note: recordCount > 0 ? "今日已保存的事件和灵感数量。" : "暂无事件或灵感，可以先写一条记录。",
       details: [`事件 ${eventCount}`, `灵感 ${ideaCount}`],
       tone: "tone-clay",
+      sectionId: "notes",
+      createKey: "record",
+      actionLabel: "写入",
     },
   ];
 }
@@ -1241,14 +1254,18 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     status,
     tasks: todayTasks.filter((task) => task.status === status),
   }));
-  const taskCreateFormOpen = params?.taskError === "missing_title" || params?.taskError === "save_failed";
-  const habitCreateFormOpen = params?.habitError === "missing_name" || params?.habitError === "save_failed";
+  const taskCreateFormOpen =
+    params?.create === "task" || params?.taskError === "missing_title" || params?.taskError === "save_failed";
+  const habitCreateFormOpen =
+    params?.create === "habit" || params?.habitError === "missing_name" || params?.habitError === "save_failed";
   const scheduleCreateFormOpen =
+    params?.create === "schedule" ||
     params?.scheduleError === "missing_title" ||
     params?.scheduleError === "missing_time" ||
     params?.scheduleError === "invalid_time" ||
     params?.scheduleError === "save_failed";
   const recordCreateFormOpen =
+    params?.create === "record" ||
     params?.recordError === "missing_content" ||
     params?.recordError === "invalid_type" ||
     params?.recordError === "save_failed";
@@ -1310,23 +1327,40 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
           <span className="status-pill w-fit">程序统计，不调用 AI</span>
         </div>
         <div className="daily-summary-grid mt-5">
-          {overviewCards.map((card) => (
-            <article key={card.label} className={`daily-summary-card ${card.tone}`}>
-              <p className="metric-label">{card.label}</p>
-              <p className="metric-value">{card.value}</p>
-              <p className="body-copy mt-2">{card.note}</p>
-              <div aria-hidden="true" className="overview-progress mt-4">
-                <span style={{ width: `${card.progress}%` }} />
-              </div>
-              <div className="overview-detail-row mt-3">
-                {card.details.map((detail) => (
-                  <span key={detail} className="status-pill">
-                    {detail}
-                  </span>
-                ))}
-              </div>
-            </article>
-          ))}
+          {overviewCards.map((card) => {
+            const createHref = `/daily?create=${card.createKey}#${card.sectionId}`;
+            const actionHref = isLoggedIn
+              ? createHref
+              : buildLoginPath({ next: createHref, message: loginRequiredMessage });
+
+            return (
+              <article key={card.label} className={`daily-summary-card ${card.tone}`}>
+                <div className="overview-card-header">
+                  <p className="metric-label">{card.label}</p>
+                  <Link
+                    aria-label={`${card.actionLabel}${card.label}`}
+                    className="overview-card-action"
+                    href={actionHref}
+                  >
+                    <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                    <span>{card.actionLabel}</span>
+                  </Link>
+                </div>
+                <p className="metric-value">{card.value}</p>
+                <p className="body-copy mt-2">{card.note}</p>
+                <div aria-hidden="true" className="overview-progress mt-4">
+                  <span style={{ width: `${card.progress}%` }} />
+                </div>
+                <div className="overview-detail-row mt-3">
+                  {card.details.map((detail) => (
+                    <span key={detail} className="status-pill">
+                      {detail}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
 
