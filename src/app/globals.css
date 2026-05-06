@@ -988,18 +988,103 @@ select {
 }
 
 @media (max-width: 639px) {
+  .page-stack {
+    gap: 1.5rem;
+  }
+
+  .panel-card,
+  .workspace-panel,
+  .daily-summary-card {
+    padding: 1rem;
+  }
+
+  .status-pill {
+    max-width: 100%;
+    min-height: 2rem;
+    white-space: normal;
+  }
+
+  .overview-card-header {
+    align-items: center;
+  }
+
+  .overview-card-action {
+    min-height: 2.125rem;
+    padding-inline: 0.625rem;
+  }
+
+  .task-form,
+  .task-edit-form {
+    padding: 0.875rem;
+  }
+
   .task-list-item {
     flex-direction: column;
+    gap: 0.875rem;
+    padding: 0.875rem;
+  }
+
+  .task-list-item > .min-w-0 {
+    width: 100%;
   }
 
   .insight-list-row {
     flex-direction: column;
   }
 
-  .task-actions,
-  .postpone-form {
+  .task-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
-    justify-content: flex-start;
+    justify-content: stretch;
+  }
+
+  .task-actions > *,
+  .task-actions form,
+  .task-actions details {
+    min-width: 0;
+  }
+
+  .task-actions .quiet-button,
+  .task-actions .soft-button,
+  .task-actions .status-pill {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .postpone-form {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .compact-date-input {
+    width: 100%;
+    max-width: none;
+  }
+
+  .task-edit-disclosure {
+    width: 100%;
+  }
+
+  .task-edit-disclosure > summary,
+  .task-edit-actions .soft-button,
+  .review-preview-actions > *,
+  .review-preview-actions .quiet-button,
+  .review-preview-actions .soft-button {
+    width: 100%;
+  }
+
+  .review-preview-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .review-original-item {
+    gap: 0.625rem;
   }
 }
 
