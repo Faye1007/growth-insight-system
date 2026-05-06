@@ -172,6 +172,17 @@ async function getInsightData(userId: string) {
       streakCount: getHabitStreakCount(checkedDates, today),
     };
   });
+  const weeklyHabitRows = activeHabits.map((habit) => {
+    const recentCheckedCount = habitCheckins.filter(
+      (checkin) => checkin.habitId === habit.id && checkin.status === "checked",
+    ).length;
+
+    return {
+      id: habit.id,
+      name: habit.name,
+      recentCheckedCount,
+    };
+  });
 
   const emotionCounts = new Map<string, number>();
 
@@ -185,6 +196,57 @@ async function getInsightData(userId: string) {
     .map(([emotion, count]) => ({ emotion, count }))
     .sort((a, b) => b.count - a.count || a.emotion.localeCompare(b.emotion, "zh-CN"))
     .slice(0, maxEmotionRows);
+  const weeklyCompletedTaskCount = daySummaries.reduce(
+    (total, day) => total + day.completedTaskCount,
+    0,
+  );
+  const weeklyTaskCount = daySummaries.reduce((total, day) => total + day.taskCount, 0);
+  const weeklyScheduleCount = schedules.length;
+  const weeklyCheckedHabitCount = daySummaries.reduce(
+    (total, day) => total + day.checkedHabitCount,
+    0,
+  );
+  const weeklyRecordCount = daySummaries.reduce((total, day) => total + day.recordCount, 0);
+  const mostActiveDay = [...daySummaries].sort(
+    (a, b) =>
+      b.completedTaskCount +
+      b.checkedHabitCount +
+      b.recordCount -
+      (a.completedTaskCount + a.checkedHabitCount + a.recordCount),
+  )[0];
+  const topHabit = [...weeklyHabitRows]
+    .filter((habit) => habit.recentCheckedCount > 0)
+    .sort((a, b) => b.recentCheckedCount - a.recentCheckedCount || a.name.localeCompare(b.name, "zh-CN"))[0];
+  const topEmotion = emotionRows[0];
+  const weeklyHasData =
+    weeklyTaskCount > 0 ||
+    weeklyCheckedHabitCount > 0 ||
+    weeklyScheduleCount > 0 ||
+    weeklyRecordCount > 0;
+  const weeklyHighlights = weeklyHasData
+    ? [
+        `最近 7 天完成 ${weeklyCompletedTaskCount}/${weeklyTaskCount} 项任务，任务完成率为 ${getRate(
+          weeklyCompletedTaskCount,
+          weeklyTaskCount,
+        )}%。`,
+        activeHabits.length
+          ? `启用习惯 ${activeHabits.length} 个，7 天内完成打卡 ${weeklyCheckedHabitCount} 次。`
+          : "本周暂无启用习惯，习惯趋势暂时没有可统计对象。",
+        `本周记录 ${weeklyRecordCount} 条随手记录，其中事件 ${daySummaries.reduce(
+          (total, day) => total + day.eventCount,
+          0,
+        )} 条、灵感 ${daySummaries.reduce((total, day) => total + day.ideaCount, 0)} 条。`,
+        topEmotion
+          ? `出现最多的手动情绪标签是“${topEmotion.emotion}”，共 ${topEmotion.count} 次。`
+          : "本周暂无情绪标签记录。",
+        topHabit
+          ? `打卡最稳定的习惯是“${topHabit.name}”，最近 7 天完成 ${topHabit.recentCheckedCount} 次。`
+          : "本周暂无已完成的习惯打卡。",
+        mostActiveDay
+          ? `记录和行动最集中的日期是 ${mostActiveDay.label}。`
+          : "本周暂无可识别的高活动日期。",
+      ]
+    : [];
 
   return {
     activeHabitCount: activeHabits.length,
@@ -199,6 +261,12 @@ async function getInsightData(userId: string) {
     todayScheduleCount,
     todayTaskCount: todayTasks.length,
     weekStart,
+    weeklyCheckedHabitCount,
+    weeklyCompletedTaskCount,
+    weeklyHasData,
+    weeklyHighlights,
+    weeklyScheduleCount,
+    weeklyTaskCount,
   };
 }
 
@@ -233,6 +301,15 @@ export default async function InsightsPage() {
   const weeklyRecordCount = weeklyEventCount + weeklyIdeaCount;
   const weeklyEmotionCount =
     insightData?.emotionRows.reduce((total, emotion) => total + emotion.count, 0) ?? 0;
+  const weeklyTaskRate = insightData
+    ? getRate(insightData.weeklyCompletedTaskCount, insightData.weeklyTaskCount)
+    : 0;
+  const weeklyHabitPossibleCount = insightData
+    ? insightData.activeHabitCount * weekDayCount
+    : 0;
+  const weeklyHabitRate = insightData
+    ? getRate(insightData.weeklyCheckedHabitCount, weeklyHabitPossibleCount)
+    : 0;
 
   return (
     <div className="page-stack">
@@ -264,6 +341,82 @@ export default async function InsightsPage() {
           </div>
         </section>
       ) : null}
+
+      <section aria-labelledby="weekly-program-review" className="panel-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="page-kicker">周复盘</p>
+            <h2 id="weekly-program-review" className="section-heading mt-1">
+              最近 7 天程序统计
+            </h2>
+            <p className="body-copy mt-2">
+              只根据任务、习惯、日程、事件和灵感生成，不调用 AI，也不读取个人说明书原文。
+            </p>
+          </div>
+          <div className="overview-detail-row">
+            <span className="status-pill">程序摘要</span>
+            <span className="status-pill">{weekDatesText}</span>
+          </div>
+        </div>
+
+        {insightData?.weeklyHasData ? (
+          <>
+            <div className="insight-kpi-grid mt-5">
+              <article className="field-tile">
+                <span>任务完成率</span>
+                <strong>{weeklyTaskRate}%</strong>
+                <p className="body-copy">
+                  {insightData.weeklyCompletedTaskCount}/{insightData.weeklyTaskCount} 项已完成
+                </p>
+              </article>
+              <article className="field-tile">
+                <span>习惯打卡率</span>
+                <strong>{weeklyHabitRate}%</strong>
+                <p className="body-copy">
+                  {insightData.weeklyCheckedHabitCount}/{weeklyHabitPossibleCount} 次可能打卡
+                </p>
+              </article>
+              <article className="field-tile">
+                <span>随手记录</span>
+                <strong>{weeklyRecordCount}</strong>
+                <p className="body-copy">事件 {weeklyEventCount} · 灵感 {weeklyIdeaCount}</p>
+              </article>
+              <article className="field-tile">
+                <span>日程记录</span>
+                <strong>{insightData.weeklyScheduleCount}</strong>
+                <p className="body-copy">最近 7 天固定事项数量</p>
+              </article>
+            </div>
+
+            <div className="review-preview-section">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="list-label">关键摘要</h3>
+                  <p className="body-copy mt-1">这些句子来自确定性统计规则，后续 AI 周复盘会另走发送预览。</p>
+                </div>
+                <span className="status-pill">无 AI 调用</span>
+              </div>
+              <div className="review-highlight-list mt-3">
+                {insightData.weeklyHighlights.map((highlight) => (
+                  <p key={highlight} className="review-highlight-item">
+                    {highlight}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="empty-state mt-5">
+            <span className="empty-icon">
+              <CalendarDays aria-hidden="true" className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="list-label">最近 7 天暂无可复盘数据</p>
+              <p className="body-copy mt-1">创建任务、打卡习惯、记录日程或随手记录后，这里会生成周复盘程序摘要。</p>
+            </div>
+          </div>
+        )}
+      </section>
 
       <section aria-labelledby="today-insights" className="panel-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
