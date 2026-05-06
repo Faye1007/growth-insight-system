@@ -482,6 +482,10 @@ export type WeeklyReviewRows = {
   ideas: WeeklyReviewIdea[];
 };
 
+export type MonthlyReviewRows = WeeklyReviewRows & {
+  weeklyReports: MonthlyInsightWeeklyReport[];
+};
+
 function mapTodayTask(row: TaskRow): TodayTask {
   return {
     id: row.id,
@@ -2104,6 +2108,39 @@ export async function getWeeklyReviewRowsForUser(
       solutionNote: row.solution_note,
       ideaDate: row.idea_date,
       createdAt: new Date(row.created_at),
+    })),
+  };
+}
+
+export async function getMonthlyReviewRowsForUser(
+  userId: string,
+  monthStart: string,
+  monthEnd: string,
+): Promise<MonthlyReviewRows> {
+  const supabase = await createClient();
+  const [reviewRows, weeklyReportsResult] = await Promise.all([
+    getWeeklyReviewRowsForUser(userId, monthStart, monthEnd),
+    supabase
+      .from("insight_reports")
+      .select("id,period_start,period_end,title,summary,generated_at")
+      .eq("user_id", userId)
+      .eq("report_type", "weekly")
+      .eq("generation_status", "completed")
+      .lte("period_start", monthEnd)
+      .gte("period_end", monthStart)
+      .order("period_start", { ascending: true })
+      .returns<InsightReportRow[]>(),
+  ]);
+
+  return {
+    ...reviewRows,
+    weeklyReports: assertArray(weeklyReportsResult.data, weeklyReportsResult.error).map((row) => ({
+      id: row.id,
+      periodStart: row.period_start,
+      periodEnd: row.period_end,
+      title: row.title,
+      summary: row.summary,
+      generatedAt: toDate(row.generated_at),
     })),
   };
 }

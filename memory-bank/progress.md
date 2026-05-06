@@ -2,11 +2,11 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存和 Step 14.1 月复盘程序统计。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计和 Step 14.2 月复盘发送预览。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、月复盘发送预览、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
 - 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
@@ -1925,15 +1925,42 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/insights` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
 
+### Step 14.2：月复盘发送预览
+
+已完成内容：
+
+- 新增月复盘上下文服务 `src/lib/ai/monthly-review-context.ts`，用于整理将来可能发送给 AI 的月度统计、关键记录摘要和已有周复盘摘要。
+- 新增 `getMonthlyReviewRowsForUser()` 只读查询，按当前 `user_id` 和本月范围读取任务、启用习惯、习惯打卡、日程、事件、灵感和与本月有交集的已生成周复盘。
+- 在洞察报告页新增“打开月复盘发送预览”入口。
+- `/insights?monthlyPreview=1` 展示将用于 AI 的月复盘统计、关键记录摘要、已有周复盘摘要、已降级的敏感记录和个人说明书关联边界。
+- 月复盘预览当前采用摘要-only 策略，不展示事件原文候选，不把未经确认的事件原文放入 AI 输入。
+- 未配置月复盘 AI 时确认生成按钮不可用；即使已配置，当前也提示生成将在 Step 14.3 接入。
+- 打开预览不调用 AI，不保存复盘报告，不修改数据库 schema、RLS 策略或 `.env.local`。
+
+本次新增或更新的文件：
+
+- `src/lib/ai/monthly-review-context.ts`
+- `src/lib/data/user-data.ts`
+- `src/app/insights/page.tsx`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 本地 `/insights?monthlyPreview=1` 响应 `HTTP 200`。
+- 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
+
 ## Not Started
 
 - 自定义正式域名绑定
 - AI 复盘生产环境变量配置
-- 月复盘发送预览
 - 月复盘生成与缓存
 
 ## Next Step Candidate
 
-Step 14.2：月复盘发送预览。
+Step 14.3：月复盘生成与缓存。
 
-下一步建议新增月复盘发送预览，展示将用于 AI 的月度统计、关键记录摘要和已有周复盘摘要；用户确认前不调用 AI。
+下一步建议支持 AI 可选生成月复盘，结果保存为 `insight_reports.report_type = monthly`，同一月份默认读取缓存，不重复调用 AI。

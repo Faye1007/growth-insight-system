@@ -15,6 +15,10 @@ import { HabitCheckinChart } from "@/components/insights/habit-checkin-chart";
 import { RecordTrendChart } from "@/components/insights/record-trend-chart";
 import { TaskCompletionChart } from "@/components/insights/task-completion-chart";
 import {
+  buildMonthlyReviewContext,
+  type MonthlyReviewContext,
+} from "@/lib/ai/monthly-review-context";
+import {
   buildWeeklyReviewContext,
   buildWeeklyReviewInputWithSelectedOriginals,
   type WeeklyReviewContext,
@@ -693,6 +697,151 @@ function WeeklyReviewPreview({
   );
 }
 
+function MonthlyReviewPreview({
+  context,
+  isAiReady,
+}: {
+  context: MonthlyReviewContext;
+  isAiReady: boolean;
+}) {
+  const previewMetrics = [
+    {
+      label: "任务完成率",
+      value: `${getNumberStat(context.stats, "tasks", "completionRate")}%`,
+      detail: `${getNumberStat(context.stats, "tasks", "completed")}/${getNumberStat(context.stats, "tasks", "total")} 项已完成`,
+    },
+    {
+      label: "习惯稳定性",
+      value: `${getNumberStat(context.stats, "habits", "completionRate")}%`,
+      detail: `${getNumberStat(context.stats, "habits", "checkedCount")}/${getNumberStat(context.stats, "habits", "possibleCount")} 次可能打卡`,
+    },
+    {
+      label: "记录密度",
+      value: `${getNumberStat(context.stats, "records", "recordDensity")}`,
+      detail: "平均活动条数 / 天",
+    },
+    {
+      label: "已有周复盘",
+      value: `${getNumberStat(context.stats, "weeklyReports", "total")}`,
+      detail: "本月可参考的周复盘报告",
+    },
+  ];
+
+  return (
+    <section id="monthly-review-preview" aria-labelledby="monthly-review-preview-title" className="panel-card review-preview-panel">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="page-kicker">月复盘发送预览</p>
+          <h2 id="monthly-review-preview-title" className="section-heading mt-1">
+            将用于 AI 的月复盘上下文
+          </h2>
+          <p className="body-copy mt-2">
+            打开预览只整理月度统计、关键记录摘要和已有周复盘摘要，不调用 AI，不包含事件原文。
+          </p>
+        </div>
+        <div className="overview-detail-row">
+          <span className="status-pill">预览模式</span>
+          <span className="status-pill">{isAiReady ? "月复盘 AI 已配置" : "月复盘 AI 待配置"}</span>
+          <span className="status-pill">摘要-only</span>
+        </div>
+      </div>
+
+      <div className="review-preview-grid mt-5">
+        {previewMetrics.map((metric) => (
+          <article key={metric.label} className="field-tile review-preview-metric">
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+            <p className="body-copy">{metric.detail}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="review-preview-section">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="list-label">月度统计与关键记录摘要</h3>
+            <p className="body-copy mt-1">这些内容会作为月复盘 AI 输入的主体，敏感内容只保留降级提示。</p>
+          </div>
+          <span className="status-pill">{context.highlights.length} 条摘要</span>
+        </div>
+        {context.highlights.length ? (
+          <div className="review-highlight-list mt-3">
+            {context.highlights.map((highlight, index) => (
+              <p key={`${highlight}-${index}`} className="review-highlight-item">
+                {highlight}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="body-copy mt-3">本月暂无可发送的关键摘要。</p>
+        )}
+      </div>
+
+      <div className="review-preview-section">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="list-label">已有周复盘摘要</h3>
+            <p className="body-copy mt-1">只展示当前账号本月已有的周复盘摘要，作为月复盘参考。</p>
+          </div>
+          <span className="status-pill">{context.weeklyReportSummaries.length} 份</span>
+        </div>
+        {context.weeklyReportSummaries.length ? (
+          <div className="review-highlight-list mt-3">
+            {context.weeklyReportSummaries.map((report) => (
+              <article key={report.id} className="review-highlight-item">
+                <strong>{report.title}</strong>
+                <p className="body-copy mt-1">
+                  {formatDateValue(report.periodStart)}-{formatDateValue(report.periodEnd)}
+                  {report.generatedAt ? ` · ${dateTimeFormatter.format(report.generatedAt)}` : ""}
+                </p>
+                <p className="body-copy mt-1">{report.summary}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="body-copy mt-3">本月暂无已生成周复盘。</p>
+        )}
+      </div>
+
+      {context.downgradedEvents.length ? (
+        <div className="review-preview-section">
+          <h3 className="list-label">已降级的敏感记录</h3>
+          <div className="review-highlight-list mt-3">
+            {context.downgradedEvents.map((event) => (
+              <p key={event.eventId} className="review-highlight-item">
+                {event.eventDate} · {event.summary}
+              </p>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="review-preview-section">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="list-label">个人说明书关联边界</h3>
+            <p className="body-copy mt-1">
+              当前只确认月复盘已能读取个人说明书状态，不会把个人说明书内容放入 AI 输入。
+            </p>
+          </div>
+          <span className="status-pill">
+            {context.personalManual.manual ? "已读取当前账号" : "暂无说明书"}
+          </span>
+        </div>
+      </div>
+
+      <div className="review-preview-actions">
+        <Link href="/insights" className="quiet-button">
+          取消预览
+        </Link>
+        <button className="soft-button" type="button" disabled>
+          {isAiReady ? "月复盘生成将在下一步接入" : "AI 月复盘待配置"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function ReviewListSection({ title, items }: { title: string; items: string[] }) {
   return (
     <div className="review-report-section">
@@ -813,6 +962,14 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           end: insightData.today,
         })
       : null;
+  const monthlyPreviewOpen = params?.monthlyPreview === "1";
+  const monthlyReviewContext =
+    user && monthlyInsightData && monthlyPreviewOpen
+      ? await buildMonthlyReviewContext(user.id, {
+          start: monthlyInsightData.monthStart,
+          end: monthlyInsightData.today,
+        })
+      : null;
   const selectedWeeklyOriginalEventIds = weeklyReviewContext
     ? params?.weeklyOriginalSelection === "custom"
       ? getSearchParamValues(params, "weeklyOriginalEventId").filter((eventId) =>
@@ -822,6 +979,8 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
     : [];
   const isWeeklyAiReady =
     aiStatus.hasProvider && aiStatus.hasBaseUrl && aiStatus.hasApiKey && aiStatus.hasWeeklyModel;
+  const isMonthlyAiReady =
+    aiStatus.hasProvider && aiStatus.hasBaseUrl && aiStatus.hasApiKey && aiStatus.hasMonthlyModel;
   const weeklyReviewFeedback =
     getFeedbackByCode(params?.weeklyReviewError as string | undefined, weeklyReviewErrorFeedback) ??
     getFeedbackByCode(
@@ -952,6 +1111,12 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
                 </div>
               </div>
             ) : null}
+
+            <div className="review-preview-actions">
+              <Link className="soft-button" href="/insights?monthlyPreview=1#monthly-review-preview">
+                打开月复盘发送预览
+              </Link>
+            </div>
           </>
         ) : (
           <div className="empty-state mt-5">
@@ -967,6 +1132,10 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           </div>
         )}
       </section>
+
+      {monthlyReviewContext ? (
+        <MonthlyReviewPreview context={monthlyReviewContext} isAiReady={isMonthlyAiReady} />
+      ) : null}
 
       <section aria-labelledby="weekly-program-review" className="panel-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
