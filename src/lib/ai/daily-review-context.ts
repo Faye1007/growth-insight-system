@@ -2,6 +2,10 @@ import "server-only";
 
 import { checkSensitiveContent, type SensitivityReason } from "@/lib/ai/sensitive-rules";
 import type { GenerateReviewInput } from "@/lib/ai/types";
+import {
+  buildPersonalManualContextForReview,
+  type ReviewPersonalManualContext,
+} from "@/lib/ai/personal-manual-context";
 import { getDailyReviewRowsForUser } from "@/lib/data/user-data";
 import { getTaskCategoryLabel, getTaskStatusLabel, type TaskCategory, type TaskStatus } from "@/lib/tasks/options";
 
@@ -36,6 +40,7 @@ export type DailyReviewContext = {
   originalCandidates: DailyReviewOriginalCandidate[];
   downgradedEvents: DailyReviewDowngradedEvent[];
   excludedEventIds: string[];
+  personalManual: ReviewPersonalManualContext;
   aiInput: GenerateReviewInput;
 };
 
@@ -124,7 +129,10 @@ export async function buildDailyReviewContext(
   userId: string,
   date = getBeijingDateValue(),
 ): Promise<DailyReviewContext> {
-  const rows = await getDailyReviewRows(userId, date);
+  const [rows, personalManual] = await Promise.all([
+    getDailyReviewRows(userId, date),
+    buildPersonalManualContextForReview(userId, "daily"),
+  ]);
   const dateRange = { start: date, end: date };
   const taskStatusCounts: Record<TaskStatus, number> = {
     todo: 0,
@@ -302,6 +310,7 @@ export async function buildDailyReviewContext(
     originalCandidates,
     downgradedEvents,
     excludedEventIds,
+    personalManual,
     aiInput: {
       userId,
       reviewType: "daily",

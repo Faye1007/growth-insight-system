@@ -1037,6 +1037,30 @@ function DailyReviewPreview({
         </div>
       ) : null}
 
+      <div className="review-preview-section">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="list-label">个人说明书关联边界</h3>
+            <p className="body-copy mt-1">
+              已为每日、周、月复盘预留当前账号个人说明书读取接口；当前不会把个人说明书放入 AI 输入。
+            </p>
+          </div>
+          <span className="status-pill">
+            {context.personalManual.manual ? "已读取当前账号" : "暂无说明书"}
+          </span>
+        </div>
+        <div className="review-highlight-list mt-3">
+          <p className="review-highlight-item">
+            后续如果让个人说明书参与 AI 复盘，必须先在发送预览中明示具体内容，并由用户确认。
+          </p>
+          <p className="review-highlight-item">
+            当前已填写字段：{context.personalManual.filledSectionLabels.length
+              ? context.personalManual.filledSectionLabels.join("、")
+              : "暂无"}
+          </p>
+        </div>
+      </div>
+
       <div className="review-preview-actions">
         <Link href="/daily" className="quiet-button">
           取消预览
