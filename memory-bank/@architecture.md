@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成基础闭环、Step 8.1 架构文档更新、Step 8.2 进度文档更新、Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用和 AI 可选部署前置调整，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日程序复盘摘要、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界验证、设置页基础信息展示、统一错误提示规范、基础闭环手工验收记录和 RLS 接入验证记录。
+当前项目已完成基础闭环、Step 8.1 架构文档更新、Step 8.2 进度文档更新、Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整和 Vercel 正式部署基础验收，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日程序复盘摘要、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界验证、设置页基础信息展示、统一错误提示规范、基础闭环手工验收记录、RLS 接入验证记录和线上基础路由可用性验证记录。
 
 当前已存在：
 
@@ -174,6 +174,16 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/db/index.ts`: 服务端数据库入口，使用 `DATABASE_URL` 创建 Drizzle client；当前保留给 Drizzle schema、迁移、设置页数据库健康检查和必要的服务端内部维护用途，不作为普通登录用户请求的主读写通道。
 - `src/lib/data/user-data.ts`: 服务端用户态数据访问入口，使用 Supabase SSR client 执行每日工作台、成长记录、详情页、洞察报告和每日复盘相关读写；所有查询和写入仍显式限定当前 `user_id`，不只依赖 RLS。
 - `src/lib/utils.ts`: 通用工具函数入口，当前提供 `cn()` 用于合并 Tailwind className。
+
+### 1.2.1 Production Deployment Snapshot
+
+当前正式部署状态：
+
+- Vercel 正式域名为 `https://growth-insight-system.vercel.app/`。
+- Supabase Auth 已配置正式域名 Redirect URL。
+- Vercel 首版部署只要求 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 和 `DATABASE_URL`。
+- AI 环境变量当前为可选项；未配置 AI 时，每日复盘显示程序摘要，普通记录、统计和图表可继续使用。
+- 外部路由检查确认 `/`、`/daily`、`/login`、`/insights` 和 `/settings` 返回 `HTTP 200`。
 
 当前基础闭环遵循的约束：
 

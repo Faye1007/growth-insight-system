@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用和 AI 可选部署前置调整。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整和 Vercel 正式部署基础验收。
 
 当前目标：
 
 - 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
-- 首版朋友试用按无 AI 优先部署准备：Vercel 必填 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
+- 首版朋友试用按无 AI 优先部署准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
 
@@ -1404,25 +1404,21 @@
 - 输出 Vercel Preview/Production 需要配置的环境变量清单。
 - 本 Step 未修改 `.env.local`，未配置 Vercel 环境变量，未配置 Supabase Auth Redirect URL，未部署。
 
-Vercel 需要配置：
+Vercel 首版必填配置：
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `DATABASE_URL`
-- `AI_PROVIDER`
-- `AI_BASE_URL`
-- `AI_API_KEY`
-- `AI_MODEL_DAILY`
 
 可暂缓配置：
 
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`：只有不用 publishable key 时才需要。
+- `AI_PROVIDER`、`AI_BASE_URL`、`AI_API_KEY` 和 `AI_MODEL_DAILY`：首版无 AI 部署可不填；需要生成 AI 复盘时再配置。
 - `AI_MODEL_WEEKLY` 和 `AI_MODEL_MONTHLY`：周复盘和月度复盘尚未进入部署门槛。
 - `SUPABASE_SERVICE_ROLE_KEY`：当前无服务端高权限需求。
 
 Supabase Auth Redirect URL 需要配置：
 
-- Vercel Preview：`https://<vercel-preview-domain>/auth/confirm`
 - 正式域名：`https://<production-domain>/auth/confirm`
 - 本地开发保留：`http://localhost:3001/auth/confirm`
 
@@ -1434,14 +1430,35 @@ Supabase Auth Redirect URL 需要配置：
 - 生产构建本地服务 `http://localhost:3004/settings` 返回 `200`。
 - `/settings` 页面扫描未发现数据库连接串、AI key、service role key、Bearer token 等明文泄露。
 
+### Step 9.2：Vercel 正式部署与基础验收
+
+已完成内容：
+
+- Faye 已在 Vercel 成功新建项目并完成 GitHub 部署。
+- 正式访问域名为 `https://growth-insight-system.vercel.app/`。
+- Vercel 首版部署采用无 AI 配置路线，只要求 Supabase public client 配置和 `DATABASE_URL`。
+- Faye 已在 Supabase Auth 中完成正式域名 Redirect URL 配置。
+- 外部访问检查确认首页、每日工作台、登录页、洞察报告和设置页均可打开。
+- Faye 已完成线上基础测试。
+
+验证记录：
+
+- `curl -I https://growth-insight-system.vercel.app/` 返回 `HTTP/2 200`。
+- `curl -I https://growth-insight-system.vercel.app/daily` 返回 `HTTP/2 200`。
+- `curl -I https://growth-insight-system.vercel.app/login` 返回 `HTTP/2 200`。
+- `curl -I https://growth-insight-system.vercel.app/insights` 返回 `HTTP/2 200`。
+- `curl -I https://growth-insight-system.vercel.app/settings` 返回 `HTTP/2 200`。
+- Faye 已确认 Supabase 侧设置完成，并已完成线上测试。
+- 本 Step 未配置 AI 环境变量，AI 待配置属于预期状态。
+
 ## Not Started
 
-- 预览部署验证
-- 生产环境变量配置
-- Supabase Auth 生产 Redirect URL 配置
+- 少量朋友试用前的最终手工闭环记录
+- 自定义正式域名绑定
+- AI 复盘生产环境变量配置
 
 ## Next Step Candidate
 
-Step 9.2：配置 Vercel 环境变量和 Supabase Auth Redirect URL。
+Step 9.3：少量朋友试用前最终检查。
 
-进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。
+进入下一步前，建议用 Faye 账号完整跑一次任务、习惯、打卡、日程、事件、灵感、程序复盘、成长记录和洞察报告闭环。
