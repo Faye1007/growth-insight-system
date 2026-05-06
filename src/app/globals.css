@@ -482,6 +482,20 @@ select {
     padding: 1rem;
   }
 
+  .create-disclosure {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .create-summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .create-summary::-webkit-details-marker {
+    display: none;
+  }
+
   .task-form-grid {
     display: grid;
     gap: 1rem;

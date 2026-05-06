@@ -2,11 +2,11 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除和 Step 10.5 习惯维护。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护和 Step 11.1 写入区默认收起。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
 - 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
@@ -1640,6 +1640,33 @@ Supabase Auth Redirect URL 需要配置：
 - `git diff --check` 通过。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
+### Step 11.1：写入区默认收起
+
+已完成内容：
+
+- 将每日工作台今日任务、习惯打卡、今日日程和随手记录四个创建表单改为默认收起。
+- 每个模块保留清晰新增入口：新建任务、添加习惯、记录日程和写一条记录。
+- 登录用户点击新增入口后可展开对应创建表单并继续提交。
+- 创建失败时，对应创建表单会自动展开，并在模块内显示统一错误反馈，方便直接修正。
+- 创建成功后仍回到对应模块锚点，并展示保存成功反馈。
+- 未登录用户仍看到登录/注册提示和写入拦截，不开放真实创建表单。
+- 本 Step 只调整每日工作台页面结构和对应样式，不修改数据库 schema，不修改 `.env.local`，不执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check -- src/app/daily/page.tsx src/app/globals.css` 通过。
+- 本地 `/daily` 响应 `HTTP 200`。
+- 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
+
 ## Not Started
 
 - 自定义正式域名绑定
@@ -1647,6 +1674,6 @@ Supabase Auth Redirect URL 需要配置：
 
 ## Next Step Candidate
 
-Step 11.1：写入区默认收起。
+Step 11.2：今日概览卡增加快捷入口。
 
-下一步建议优化每日工作台结构，让任务、习惯、日程和随手记录的创建表单默认收起，降低首屏信息密度。
+下一步建议给今日概览四张卡增加对应新增入口，让用户可以从概览区快速定位到任务、习惯、日程和随手记录的创建区域。

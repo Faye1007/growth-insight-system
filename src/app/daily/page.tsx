@@ -1241,6 +1241,17 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     status,
     tasks: todayTasks.filter((task) => task.status === status),
   }));
+  const taskCreateFormOpen = params?.taskError === "missing_title" || params?.taskError === "save_failed";
+  const habitCreateFormOpen = params?.habitError === "missing_name" || params?.habitError === "save_failed";
+  const scheduleCreateFormOpen =
+    params?.scheduleError === "missing_title" ||
+    params?.scheduleError === "missing_time" ||
+    params?.scheduleError === "invalid_time" ||
+    params?.scheduleError === "save_failed";
+  const recordCreateFormOpen =
+    params?.recordError === "missing_content" ||
+    params?.recordError === "invalid_type" ||
+    params?.recordError === "save_failed";
 
   return (
     <div className="page-stack">
@@ -1396,52 +1407,58 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                 <FeedbackMessage feedback={taskCreatedFeedback} />
                 <FeedbackMessage feedback={taskUpdatedFeedback} />
 
-                <form action={createTaskAction} className="task-form">
-                  <label className="form-field">
-                    <span>任务标题</span>
-                    <input
-                      name="title"
-                      type="text"
-                      maxLength={120}
-                      placeholder="例如：整理 AI 产品学习笔记"
-                      required
-                    />
-                  </label>
-
-                  <div className="task-form-grid">
-                    <label className="form-field">
-                      <span>分类</span>
-                      <select name="category" defaultValue="study">
-                        {taskCategories.map((category) => (
-                          <option key={category.value} value={category.value}>
-                            {category.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="form-field">
-                      <span>日期</span>
-                      <input name="taskDate" type="date" defaultValue={todayDate} required />
-                    </label>
-
-                    <label className="form-field">
-                      <span>状态</span>
-                      <select name="status" defaultValue="todo">
-                        {taskStatuses.map((status) => (
-                          <option key={status.value} value={status.value}>
-                            {status.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-
-                  <button className="soft-button w-full sm:w-fit" type="submit">
+                <details className="create-disclosure" open={taskCreateFormOpen}>
+                  <summary className="create-summary soft-button w-full sm:w-fit">
                     <Plus aria-hidden="true" className="h-4 w-4" />
-                    保存任务
-                  </button>
-                </form>
+                    新建任务
+                  </summary>
+                  <form action={createTaskAction} className="task-form">
+                    <label className="form-field">
+                      <span>任务标题</span>
+                      <input
+                        name="title"
+                        type="text"
+                        maxLength={120}
+                        placeholder="例如：整理 AI 产品学习笔记"
+                        required
+                      />
+                    </label>
+
+                    <div className="task-form-grid">
+                      <label className="form-field">
+                        <span>分类</span>
+                        <select name="category" defaultValue="study">
+                          {taskCategories.map((category) => (
+                            <option key={category.value} value={category.value}>
+                              {category.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="form-field">
+                        <span>日期</span>
+                        <input name="taskDate" type="date" defaultValue={todayDate} required />
+                      </label>
+
+                      <label className="form-field">
+                        <span>状态</span>
+                        <select name="status" defaultValue="todo">
+                          {taskStatuses.map((status) => (
+                            <option key={status.value} value={status.value}>
+                              {status.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+
+                    <button className="soft-button w-full sm:w-fit" type="submit">
+                      <Plus aria-hidden="true" className="h-4 w-4" />
+                      保存任务
+                    </button>
+                  </form>
+                </details>
 
                 {todayTasks.length > 0 ? (
                   <div className="task-list">
@@ -1501,46 +1518,52 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                 <FeedbackMessage feedback={habitCreatedFeedback} />
                 <FeedbackMessage feedback={habitUpdatedFeedback} />
 
-                <form action={createHabitAction} className="task-form">
-                  <label className="form-field">
-                    <span>习惯名称</span>
-                    <input
-                      name="name"
-                      type="text"
-                      maxLength={120}
-                      placeholder="例如：多邻国 15 分钟"
-                      required
-                    />
-                  </label>
-
-                  <div className="task-form-grid">
-                    <label className="form-field">
-                      <span>分类</span>
-                      <select name="category" defaultValue="health">
-                        {taskCategories.map((category) => (
-                          <option key={category.value} value={category.value}>
-                            {category.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="form-field">
-                      <span>开始日期</span>
-                      <input name="startDate" type="date" defaultValue={todayDate} required />
-                    </label>
-
-                    <label className="form-field">
-                      <span>启用状态</span>
-                      <input type="text" value="默认启用" disabled readOnly />
-                    </label>
-                  </div>
-
-                  <button className="soft-button w-full sm:w-fit" type="submit">
+                <details className="create-disclosure" open={habitCreateFormOpen}>
+                  <summary className="create-summary soft-button w-full sm:w-fit">
                     <Plus aria-hidden="true" className="h-4 w-4" />
-                    保存习惯
-                  </button>
-                </form>
+                    添加习惯
+                  </summary>
+                  <form action={createHabitAction} className="task-form">
+                    <label className="form-field">
+                      <span>习惯名称</span>
+                      <input
+                        name="name"
+                        type="text"
+                        maxLength={120}
+                        placeholder="例如：多邻国 15 分钟"
+                        required
+                      />
+                    </label>
+
+                    <div className="task-form-grid">
+                      <label className="form-field">
+                        <span>分类</span>
+                        <select name="category" defaultValue="health">
+                          {taskCategories.map((category) => (
+                            <option key={category.value} value={category.value}>
+                              {category.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="form-field">
+                        <span>开始日期</span>
+                        <input name="startDate" type="date" defaultValue={todayDate} required />
+                      </label>
+
+                      <label className="form-field">
+                        <span>启用状态</span>
+                        <input type="text" value="默认启用" disabled readOnly />
+                      </label>
+                    </div>
+
+                    <button className="soft-button w-full sm:w-fit" type="submit">
+                      <Plus aria-hidden="true" className="h-4 w-4" />
+                      保存习惯
+                    </button>
+                  </form>
+                </details>
 
                 {activeHabits.length > 0 ? (
                   <div className="task-list">
@@ -1596,51 +1619,57 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                 <FeedbackMessage feedback={scheduleCreatedFeedback} />
                 <FeedbackMessage feedback={scheduleUpdatedFeedback} />
 
-                <form action={createScheduleItemAction} className="task-form">
-                  <label className="form-field">
-                    <span>日程标题</span>
-                    <input
-                      name="title"
-                      type="text"
-                      maxLength={120}
-                      placeholder="例如：英语课 / 咨询 / 项目复盘"
-                      required
-                    />
-                  </label>
-
-                  <div className="task-form-grid">
-                    <label className="form-field">
-                      <span>分类</span>
-                      <select name="category" defaultValue="work">
-                        {taskCategories.map((category) => (
-                          <option key={category.value} value={category.value}>
-                            {category.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="form-field">
-                      <span>日期</span>
-                      <input name="scheduleDate" type="date" defaultValue={todayDate} required />
-                    </label>
-
-                    <label className="form-field">
-                      <span>开始时间</span>
-                      <input name="startTime" type="time" required />
-                    </label>
-
-                    <label className="form-field">
-                      <span>结束时间</span>
-                      <input name="endTime" type="time" />
-                    </label>
-                  </div>
-
-                  <button className="soft-button w-full sm:w-fit" type="submit">
+                <details className="create-disclosure" open={scheduleCreateFormOpen}>
+                  <summary className="create-summary soft-button w-full sm:w-fit">
                     <Plus aria-hidden="true" className="h-4 w-4" />
-                    保存日程
-                  </button>
-                </form>
+                    记录日程
+                  </summary>
+                  <form action={createScheduleItemAction} className="task-form">
+                    <label className="form-field">
+                      <span>日程标题</span>
+                      <input
+                        name="title"
+                        type="text"
+                        maxLength={120}
+                        placeholder="例如：英语课 / 咨询 / 项目复盘"
+                        required
+                      />
+                    </label>
+
+                    <div className="task-form-grid">
+                      <label className="form-field">
+                        <span>分类</span>
+                        <select name="category" defaultValue="work">
+                          {taskCategories.map((category) => (
+                            <option key={category.value} value={category.value}>
+                              {category.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="form-field">
+                        <span>日期</span>
+                        <input name="scheduleDate" type="date" defaultValue={todayDate} required />
+                      </label>
+
+                      <label className="form-field">
+                        <span>开始时间</span>
+                        <input name="startTime" type="time" required />
+                      </label>
+
+                      <label className="form-field">
+                        <span>结束时间</span>
+                        <input name="endTime" type="time" />
+                      </label>
+                    </div>
+
+                    <button className="soft-button w-full sm:w-fit" type="submit">
+                      <Plus aria-hidden="true" className="h-4 w-4" />
+                      保存日程
+                    </button>
+                  </form>
+                </details>
 
                 {todayScheduleItems.length > 0 ? (
                   <div className="task-list">
@@ -1681,74 +1710,80 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                 <FeedbackMessage feedback={recordCreatedFeedback} />
                 <FeedbackMessage feedback={recordUpdatedFeedback} />
 
-                <form action={createQuickRecordAction} className="task-form">
-                  <div className="task-form-grid">
-                    <label className="form-field">
-                      <span>记录类型</span>
-                      <select name="recordType" defaultValue="event">
-                        <option value="event">事件</option>
-                        <option value="idea">灵感</option>
-                      </select>
-                    </label>
-
-                    <label className="form-field">
-                      <span>日期</span>
-                      <input name="recordDate" type="date" defaultValue={todayDate} required />
-                    </label>
-
-                    <label className="form-field">
-                      <span>AI 分析权限</span>
-                      <select name="aiAnalysisPermission" defaultValue="summary_only">
-                        {aiAnalysisPermissions.map((permission) => (
-                          <option key={permission.value} value={permission.value}>
-                            {permission.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-
-                  <label className="form-field">
-                    <span>内容</span>
-                    <textarea
-                      name="content"
-                      maxLength={1200}
-                      placeholder="记录今天发生的一件事，或一个未来想尝试的灵感。"
-                      required
-                      rows={5}
-                    />
-                  </label>
-
-                  <div className="task-form-grid">
-                    <label className="form-field">
-                      <span>事件情绪标签</span>
-                      <select name="emotionTags" multiple size={5}>
-                        {emotionOptions.map((emotion) => (
-                          <option key={emotion} value={emotion}>
-                            {emotion}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="form-field">
-                      <span>事件标签</span>
-                      <input name="tags" type="text" placeholder="用逗号分隔，例如：学习, 人际" />
-                    </label>
-
-                    <div className="form-field">
-                      <span>保存规则</span>
-                      <p className="form-hint">
-                        选择事件时保存情绪和 AI 权限；选择灵感时保存为待处理状态，不触发 AI。
-                      </p>
-                    </div>
-                  </div>
-
-                  <button className="soft-button w-full sm:w-fit" type="submit">
+                <details className="create-disclosure" open={recordCreateFormOpen}>
+                  <summary className="create-summary soft-button w-full sm:w-fit">
                     <Plus aria-hidden="true" className="h-4 w-4" />
-                    保存记录
-                  </button>
-                </form>
+                    写一条记录
+                  </summary>
+                  <form action={createQuickRecordAction} className="task-form">
+                    <div className="task-form-grid">
+                      <label className="form-field">
+                        <span>记录类型</span>
+                        <select name="recordType" defaultValue="event">
+                          <option value="event">事件</option>
+                          <option value="idea">灵感</option>
+                        </select>
+                      </label>
+
+                      <label className="form-field">
+                        <span>日期</span>
+                        <input name="recordDate" type="date" defaultValue={todayDate} required />
+                      </label>
+
+                      <label className="form-field">
+                        <span>AI 分析权限</span>
+                        <select name="aiAnalysisPermission" defaultValue="summary_only">
+                          {aiAnalysisPermissions.map((permission) => (
+                            <option key={permission.value} value={permission.value}>
+                              {permission.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+
+                    <label className="form-field">
+                      <span>内容</span>
+                      <textarea
+                        name="content"
+                        maxLength={1200}
+                        placeholder="记录今天发生的一件事，或一个未来想尝试的灵感。"
+                        required
+                        rows={5}
+                      />
+                    </label>
+
+                    <div className="task-form-grid">
+                      <label className="form-field">
+                        <span>事件情绪标签</span>
+                        <select name="emotionTags" multiple size={5}>
+                          {emotionOptions.map((emotion) => (
+                            <option key={emotion} value={emotion}>
+                              {emotion}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="form-field">
+                        <span>事件标签</span>
+                        <input name="tags" type="text" placeholder="用逗号分隔，例如：学习, 人际" />
+                      </label>
+
+                      <div className="form-field">
+                        <span>保存规则</span>
+                        <p className="form-hint">
+                          选择事件时保存情绪和 AI 权限；选择灵感时保存为待处理状态，不触发 AI。
+                        </p>
+                      </div>
+                    </div>
+
+                    <button className="soft-button w-full sm:w-fit" type="submit">
+                      <Plus aria-hidden="true" className="h-4 w-4" />
+                      保存记录
+                    </button>
+                  </form>
+                </details>
 
                 {todayLifeEvents.length > 0 || todayIdeas.length > 0 ? (
                   <div className="task-list">
