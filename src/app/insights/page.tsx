@@ -8,6 +8,8 @@ import {
   Repeat2,
 } from "lucide-react";
 
+import { generateWeeklyReviewAction } from "@/app/insights/actions";
+import { FeedbackMessage } from "@/components/feedback-message";
 import { EmotionStatsChart } from "@/components/insights/emotion-stats-chart";
 import { HabitCheckinChart } from "@/components/insights/habit-checkin-chart";
 import { RecordTrendChart } from "@/components/insights/record-trend-chart";
@@ -20,7 +22,17 @@ import {
 import { getAiConfigStatus } from "@/lib/ai/config";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getAllHabitCheckinsForUser, getInsightRowsForUser } from "@/lib/data/user-data";
+import {
+  getAllHabitCheckinsForUser,
+  getInsightRowsForUser,
+  getWeeklyReviewReportForUser,
+  type ReviewReport,
+} from "@/lib/data/user-data";
+import {
+  getFeedbackByCode,
+  weeklyReviewErrorFeedback,
+  weeklyReviewStatusFeedback,
+} from "@/lib/feedback";
 import { getTaskCategoryLabel } from "@/lib/tasks/options";
 
 const weekDayCount = 7;
@@ -35,6 +47,14 @@ const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
   timeZone: "Asia/Shanghai",
   month: "2-digit",
   day: "2-digit",
+});
+
+const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
 });
 
 function getBeijingDateValue(date = new Date()) {
@@ -311,10 +331,12 @@ function WeeklyReviewPreview({
   context,
   selectedOriginalEventIds,
   isAiReady,
+  hasCachedReport,
 }: {
   context: WeeklyReviewContext;
   selectedOriginalEventIds: string[];
   isAiReady: boolean;
+  hasCachedReport: boolean;
 }) {
   const previewInput = buildWeeklyReviewInputWithSelectedOriginals(context, selectedOriginalEventIds);
   const selectedOriginalIds = new Set(selectedOriginalEventIds);
@@ -460,9 +482,79 @@ function WeeklyReviewPreview({
         <Link href="/insights" className="quiet-button">
           取消预览
         </Link>
-        <button className="soft-button" type="button" disabled>
-          {isAiReady ? "确认生成将在 Step 13.3 接入" : "AI 周复盘待配置"}
-        </button>
+        {hasCachedReport ? (
+          <Link href="#weekly-review-report" className="soft-button">
+            查看已生成周复盘
+          </Link>
+        ) : isAiReady ? (
+          <form action={generateWeeklyReviewAction}>
+            <input type="hidden" name="weekStart" value={context.dateRange.start} />
+            <input type="hidden" name="weekEnd" value={context.dateRange.end} />
+            {selectedOriginalEventIds.map((eventId) => (
+              <input key={eventId} type="hidden" name="weeklyOriginalEventId" value={eventId} />
+            ))}
+            <button className="soft-button" type="submit">
+              确认生成 AI 周复盘
+            </button>
+          </form>
+        ) : (
+          <button className="soft-button" type="button" disabled>
+            AI 周复盘待配置
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ReviewListSection({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="review-report-section">
+      <h3 className="list-label">{title}</h3>
+      {items.length ? (
+        <ul className="review-report-list">
+          {items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="body-copy mt-2">暂无记录</p>
+      )}
+    </div>
+  );
+}
+
+function WeeklyReviewReportCard({
+  report,
+  weekDatesText,
+}: {
+  report: ReviewReport;
+  weekDatesText: string;
+}) {
+  return (
+    <section id="weekly-review-report" aria-labelledby="weekly-review-report-title" className="panel-card review-report-card">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="page-kicker">周复盘报告</p>
+          <h2 id="weekly-review-report-title" className="section-heading mt-1">
+            {report.title}
+          </h2>
+          <p className="body-copy mt-2">{report.summary}</p>
+        </div>
+        <div className="overview-detail-row">
+          <span className="status-pill">{weekDatesText}</span>
+          <span className="status-pill">{report.modelProvider}</span>
+          <span className="status-pill">{report.modelName}</span>
+          {report.generatedAt ? (
+            <span className="status-pill">{dateTimeFormatter.format(report.generatedAt)}</span>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="review-report-grid">
+        <ReviewListSection title="观察到的模式" items={report.patterns} />
+        <ReviewListSection title="行动建议" items={report.suggestions} />
+        <ReviewListSection title="下一步行动" items={report.nextActions} />
       </div>
     </section>
   );
@@ -510,6 +602,10 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
   const weeklyHabitRate = insightData
     ? getRate(insightData.weeklyCheckedHabitCount, weeklyHabitPossibleCount)
     : 0;
+  const weeklyReviewReport =
+    user && insightData
+      ? await getWeeklyReviewReportForUser(user.id, insightData.weekStart, insightData.today)
+      : null;
   const weeklyPreviewOpen = params?.weeklyPreview === "1";
   const weeklyReviewContext =
     user && insightData && weeklyPreviewOpen
@@ -527,6 +623,16 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
     : [];
   const isWeeklyAiReady =
     aiStatus.hasProvider && aiStatus.hasBaseUrl && aiStatus.hasApiKey && aiStatus.hasWeeklyModel;
+  const weeklyReviewFeedback =
+    getFeedbackByCode(params?.weeklyReviewError as string | undefined, weeklyReviewErrorFeedback) ??
+    getFeedbackByCode(
+      params?.weeklyReviewGenerated === "1"
+        ? "generated"
+        : params?.weeklyReviewCached === "1"
+          ? "cached"
+          : undefined,
+      weeklyReviewStatusFeedback,
+    );
 
   return (
     <div className="page-stack">
@@ -542,6 +648,8 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           当前页面先展示今日概览、最近 7 天趋势、习惯状态和情绪记录。AI 复盘入口会在后续步骤接入。
         </p>
       </header>
+
+      <FeedbackMessage feedback={weeklyReviewFeedback} />
 
       {!isLoggedIn ? (
         <section className="panel-card">
@@ -623,9 +731,15 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
             </div>
 
             <div className="review-preview-actions">
-              <Link className="soft-button" href="/insights?weeklyPreview=1#weekly-review-preview">
-                打开周复盘发送预览
-              </Link>
+              {weeklyReviewReport ? (
+                <Link className="soft-button" href="#weekly-review-report">
+                  查看已生成周复盘
+                </Link>
+              ) : (
+                <Link className="soft-button" href="/insights?weeklyPreview=1#weekly-review-preview">
+                  打开周复盘发送预览
+                </Link>
+              )}
             </div>
           </>
         ) : (
@@ -646,7 +760,12 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           context={weeklyReviewContext}
           selectedOriginalEventIds={selectedWeeklyOriginalEventIds}
           isAiReady={isWeeklyAiReady}
+          hasCachedReport={Boolean(weeklyReviewReport)}
         />
+      ) : null}
+
+      {weeklyReviewReport ? (
+        <WeeklyReviewReportCard report={weeklyReviewReport} weekDatesText={weekDatesText} />
       ) : null}
 
       <section aria-labelledby="today-insights" className="panel-card">

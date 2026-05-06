@@ -284,6 +284,42 @@ export const dailyReviewErrorFeedback: Record<string, FeedbackMessage> = {
   },
 };
 
+export const weeklyReviewErrorFeedback: Record<string, FeedbackMessage> = {
+  context_failed: {
+    tone: "error",
+    title: "周复盘内容准备失败",
+    detail: "系统暂时没有读到最近 7 天的统计摘要。请稍后重试，普通记录不受影响。",
+  },
+  missing_ai_config: {
+    tone: "error",
+    title: "周复盘暂时不能生成",
+    detail: "服务端周复盘 AI 配置还不完整。程序统计、图表和发送预览不受影响。",
+  },
+  provider_failed: {
+    tone: "error",
+    title: "AI 周复盘没有生成成功",
+    detail: "请稍后重试；已有记录、程序统计和发送预览不会受影响。",
+  },
+  save_failed: {
+    tone: "error",
+    title: "周复盘报告没有保存成功",
+    detail: "AI 已返回结果但保存失败。请稍后重新生成。",
+  },
+};
+
+export const weeklyReviewStatusFeedback: Record<string, FeedbackMessage> = {
+  generated: {
+    tone: "success",
+    title: "周复盘已生成",
+    detail: "报告已保存到当前账号，本周再次打开会优先读取缓存。",
+  },
+  cached: {
+    tone: "info",
+    title: "已读取周复盘缓存",
+    detail: "这个周期已有完成的周复盘报告，没有重复调用 AI。",
+  },
+};
+
 export const manualSavedFeedback: FeedbackMessage = {
   tone: "success",
   title: "个人说明书已保存",

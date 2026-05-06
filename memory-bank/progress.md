@@ -2,11 +2,11 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计和 Step 13.2 周复盘发送预览。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览和 Step 13.3 周复盘生成与缓存。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
 - 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
@@ -1867,6 +1867,37 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/insights?weeklyPreview=1` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
 
+### Step 13.3：周复盘生成与缓存
+
+已完成内容：
+
+- 新增周复盘生成 Server Action `generateWeeklyReviewAction()`。
+- 周复盘生成前先按当前用户和最近 7 天周期查询已完成缓存报告；已有缓存时直接跳转展示，不重复调用 AI。
+- 未命中缓存时，复用周复盘发送预览上下文和用户选择的事件原文调用 AI Provider Adapter。
+- 生成结果保存到 `insight_reports`，`report_type = weekly`，并记录周期起止日期、统计摘要、关键摘要、选中的事件原文 ID、模型供应商和模型名称。
+- 洞察报告页读取当前周期的周复盘缓存报告，并展示标题、摘要、观察到的模式、行动建议和下一步行动。
+- 未配置周复盘 AI 时确认生成按钮不可用；程序统计和发送预览继续可用。
+- 新增周复盘生成成功、读取缓存、配置缺失、provider 失败和保存失败的统一反馈。
+- 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/insights/actions.ts`
+- `src/app/insights/page.tsx`
+- `src/lib/data/user-data.ts`
+- `src/lib/feedback.ts`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check -- src/app/insights/page.tsx src/app/insights/actions.ts src/lib/data/user-data.ts src/lib/feedback.ts` 通过。
+- 本地 `/insights` 响应 `HTTP 200`。
+- 本地 `/insights?weeklyPreview=1` 响应 `HTTP 200`。
+- 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
+
 ## Not Started
 
 - 自定义正式域名绑定
@@ -1874,6 +1905,6 @@ Supabase Auth Redirect URL 需要配置：
 
 ## Next Step Candidate
 
-Step 13.3：周复盘生成与缓存。
+Step 14.1：月复盘程序统计。
 
-下一步建议接入周复盘 AI 可选生成与缓存，结果写入 `insight_reports` 的 `weekly` 类型；同一周期默认读取缓存，不重复调用 AI。
+下一步建议新增月复盘入口，读取当月任务、习惯、打卡、日程、事件、灵感和已有周复盘，先生成不依赖 AI 的月度程序统计摘要。

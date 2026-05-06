@@ -228,6 +228,8 @@ export type DailyReviewReport = {
   generatedAt: Date | null;
 };
 
+export type ReviewReport = DailyReviewReport;
+
 export type PersonalManual = {
   lifeStage: string | null;
   currentGoals: string[];
@@ -1015,6 +1017,27 @@ export async function getCompletedDailyReviewReportIdForUser(
   return row ? { id: row.id } : null;
 }
 
+export async function getCompletedWeeklyReviewReportIdForUser(
+  userId: string,
+  weekStart: string,
+  weekEnd: string,
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("insight_reports")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("report_type", "weekly")
+    .eq("period_start", weekStart)
+    .eq("period_end", weekEnd)
+    .eq("generation_status", "completed")
+    .returns<{ id: string }>()
+    .maybeSingle();
+  const row = assertRow(data as { id: string } | null, error);
+
+  return row ? { id: row.id } : null;
+}
+
 export async function upsertDailyReviewReportForUser(input: {
   userId: string;
   date: string;
@@ -1038,6 +1061,53 @@ export async function upsertDailyReviewReportForUser(input: {
       report_type: "daily",
       period_start: input.date,
       period_end: input.date,
+      title: input.title,
+      summary: input.summary,
+      patterns: input.patterns,
+      suggestions: input.suggestions,
+      next_actions: input.nextActions,
+      source_stats: input.sourceStats,
+      source_highlights: input.sourceHighlights,
+      selected_original_event_ids: input.selectedOriginalEventIds,
+      model_provider: input.modelProvider,
+      model_name: input.modelName,
+      generation_status: "completed",
+      error_message: null,
+      generated_at: nowIso,
+      updated_at: nowIso,
+    },
+    { onConflict: "user_id,report_type,period_start,period_end" },
+  );
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function upsertWeeklyReviewReportForUser(input: {
+  userId: string;
+  weekStart: string;
+  weekEnd: string;
+  title: string;
+  summary: string;
+  patterns: string[];
+  suggestions: string[];
+  nextActions: string[];
+  sourceStats: Record<string, unknown>;
+  sourceHighlights: string[];
+  selectedOriginalEventIds: string[];
+  modelProvider: string;
+  modelName: string;
+  generatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const nowIso = input.generatedAt.toISOString();
+  const { error } = await supabase.from("insight_reports").upsert(
+    {
+      user_id: input.userId,
+      report_type: "weekly",
+      period_start: input.weekStart,
+      period_end: input.weekEnd,
       title: input.title,
       summary: input.summary,
       patterns: input.patterns,
@@ -1238,6 +1308,39 @@ export async function getTodayDailyReviewReportForUser(
     .eq("report_type", "daily")
     .eq("period_start", todayDate)
     .eq("period_end", todayDate)
+    .eq("generation_status", "completed")
+    .returns<InsightReportRow>()
+    .maybeSingle();
+  const row = assertRow(data as InsightReportRow | null, error);
+
+  return row
+    ? {
+        id: row.id,
+        title: row.title,
+        summary: row.summary,
+        patterns: row.patterns,
+        suggestions: row.suggestions,
+        nextActions: row.next_actions,
+        modelProvider: row.model_provider,
+        modelName: row.model_name,
+        generatedAt: toDate(row.generated_at),
+      }
+    : null;
+}
+
+export async function getWeeklyReviewReportForUser(
+  userId: string,
+  weekStart: string,
+  weekEnd: string,
+): Promise<ReviewReport | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("insight_reports")
+    .select("id,title,summary,patterns,suggestions,next_actions,model_provider,model_name,generated_at")
+    .eq("user_id", userId)
+    .eq("report_type", "weekly")
+    .eq("period_start", weekStart)
+    .eq("period_end", weekEnd)
     .eq("generation_status", "completed")
     .returns<InsightReportRow>()
     .maybeSingle();
