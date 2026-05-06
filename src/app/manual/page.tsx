@@ -80,7 +80,7 @@ export default async function ManualPage({ searchParams }: ManualPageProps) {
               <div>
                 <h2 className="section-heading">说明书条目</h2>
                 <p className="body-copy mt-2">
-                  本 Step 先接入读取和保存。完整字段编辑会在下一步继续补齐。
+                  这些字段会保存到当前账号，后续复盘可基于它们提出更新建议。
                 </p>
               </div>
               <span className="status-pill">手动维护</span>
@@ -131,12 +131,42 @@ export default async function ManualPage({ searchParams }: ManualPageProps) {
               </label>
 
               <label className="form-field">
+                <span>高能量来源</span>
+                <textarea
+                  name="energySources"
+                  rows={4}
+                  defaultValue={getListText(manual?.energySources)}
+                  placeholder="每行写一个来源，例如：清晰产出、稳定运动、被看见的反馈。"
+                />
+              </label>
+
+              <label className="form-field">
                 <span>常见内耗点</span>
                 <textarea
                   name="drainSources"
                   rows={4}
                   defaultValue={getListText(manual?.drainSources)}
                   placeholder="每行写一个内耗点，例如：信息太多时难以开始。"
+                />
+              </label>
+
+              <label className="form-field">
+                <span>反复出现的问题</span>
+                <textarea
+                  name="recurringProblems"
+                  rows={4}
+                  defaultValue={getListText(manual?.recurringProblems)}
+                  placeholder="每行写一个问题，例如：目标过大时容易只规划不行动。"
+                />
+              </label>
+
+              <label className="form-field">
+                <span>适合自己的行动建议风格</span>
+                <textarea
+                  name="preferredActionStyle"
+                  rows={4}
+                  defaultValue={manual?.preferredActionStyle ?? ""}
+                  placeholder="例如：先给最小下一步，再补充判断标准和复盘问题。"
                 />
               </label>
 

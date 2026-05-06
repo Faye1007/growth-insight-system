@@ -1065,7 +1065,10 @@ export async function upsertPersonalManualForUser(input: {
   currentGoals: string[];
   abilityProfile: string | null;
   emotionPatterns: string | null;
+  energySources: string[];
   drainSources: string[];
+  recurringProblems: string[];
+  preferredActionStyle: string | null;
   updatedAt: Date;
 }) {
   const supabase = await createClient();
@@ -1076,7 +1079,10 @@ export async function upsertPersonalManualForUser(input: {
       current_goals: input.currentGoals,
       ability_profile: input.abilityProfile,
       emotion_patterns: input.emotionPatterns,
+      energy_sources: input.energySources,
       drain_sources: input.drainSources,
+      recurring_problems: input.recurringProblems,
+      preferred_action_style: input.preferredActionStyle,
       updated_at: input.updatedAt.toISOString(),
     },
     { onConflict: "user_id" },

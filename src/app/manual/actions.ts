@@ -35,7 +35,10 @@ export async function savePersonalManualAction(formData: FormData) {
       currentGoals: getListValue(getStringValue(formData, "currentGoals")),
       abilityProfile: getNullableString(getStringValue(formData, "abilityProfile")),
       emotionPatterns: getNullableString(getStringValue(formData, "emotionPatterns")),
+      energySources: getListValue(getStringValue(formData, "energySources")),
       drainSources: getListValue(getStringValue(formData, "drainSources")),
+      recurringProblems: getListValue(getStringValue(formData, "recurringProblems")),
+      preferredActionStyle: getNullableString(getStringValue(formData, "preferredActionStyle")),
       updatedAt,
     });
   } catch {
