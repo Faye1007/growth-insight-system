@@ -1051,6 +1051,27 @@ export async function getCompletedWeeklyReviewReportIdForUser(
   return row ? { id: row.id } : null;
 }
 
+export async function getCompletedMonthlyReviewReportIdForUser(
+  userId: string,
+  monthStart: string,
+  monthEnd: string,
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("insight_reports")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("report_type", "monthly")
+    .eq("period_start", monthStart)
+    .eq("period_end", monthEnd)
+    .eq("generation_status", "completed")
+    .returns<{ id: string }>()
+    .maybeSingle();
+  const row = assertRow(data as { id: string } | null, error);
+
+  return row ? { id: row.id } : null;
+}
+
 export async function upsertDailyReviewReportForUser(input: {
   userId: string;
   date: string;
@@ -1129,6 +1150,52 @@ export async function upsertWeeklyReviewReportForUser(input: {
       source_stats: input.sourceStats,
       source_highlights: input.sourceHighlights,
       selected_original_event_ids: input.selectedOriginalEventIds,
+      model_provider: input.modelProvider,
+      model_name: input.modelName,
+      generation_status: "completed",
+      error_message: null,
+      generated_at: nowIso,
+      updated_at: nowIso,
+    },
+    { onConflict: "user_id,report_type,period_start,period_end" },
+  );
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function upsertMonthlyReviewReportForUser(input: {
+  userId: string;
+  monthStart: string;
+  monthEnd: string;
+  title: string;
+  summary: string;
+  patterns: string[];
+  suggestions: string[];
+  nextActions: string[];
+  sourceStats: Record<string, unknown>;
+  sourceHighlights: string[];
+  modelProvider: string;
+  modelName: string;
+  generatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const nowIso = input.generatedAt.toISOString();
+  const { error } = await supabase.from("insight_reports").upsert(
+    {
+      user_id: input.userId,
+      report_type: "monthly",
+      period_start: input.monthStart,
+      period_end: input.monthEnd,
+      title: input.title,
+      summary: input.summary,
+      patterns: input.patterns,
+      suggestions: input.suggestions,
+      next_actions: input.nextActions,
+      source_stats: input.sourceStats,
+      source_highlights: input.sourceHighlights,
+      selected_original_event_ids: [],
       model_provider: input.modelProvider,
       model_name: input.modelName,
       generation_status: "completed",
@@ -1354,6 +1421,39 @@ export async function getWeeklyReviewReportForUser(
     .eq("report_type", "weekly")
     .eq("period_start", weekStart)
     .eq("period_end", weekEnd)
+    .eq("generation_status", "completed")
+    .returns<InsightReportRow>()
+    .maybeSingle();
+  const row = assertRow(data as InsightReportRow | null, error);
+
+  return row
+    ? {
+        id: row.id,
+        title: row.title,
+        summary: row.summary,
+        patterns: row.patterns,
+        suggestions: row.suggestions,
+        nextActions: row.next_actions,
+        modelProvider: row.model_provider,
+        modelName: row.model_name,
+        generatedAt: toDate(row.generated_at),
+      }
+    : null;
+}
+
+export async function getMonthlyReviewReportForUser(
+  userId: string,
+  monthStart: string,
+  monthEnd: string,
+): Promise<ReviewReport | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("insight_reports")
+    .select("id,title,summary,patterns,suggestions,next_actions,model_provider,model_name,generated_at")
+    .eq("user_id", userId)
+    .eq("report_type", "monthly")
+    .eq("period_start", monthStart)
+    .eq("period_end", monthEnd)
     .eq("generation_status", "completed")
     .returns<InsightReportRow>()
     .maybeSingle();

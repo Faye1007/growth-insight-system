@@ -8,7 +8,10 @@ import {
   Repeat2,
 } from "lucide-react";
 
-import { generateWeeklyReviewAction } from "@/app/insights/actions";
+import {
+  generateMonthlyReviewAction,
+  generateWeeklyReviewAction,
+} from "@/app/insights/actions";
 import { FeedbackMessage } from "@/components/feedback-message";
 import { EmotionStatsChart } from "@/components/insights/emotion-stats-chart";
 import { HabitCheckinChart } from "@/components/insights/habit-checkin-chart";
@@ -30,11 +33,14 @@ import {
   getAllHabitCheckinsForUser,
   getInsightRowsForUser,
   getMonthlyInsightRowsForUser,
+  getMonthlyReviewReportForUser,
   getWeeklyReviewReportForUser,
   type ReviewReport,
 } from "@/lib/data/user-data";
 import {
   getFeedbackByCode,
+  monthlyReviewErrorFeedback,
+  monthlyReviewStatusFeedback,
   weeklyReviewErrorFeedback,
   weeklyReviewStatusFeedback,
 } from "@/lib/feedback";
@@ -81,6 +87,18 @@ function getBeijingDateAfter(days: number, date = new Date()) {
 
 function getBeijingMonthStart(date = new Date()) {
   return `${getBeijingDateValue(date).slice(0, 8)}01`;
+}
+
+function getBeijingMonthEnd(date = new Date()) {
+  const dateValue = getBeijingDateValue(date);
+  const year = Number(dateValue.slice(0, 4));
+  const month = Number(dateValue.slice(5, 7));
+  const nextMonthStart =
+    month === 12
+      ? `${year + 1}-01-01`
+      : `${year}-${String(month + 1).padStart(2, "0")}-01`;
+
+  return getBeijingDateAfter(-1, new Date(`${nextMonthStart}T00:00:00+08:00`));
 }
 
 function getDateValuesBetween(start: string, end: string) {
@@ -700,9 +718,11 @@ function WeeklyReviewPreview({
 function MonthlyReviewPreview({
   context,
   isAiReady,
+  hasCachedReport,
 }: {
   context: MonthlyReviewContext;
   isAiReady: boolean;
+  hasCachedReport: boolean;
 }) {
   const previewMetrics = [
     {
@@ -834,9 +854,23 @@ function MonthlyReviewPreview({
         <Link href="/insights" className="quiet-button">
           取消预览
         </Link>
-        <button className="soft-button" type="button" disabled>
-          {isAiReady ? "月复盘生成将在下一步接入" : "AI 月复盘待配置"}
-        </button>
+        {hasCachedReport ? (
+          <Link href="#monthly-review-report" className="soft-button">
+            查看已生成月复盘
+          </Link>
+        ) : isAiReady ? (
+          <form action={generateMonthlyReviewAction}>
+            <input type="hidden" name="monthStart" value={context.dateRange.start} />
+            <input type="hidden" name="monthEnd" value={context.dateRange.end} />
+            <button className="soft-button" type="submit">
+              确认生成 AI 月复盘
+            </button>
+          </form>
+        ) : (
+          <button className="soft-button" type="button" disabled>
+            AI 月复盘待配置
+          </button>
+        )}
       </div>
     </section>
   );
@@ -895,6 +929,42 @@ function WeeklyReviewReportCard({
   );
 }
 
+function MonthlyReviewReportCard({
+  report,
+  monthDatesText,
+}: {
+  report: ReviewReport;
+  monthDatesText: string;
+}) {
+  return (
+    <section id="monthly-review-report" aria-labelledby="monthly-review-report-title" className="panel-card review-report-card">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="page-kicker">月复盘报告</p>
+          <h2 id="monthly-review-report-title" className="section-heading mt-1">
+            {report.title}
+          </h2>
+          <p className="body-copy mt-2">{report.summary}</p>
+        </div>
+        <div className="overview-detail-row">
+          <span className="status-pill">{monthDatesText}</span>
+          <span className="status-pill">{report.modelProvider}</span>
+          <span className="status-pill">{report.modelName}</span>
+          {report.generatedAt ? (
+            <span className="status-pill">{dateTimeFormatter.format(report.generatedAt)}</span>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="review-report-grid">
+        <ReviewListSection title="观察到的模式" items={report.patterns} />
+        <ReviewListSection title="行动建议" items={report.suggestions} />
+        <ReviewListSection title="下一步行动" items={report.nextActions} />
+      </div>
+    </section>
+  );
+}
+
 export default async function InsightsPage({ searchParams }: InsightsPageProps) {
   const params = searchParams ? await searchParams : undefined;
   const user = await getCurrentUser();
@@ -918,6 +988,12 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
     : "最近 7 天";
   const monthDatesText = monthlyInsightData
     ? `${formatDateValue(monthlyInsightData.monthStart)}-${formatDateValue(monthlyInsightData.today)}`
+    : "本月";
+  const monthlyReviewMonthEnd = monthlyInsightData
+    ? getBeijingMonthEnd(new Date(`${monthlyInsightData.today}T00:00:00+08:00`))
+    : getBeijingMonthEnd();
+  const monthlyReviewDatesText = monthlyInsightData
+    ? `${formatDateValue(monthlyInsightData.monthStart)}-${formatDateValue(monthlyReviewMonthEnd)}`
     : "本月";
   const hasWeeklyTaskData = Boolean(
     insightData?.daySummaries.some((day) => day.taskCount > 0),
@@ -954,6 +1030,14 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
     user && insightData
       ? await getWeeklyReviewReportForUser(user.id, insightData.weekStart, insightData.today)
       : null;
+  const monthlyReviewReport =
+    user && monthlyInsightData
+      ? await getMonthlyReviewReportForUser(
+          user.id,
+          monthlyInsightData.monthStart,
+          monthlyReviewMonthEnd,
+        )
+      : null;
   const weeklyPreviewOpen = params?.weeklyPreview === "1";
   const weeklyReviewContext =
     user && insightData && weeklyPreviewOpen
@@ -967,7 +1051,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
     user && monthlyInsightData && monthlyPreviewOpen
       ? await buildMonthlyReviewContext(user.id, {
           start: monthlyInsightData.monthStart,
-          end: monthlyInsightData.today,
+          end: monthlyReviewMonthEnd,
         })
       : null;
   const selectedWeeklyOriginalEventIds = weeklyReviewContext
@@ -981,7 +1065,16 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
     aiStatus.hasProvider && aiStatus.hasBaseUrl && aiStatus.hasApiKey && aiStatus.hasWeeklyModel;
   const isMonthlyAiReady =
     aiStatus.hasProvider && aiStatus.hasBaseUrl && aiStatus.hasApiKey && aiStatus.hasMonthlyModel;
-  const weeklyReviewFeedback =
+  const reviewFeedback =
+    getFeedbackByCode(params?.monthlyReviewError as string | undefined, monthlyReviewErrorFeedback) ??
+    getFeedbackByCode(
+      params?.monthlyReviewGenerated === "1"
+        ? "generated"
+        : params?.monthlyReviewCached === "1"
+          ? "cached"
+          : undefined,
+      monthlyReviewStatusFeedback,
+    ) ??
     getFeedbackByCode(params?.weeklyReviewError as string | undefined, weeklyReviewErrorFeedback) ??
     getFeedbackByCode(
       params?.weeklyReviewGenerated === "1"
@@ -1007,7 +1100,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
         </p>
       </header>
 
-      <FeedbackMessage feedback={weeklyReviewFeedback} />
+      <FeedbackMessage feedback={reviewFeedback} />
 
       {!isLoggedIn ? (
         <section className="panel-card">
@@ -1113,9 +1206,15 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
             ) : null}
 
             <div className="review-preview-actions">
-              <Link className="soft-button" href="/insights?monthlyPreview=1#monthly-review-preview">
-                打开月复盘发送预览
-              </Link>
+              {monthlyReviewReport ? (
+                <Link className="soft-button" href="#monthly-review-report">
+                  查看已生成月复盘
+                </Link>
+              ) : (
+                <Link className="soft-button" href="/insights?monthlyPreview=1#monthly-review-preview">
+                  打开月复盘发送预览
+                </Link>
+              )}
             </div>
           </>
         ) : (
@@ -1134,7 +1233,18 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
       </section>
 
       {monthlyReviewContext ? (
-        <MonthlyReviewPreview context={monthlyReviewContext} isAiReady={isMonthlyAiReady} />
+        <MonthlyReviewPreview
+          context={monthlyReviewContext}
+          isAiReady={isMonthlyAiReady}
+          hasCachedReport={Boolean(monthlyReviewReport)}
+        />
+      ) : null}
+
+      {monthlyReviewReport ? (
+        <MonthlyReviewReportCard
+          report={monthlyReviewReport}
+          monthDatesText={monthlyReviewDatesText}
+        />
       ) : null}
 
       <section aria-labelledby="weekly-program-review" className="panel-card">

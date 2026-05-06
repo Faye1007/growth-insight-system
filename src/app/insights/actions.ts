@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
+  buildMonthlyReviewContext,
+  type MonthlyReviewContext,
+} from "@/lib/ai/monthly-review-context";
+import {
   buildWeeklyReviewContext,
   buildWeeklyReviewInputWithSelectedOriginals,
   type WeeklyReviewContext,
@@ -12,7 +16,9 @@ import { AiConfigurationError, generateReview } from "@/lib/ai/provider";
 import type { GenerateReviewOutput } from "@/lib/ai/types";
 import { requireCurrentUser } from "@/lib/auth/session";
 import {
+  getCompletedMonthlyReviewReportIdForUser,
   getCompletedWeeklyReviewReportIdForUser,
+  upsertMonthlyReviewReportForUser,
   upsertWeeklyReviewReportForUser,
 } from "@/lib/data/user-data";
 
@@ -110,4 +116,76 @@ export async function generateWeeklyReviewAction(formData: FormData) {
 
   revalidatePath("/insights");
   redirect("/insights?weeklyReviewGenerated=1#weekly-review-report");
+}
+
+export async function generateMonthlyReviewAction(formData: FormData) {
+  const user = await requireCurrentUser("/insights");
+  const monthStart = getStringValue(formData, "monthStart");
+  const monthEnd = getStringValue(formData, "monthEnd");
+
+  if (!isValidDateValue(monthStart) || !isValidDateValue(monthEnd)) {
+    redirect("/insights?monthlyReviewError=context_failed#monthly-review-preview");
+  }
+
+  let existingReport: { id: string } | undefined;
+
+  try {
+    existingReport =
+      (await getCompletedMonthlyReviewReportIdForUser(user.id, monthStart, monthEnd)) ?? undefined;
+  } catch {
+    redirect("/insights?monthlyReviewError=context_failed#monthly-review-preview");
+  }
+
+  if (existingReport) {
+    redirect("/insights?monthlyReviewCached=1#monthly-review-report");
+  }
+
+  let context: MonthlyReviewContext;
+
+  try {
+    context = await buildMonthlyReviewContext(user.id, {
+      start: monthStart,
+      end: monthEnd,
+    });
+  } catch {
+    redirect("/insights?monthlyReviewError=context_failed#monthly-review-preview");
+  }
+
+  const reviewInput = context.aiInput;
+  let output: GenerateReviewOutput;
+
+  try {
+    output = await generateReview(reviewInput);
+  } catch (error) {
+    if (error instanceof AiConfigurationError) {
+      redirect("/insights?monthlyReviewError=missing_ai_config#monthly-review-preview");
+    }
+
+    redirect("/insights?monthlyReviewError=provider_failed#monthly-review-preview");
+  }
+
+  const now = new Date();
+
+  try {
+    await upsertMonthlyReviewReportForUser({
+      userId: user.id,
+      monthStart,
+      monthEnd,
+      title: output.title,
+      summary: output.summary,
+      patterns: output.patterns,
+      suggestions: output.suggestions,
+      nextActions: output.nextActions,
+      sourceStats: reviewInput.stats,
+      sourceHighlights: reviewInput.highlights,
+      modelProvider: output.modelProvider,
+      modelName: output.modelName,
+      generatedAt: now,
+    });
+  } catch {
+    redirect("/insights?monthlyReviewError=save_failed#monthly-review-preview");
+  }
+
+  revalidatePath("/insights");
+  redirect("/insights?monthlyReviewGenerated=1#monthly-review-report");
 }
