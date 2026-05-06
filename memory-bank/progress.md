@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移和本地 RLS 策略迁移文件生成。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用和 AI 可选部署前置调整。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
-- 后续如要真实启用 Row Level Security，必须先单独确认迁移文件、真实数据库执行权限和 RLS 后手工验收安排。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 首版朋友试用按无 AI 优先部署准备：Vercel 必填 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
 
@@ -22,6 +22,7 @@
 - 访问方向：未登录用户可浏览基础界面和展示数据
 - 注册方向：第一版开放注册登录
 - AI 策略：低成本优先，普通统计不用 AI，复盘分析才调用 AI
+- 部署策略：首版朋友试用不强制配置 AI；程序统计、基础图表和程序复盘摘要应在无 AI 环境变量时正常可用
 - AI 接入：OpenAI-compatible provider adapter，不绑定 OpenAI
 - AI 上下文策略：每日复盘默认使用统计和摘要，少量事件原文可在权限允许、敏感规则通过并经用户确认后发送
 - 成长知识库：第一版暂缓，Obsidian 继续作为学习笔记主阵地

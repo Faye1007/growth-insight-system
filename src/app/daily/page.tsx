@@ -27,6 +27,7 @@ import {
   buildDailyReviewContext,
   type DailyReviewContext,
 } from "@/lib/ai/daily-review-context";
+import { getAiConfigStatus } from "@/lib/ai/config";
 import {
   getActiveHabitsForUser,
   getHabitCheckinsForUser,
@@ -430,9 +431,11 @@ function getNumberStat(stats: Record<string, unknown>, section: string, key: str
 function DailyReviewPreview({
   context,
   selectedOriginalEventIds,
+  isAiReady,
 }: {
   context: DailyReviewContext;
   selectedOriginalEventIds: string[];
+  isAiReady: boolean;
 }) {
   const previewInput = buildDailyReviewInputWithSelectedOriginals(context, selectedOriginalEventIds);
   const selectedOriginalIds = new Set(selectedOriginalEventIds);
@@ -458,6 +461,11 @@ function DailyReviewPreview({
       detail: `事件 ${getNumberStat(context.stats, "records", "events")} · 灵感 ${getNumberStat(context.stats, "records", "ideas")}`,
     },
   ];
+  const programSummary = [
+    `${previewMetrics[0].detail}，今日任务完成率为 ${previewMetrics[0].value}。`,
+    `${previewMetrics[1].detail}：${previewMetrics[1].value}。`,
+    `今天记录了 ${previewMetrics[2].value} 个日程、${previewMetrics[3].value} 条事件或灵感。`,
+  ];
 
   return (
     <section aria-labelledby="daily-review-preview" className="panel-card review-preview-panel">
@@ -465,14 +473,15 @@ function DailyReviewPreview({
         <div>
           <p className="page-kicker">晚间总结</p>
           <h2 id="daily-review-preview" className="section-heading mt-1">
-            今日复盘发送预览
+            今日程序复盘
           </h2>
           <p className="body-copy mt-2">
-            当前只展示将发送给 AI 的内容，不会调用 AI；只有点击确认生成时才会调用 AI。
+            这里先用程序统计生成今日摘要，不调用 AI；配置 AI 后才会开放确认生成。
           </p>
         </div>
         <div className="overview-detail-row">
-          <span className="status-pill">不调用 AI</span>
+          <span className="status-pill">程序统计</span>
+          <span className="status-pill">{isAiReady ? "AI 可生成" : "AI 待配置"}</span>
           <span className="status-pill">
             原文 {previewInput.selectedOriginals?.length ?? 0}/{context.originalCandidates.length}
           </span>
@@ -487,6 +496,23 @@ function DailyReviewPreview({
             <p className="body-copy">{metric.detail}</p>
           </article>
         ))}
+      </div>
+
+      <div className="review-preview-section">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="list-label">程序摘要</h3>
+            <p className="body-copy mt-1">这些结论只来自已记录的数据和确定性规则，不需要 AI 环境变量。</p>
+          </div>
+          <span className="status-pill">无 AI 调用</span>
+        </div>
+        <div className="review-highlight-list mt-3">
+          {programSummary.map((summary) => (
+            <p key={summary} className="review-highlight-item">
+              {summary}
+            </p>
+          ))}
+        </div>
       </div>
 
       <div className="review-preview-section">
@@ -561,14 +587,20 @@ function DailyReviewPreview({
         <Link href="/daily" className="quiet-button">
           取消预览
         </Link>
-        <form action={generateDailyReviewAction}>
-          {selectedOriginalEventIds.map((eventId) => (
-            <input key={eventId} type="hidden" name="originalEventId" value={eventId} />
-          ))}
-          <button className="soft-button" type="submit">
-            确认生成今日复盘
+        {isAiReady ? (
+          <form action={generateDailyReviewAction}>
+            {selectedOriginalEventIds.map((eventId) => (
+              <input key={eventId} type="hidden" name="originalEventId" value={eventId} />
+            ))}
+            <button className="soft-button" type="submit">
+              确认生成 AI 复盘
+            </button>
+          </form>
+        ) : (
+          <button className="soft-button" type="button" disabled>
+            AI 复盘待配置
           </button>
-        </form>
+        )}
       </div>
     </section>
   );
@@ -625,6 +657,7 @@ function DailyReviewReportCard({ report }: { report: DailyReviewReport }) {
 export default async function DailyPage({ searchParams }: DailyPageProps) {
   const params = await searchParams;
   const user = await getCurrentUser();
+  const aiStatus = getAiConfigStatus();
   const isLoggedIn = Boolean(user);
   const loginPath = buildLoginPath({ next: "/daily", message: loginRequiredMessage });
   const now = new Date();
@@ -845,13 +878,13 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
               每日复盘
             </h2>
             <p className="body-copy mt-2">
-              先预览将发送给 AI 的统计摘要、关键记录和少量事件原文；确认前不会调用 AI。
+              先查看程序统计摘要。AI 未配置时仍可使用基础分析，配置后再生成 AI 复盘。
             </p>
           </div>
           {isLoggedIn ? (
             <Link className="soft-button w-full sm:w-auto" href="/daily?reviewPreview=1#daily-review-preview">
               <Sparkles aria-hidden="true" className="h-4 w-4" />
-              预览今日复盘
+              查看今日复盘
             </Link>
           ) : (
             <Link className="soft-button w-full sm:w-auto" href={loginPath}>
@@ -872,6 +905,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
       {dailyReviewContext ? (
         <DailyReviewPreview
           context={dailyReviewContext}
+          isAiReady={aiStatus.isDailyReviewReady}
           selectedOriginalEventIds={selectedOriginalEventIds}
         />
       ) : null}

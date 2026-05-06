@@ -102,7 +102,7 @@ export default async function SettingsPage() {
         <p className="page-kicker">设置</p>
         <h1 className="page-title">应用配置与安全状态</h1>
         <p className="page-description">
-          这里只展示 Supabase 和 AI 配置是否存在，不展示任何密钥或连接字符串。
+          这里只展示 Supabase、数据库和 AI 配置是否存在，不展示任何密钥或连接字符串。
         </p>
       </header>
 
@@ -111,7 +111,7 @@ export default async function SettingsPage() {
           <div>
             <h2 className="section-heading">应用状态</h2>
             <p className="body-copy mt-2">
-              当前应用可以打开。写入能力取决于登录状态，AI 复盘能力取决于服务端 AI 配置。
+              当前应用可以打开。写入能力取决于登录状态；AI 复盘是可选增强，不影响普通记录、统计和图表。
             </p>
           </div>
           <div className="overview-detail-row">
@@ -126,8 +126,7 @@ export default async function SettingsPage() {
           <div>
             <h2 className="section-heading">Supabase 接入状态</h2>
             <p className="body-copy mt-2">
-              未配置真实环境变量时，应用仍可打开；后续写入数据前需要补齐 Supabase
-              项目配置。
+              朋友试用前需要补齐 Supabase public client 和 Database URL；AI 环境变量可以后续再配置。
             </p>
           </div>
           <div className="overview-detail-row">
@@ -153,7 +152,7 @@ export default async function SettingsPage() {
           <div>
             <h2 className="section-heading">AI 配置状态</h2>
             <p className="body-copy mt-2">
-              AI 配置只在服务端读取。未配置 AI 时，普通记录、统计和图表仍可正常使用。
+              AI 配置只在服务端读取。未配置 AI 时，每日复盘会显示程序摘要，普通记录、统计和图表仍可正常使用。
             </p>
           </div>
           <span className="status-pill">
@@ -173,8 +172,9 @@ export default async function SettingsPage() {
       <section className="panel-card">
         <h2 className="section-heading">下一步需要的配置</h2>
         <p className="body-copy mt-2">
-          当前已配置 Supabase public client 和数据库连接字符串。`SUPABASE_SERVICE_ROLE_KEY`
-          暂不配置，后续确实需要服务端高权限操作时再单独确认。AI 环境变量需要在进入真实复盘生成前单独确认后再配置。
+          Vercel 首版部署只需要 Supabase URL、Supabase publishable key 和 Database URL。
+          `SUPABASE_SERVICE_ROLE_KEY` 暂不配置，后续确实需要服务端高权限操作时再单独确认。
+          AI 环境变量是可选项，等你决定接入 AI 复盘后再补齐并重新部署。
         </p>
       </section>
     </div>
