@@ -380,6 +380,15 @@ export type InsightIdea = {
   ideaDate: string;
 };
 
+export type MonthlyInsightWeeklyReport = {
+  id: string;
+  periodStart: string;
+  periodEnd: string;
+  title: string;
+  summary: string;
+  generatedAt: Date | null;
+};
+
 export type DailyReviewTask = {
   id: string;
   title: string;
@@ -1737,6 +1746,115 @@ export async function getInsightRowsForUser(
     })),
     ideas: assertArray(ideasResult.data, ideasResult.error).map((row) => ({
       ideaDate: row.idea_date,
+    })),
+  };
+}
+
+export async function getMonthlyInsightRowsForUser(
+  userId: string,
+  monthStart: string,
+  today: string,
+) {
+  const supabase = await createClient();
+  const [
+    tasksResult,
+    habitsResult,
+    habitCheckinsResult,
+    schedulesResult,
+    lifeEventsResult,
+    ideasResult,
+    weeklyReportsResult,
+  ] = await Promise.all([
+    supabase
+      .from("tasks")
+      .select("id,category,status,task_date")
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .gte("task_date", monthStart)
+      .lte("task_date", today)
+      .order("task_date", { ascending: true })
+      .returns<TaskRow[]>(),
+    supabase
+      .from("habits")
+      .select("id,name,category")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true })
+      .returns<HabitRow[]>(),
+    supabase
+      .from("habit_checkins")
+      .select("habit_id,checkin_date,status")
+      .eq("user_id", userId)
+      .gte("checkin_date", monthStart)
+      .lte("checkin_date", today)
+      .returns<HabitCheckinRow[]>(),
+    supabase
+      .from("schedule_items")
+      .select("schedule_date")
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .gte("schedule_date", monthStart)
+      .lte("schedule_date", today)
+      .returns<ScheduleItemRow[]>(),
+    supabase
+      .from("life_events")
+      .select("event_date,emotion_tags")
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .gte("event_date", monthStart)
+      .lte("event_date", today)
+      .returns<LifeEventRow[]>(),
+    supabase
+      .from("ideas")
+      .select("idea_date")
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .gte("idea_date", monthStart)
+      .lte("idea_date", today)
+      .returns<IdeaRow[]>(),
+    supabase
+      .from("insight_reports")
+      .select("id,period_start,period_end,title,summary,generated_at")
+      .eq("user_id", userId)
+      .eq("report_type", "weekly")
+      .eq("generation_status", "completed")
+      .lte("period_start", today)
+      .gte("period_end", monthStart)
+      .order("period_start", { ascending: true })
+      .returns<InsightReportRow[]>(),
+  ]);
+
+  return {
+    tasks: assertArray(tasksResult.data, tasksResult.error).map((row) => ({
+      id: row.id,
+      category: row.category,
+      status: row.status,
+      taskDate: row.task_date,
+    })),
+    activeHabits: assertArray(habitsResult.data, habitsResult.error).map((row) => ({
+      id: row.id,
+      name: row.name,
+      category: row.category,
+    })),
+    habitCheckins: assertArray(habitCheckinsResult.data, habitCheckinsResult.error).map(mapHabitCheckin),
+    schedules: assertArray(schedulesResult.data, schedulesResult.error).map((row) => ({
+      scheduleDate: row.schedule_date,
+    })),
+    lifeEvents: assertArray(lifeEventsResult.data, lifeEventsResult.error).map((row) => ({
+      eventDate: row.event_date,
+      emotionTags: row.emotion_tags,
+    })),
+    ideas: assertArray(ideasResult.data, ideasResult.error).map((row) => ({
+      ideaDate: row.idea_date,
+    })),
+    weeklyReports: assertArray(weeklyReportsResult.data, weeklyReportsResult.error).map((row) => ({
+      id: row.id,
+      periodStart: row.period_start,
+      periodEnd: row.period_end,
+      title: row.title,
+      summary: row.summary,
+      generatedAt: toDate(row.generated_at),
     })),
   };
 }

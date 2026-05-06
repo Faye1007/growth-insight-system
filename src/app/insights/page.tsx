@@ -25,6 +25,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import {
   getAllHabitCheckinsForUser,
   getInsightRowsForUser,
+  getMonthlyInsightRowsForUser,
   getWeeklyReviewReportForUser,
   type ReviewReport,
 } from "@/lib/data/user-data";
@@ -33,7 +34,7 @@ import {
   weeklyReviewErrorFeedback,
   weeklyReviewStatusFeedback,
 } from "@/lib/feedback";
-import { getTaskCategoryLabel } from "@/lib/tasks/options";
+import { getTaskCategoryLabel, type TaskCategory } from "@/lib/tasks/options";
 
 const weekDayCount = 7;
 const maxHabitRows = 6;
@@ -74,6 +75,23 @@ function getBeijingDateAfter(days: number, date = new Date()) {
   return getBeijingDateValue(targetDate);
 }
 
+function getBeijingMonthStart(date = new Date()) {
+  return `${getBeijingDateValue(date).slice(0, 8)}01`;
+}
+
+function getDateValuesBetween(start: string, end: string) {
+  const dates: string[] = [];
+  let cursorDate = new Date(`${start}T00:00:00+08:00`);
+  const endDate = new Date(`${end}T00:00:00+08:00`);
+
+  while (cursorDate <= endDate) {
+    dates.push(getBeijingDateValue(cursorDate));
+    cursorDate = new Date(cursorDate.getTime() + 24 * 60 * 60 * 1000);
+  }
+
+  return dates;
+}
+
 function formatDateValue(value: string) {
   return dateFormatter.format(new Date(`${value}T00:00:00+08:00`));
 }
@@ -105,6 +123,10 @@ function getRecordCountByDate<T, K extends keyof T>(
   dateValue: string,
 ) {
   return rows.filter((row) => row[dateKey] === dateValue).length;
+}
+
+function incrementCount<K>(counts: Map<K, number>, key: K) {
+  counts.set(key, (counts.get(key) ?? 0) + 1);
 }
 
 function getSearchParamValues(
@@ -324,6 +346,170 @@ async function getInsightData(userId: string) {
     weeklyHighlights,
     weeklyScheduleCount,
     weeklyTaskCount,
+  };
+}
+
+async function getMonthlyInsightData(userId: string) {
+  const today = getBeijingDateValue();
+  const monthStart = getBeijingMonthStart();
+  const monthDates = getDateValuesBetween(monthStart, today);
+  const {
+    tasks,
+    activeHabits,
+    habitCheckins,
+    schedules,
+    lifeEvents,
+    ideas,
+    weeklyReports,
+  } = await getMonthlyInsightRowsForUser(userId, monthStart, today);
+  const activeHabitIds = new Set(activeHabits.map((habit) => habit.id));
+  const taskCategoryCounts = new Map<TaskCategory, number>();
+  const emotionCounts = new Map<string, number>();
+  const habitCheckCounts = new Map<string, { name: string; count: number }>();
+
+  for (const task of tasks) {
+    incrementCount(taskCategoryCounts, task.category);
+  }
+
+  for (const event of lifeEvents) {
+    for (const emotion of event.emotionTags) {
+      incrementCount(emotionCounts, emotion);
+    }
+  }
+
+  for (const checkin of habitCheckins) {
+    if (checkin.status !== "checked" || !activeHabitIds.has(checkin.habitId)) {
+      continue;
+    }
+
+    const habit = activeHabits.find((item) => item.id === checkin.habitId);
+
+    if (habit) {
+      const current = habitCheckCounts.get(habit.id) ?? { name: habit.name, count: 0 };
+      habitCheckCounts.set(habit.id, { ...current, count: current.count + 1 });
+    }
+  }
+
+  const daySummaries = monthDates.map((dateValue) => {
+    const dayTasks = tasks.filter((task) => task.taskDate === dateValue);
+    const completedTaskCount = dayTasks.filter((task) => task.status === "completed").length;
+    const checkedHabitCount = new Set(
+      habitCheckins
+        .filter(
+          (checkin) =>
+            checkin.checkinDate === dateValue &&
+            checkin.status === "checked" &&
+            activeHabitIds.has(checkin.habitId),
+        )
+        .map((checkin) => checkin.habitId),
+    ).size;
+    const scheduleCount = getRecordCountByDate(schedules, "scheduleDate", dateValue);
+    const eventCount = getRecordCountByDate(lifeEvents, "eventDate", dateValue);
+    const ideaCount = getRecordCountByDate(ideas, "ideaDate", dateValue);
+
+    return {
+      dateValue,
+      label: formatDateValue(dateValue),
+      taskCount: dayTasks.length,
+      completedTaskCount,
+      checkedHabitCount,
+      scheduleCount,
+      eventCount,
+      ideaCount,
+      recordCount: dayTasks.length + checkedHabitCount + scheduleCount + eventCount + ideaCount,
+    };
+  });
+
+  const monthlyTaskCount = tasks.length;
+  const monthlyCompletedTaskCount = tasks.filter((task) => task.status === "completed").length;
+  const monthlyCheckedHabitCount = daySummaries.reduce(
+    (total, day) => total + day.checkedHabitCount,
+    0,
+  );
+  const monthlyHabitPossibleCount = activeHabits.length * monthDates.length;
+  const monthlyScheduleCount = schedules.length;
+  const monthlyEventCount = lifeEvents.length;
+  const monthlyIdeaCount = ideas.length;
+  const monthlyRecordCount = daySummaries.reduce((total, day) => total + day.recordCount, 0);
+  const recordDensity = Number((monthlyRecordCount / monthDates.length).toFixed(1));
+  const topTaskCategory = Array.from(taskCategoryCounts.entries())
+    .map(([category, count]) => ({
+      category,
+      count,
+      label: getTaskCategoryLabel(category),
+    }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "zh-CN"))[0];
+  const topEmotion = Array.from(emotionCounts.entries())
+    .map(([emotion, count]) => ({ emotion, count }))
+    .sort((a, b) => b.count - a.count || a.emotion.localeCompare(b.emotion, "zh-CN"))[0];
+  const topHabit = Array.from(habitCheckCounts.values()).sort(
+    (a, b) => b.count - a.count || a.name.localeCompare(b.name, "zh-CN"),
+  )[0];
+  const midPoint = Math.ceil(daySummaries.length / 2);
+  const firstHalfRecordCount = daySummaries
+    .slice(0, midPoint)
+    .reduce((total, day) => total + day.recordCount, 0);
+  const secondHalfRecordCount = daySummaries
+    .slice(midPoint)
+    .reduce((total, day) => total + day.recordCount, 0);
+  const firstHalfDensity = Number((firstHalfRecordCount / midPoint).toFixed(1));
+  const secondHalfDayCount = Math.max(daySummaries.length - midPoint, 1);
+  const secondHalfDensity = Number((secondHalfRecordCount / secondHalfDayCount).toFixed(1));
+  const mostActiveDay = [...daySummaries].sort(
+    (a, b) => b.recordCount - a.recordCount || a.dateValue.localeCompare(b.dateValue),
+  )[0];
+  const monthlyHasData =
+    monthlyTaskCount > 0 ||
+    monthlyCheckedHabitCount > 0 ||
+    monthlyScheduleCount > 0 ||
+    monthlyEventCount > 0 ||
+    monthlyIdeaCount > 0 ||
+    weeklyReports.length > 0;
+  const monthlyHighlights = monthlyHasData
+    ? [
+        `本月完成 ${monthlyCompletedTaskCount}/${monthlyTaskCount} 项任务，任务完成率为 ${getRate(
+          monthlyCompletedTaskCount,
+          monthlyTaskCount,
+        )}%。`,
+        activeHabits.length
+          ? `启用习惯 ${activeHabits.length} 个，本月完成打卡 ${monthlyCheckedHabitCount}/${monthlyHabitPossibleCount} 次。`
+          : "本月暂无启用习惯，习惯稳定性暂时没有可统计对象。",
+        `本月记录密度为平均 ${recordDensity} 条/天，包含任务、习惯、日程、事件和灵感。`,
+        topTaskCategory
+          ? `任务最常出现的类型是“${topTaskCategory.label}”，共 ${topTaskCategory.count} 项。`
+          : "本月暂无任务类型模式。",
+        topEmotion
+          ? `高频情绪标签是“${topEmotion.emotion}”，共 ${topEmotion.count} 次。`
+          : "本月暂无情绪标签记录。",
+        topHabit
+          ? `最稳定的习惯是“${topHabit.name}”，本月完成 ${topHabit.count} 次打卡。`
+          : "本月暂无已完成的习惯打卡。",
+        secondHalfRecordCount > 0
+          ? `本月前半段记录密度为 ${firstHalfDensity} 条/天，后半段为 ${secondHalfDensity} 条/天。`
+          : `本月前半段记录密度为 ${firstHalfDensity} 条/天，后半段暂未形成可比趋势。`,
+        mostActiveDay
+          ? `记录和行动最集中的日期是 ${mostActiveDay.label}，当天共有 ${mostActiveDay.recordCount} 条活动。`
+          : "本月暂无可识别的高活动日期。",
+        weeklyReports.length
+          ? `本月已有 ${weeklyReports.length} 份已生成周复盘，可作为月复盘参考。`
+          : "本月暂无已生成周复盘。",
+      ]
+    : [];
+
+  return {
+    monthStart,
+    monthlyCheckedHabitCount,
+    monthlyCompletedTaskCount,
+    monthlyHasData,
+    monthlyHabitPossibleCount,
+    monthlyHighlights,
+    monthlyIdeaCount,
+    monthlyRecordCount,
+    monthlyScheduleCount,
+    monthlyTaskCount,
+    recordDensity,
+    today,
+    weeklyReports,
   };
 }
 
@@ -567,6 +753,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
   const isLoggedIn = Boolean(user);
   const loginPath = buildLoginPath({ next: "/insights", message: loginRequiredMessage });
   const insightData = user ? await getInsightData(user.id) : null;
+  const monthlyInsightData = user ? await getMonthlyInsightData(user.id) : null;
 
   const todayTaskRate = insightData
     ? getRate(insightData.todayCompletedTaskCount, insightData.todayTaskCount)
@@ -580,6 +767,9 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
   const weekDatesText = insightData
     ? `${formatDateValue(insightData.weekStart)}-${formatDateValue(insightData.today)}`
     : "最近 7 天";
+  const monthDatesText = monthlyInsightData
+    ? `${formatDateValue(monthlyInsightData.monthStart)}-${formatDateValue(monthlyInsightData.today)}`
+    : "本月";
   const hasWeeklyTaskData = Boolean(
     insightData?.daySummaries.some((day) => day.taskCount > 0),
   );
@@ -601,6 +791,15 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
     : 0;
   const weeklyHabitRate = insightData
     ? getRate(insightData.weeklyCheckedHabitCount, weeklyHabitPossibleCount)
+    : 0;
+  const monthlyTaskRate = monthlyInsightData
+    ? getRate(monthlyInsightData.monthlyCompletedTaskCount, monthlyInsightData.monthlyTaskCount)
+    : 0;
+  const monthlyHabitRate = monthlyInsightData
+    ? getRate(
+        monthlyInsightData.monthlyCheckedHabitCount,
+        monthlyInsightData.monthlyHabitPossibleCount,
+      )
     : 0;
   const weeklyReviewReport =
     user && insightData
@@ -666,6 +865,108 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           </div>
         </section>
       ) : null}
+
+      <section aria-labelledby="monthly-program-review" className="panel-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="page-kicker">月复盘</p>
+            <h2 id="monthly-program-review" className="section-heading mt-1">
+              本月程序统计
+            </h2>
+            <p className="body-copy mt-2">
+              读取当月任务、习惯、打卡、日程、事件、灵感和已有周复盘，只生成确定性统计摘要。
+            </p>
+          </div>
+          <div className="overview-detail-row">
+            <span className="status-pill">程序摘要</span>
+            <span className="status-pill">{monthDatesText}</span>
+          </div>
+        </div>
+
+        {monthlyInsightData?.monthlyHasData ? (
+          <>
+            <div className="insight-kpi-grid mt-5">
+              <article className="field-tile">
+                <span>任务完成率</span>
+                <strong>{monthlyTaskRate}%</strong>
+                <p className="body-copy">
+                  {monthlyInsightData.monthlyCompletedTaskCount}/{monthlyInsightData.monthlyTaskCount} 项已完成
+                </p>
+              </article>
+              <article className="field-tile">
+                <span>习惯稳定性</span>
+                <strong>{monthlyHabitRate}%</strong>
+                <p className="body-copy">
+                  {monthlyInsightData.monthlyCheckedHabitCount}/{monthlyInsightData.monthlyHabitPossibleCount} 次可能打卡
+                </p>
+              </article>
+              <article className="field-tile">
+                <span>记录密度</span>
+                <strong>{monthlyInsightData.recordDensity}</strong>
+                <p className="body-copy">平均活动条数 / 天</p>
+              </article>
+              <article className="field-tile">
+                <span>已有周复盘</span>
+                <strong>{monthlyInsightData.weeklyReports.length}</strong>
+                <p className="body-copy">本月已生成的周复盘数量</p>
+              </article>
+            </div>
+
+            <div className="review-preview-section">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="list-label">月度关键摘要</h3>
+                  <p className="body-copy mt-1">覆盖长期趋势、高频情绪、任务模式、习惯稳定性和记录密度。</p>
+                </div>
+                <span className="status-pill">无 AI 调用</span>
+              </div>
+              <div className="review-highlight-list mt-3">
+                {monthlyInsightData.monthlyHighlights.map((highlight, index) => (
+                  <p key={`${highlight}-${index}`} className="review-highlight-item">
+                    {highlight}
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            {monthlyInsightData.weeklyReports.length ? (
+              <div className="review-preview-section">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="list-label">已有周复盘摘要</h3>
+                    <p className="body-copy mt-1">这些报告来自当前登录账号，作为月复盘的程序参考。</p>
+                  </div>
+                  <span className="status-pill">{monthlyInsightData.weeklyReports.length} 份</span>
+                </div>
+                <div className="review-highlight-list mt-3">
+                  {monthlyInsightData.weeklyReports.map((report) => (
+                    <article key={report.id} className="review-highlight-item">
+                      <strong>{report.title}</strong>
+                      <p className="body-copy mt-1">
+                        {formatDateValue(report.periodStart)}-{formatDateValue(report.periodEnd)}
+                        {report.generatedAt ? ` · ${dateTimeFormatter.format(report.generatedAt)}` : ""}
+                      </p>
+                      <p className="body-copy mt-1">{report.summary}</p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <div className="empty-state mt-5">
+            <span className="empty-icon">
+              <CalendarDays aria-hidden="true" className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="list-label">本月暂无可复盘数据</p>
+              <p className="body-copy mt-1">
+                创建任务、打卡习惯、记录日程、事件或灵感后，这里会生成月复盘程序摘要。
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
 
       <section aria-labelledby="weekly-program-review" className="panel-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
