@@ -442,6 +442,35 @@ export type DailyReviewRows = {
   ideas: DailyReviewIdea[];
 };
 
+export type WeeklyReviewTask = DailyReviewTask & {
+  taskDate: string;
+};
+
+export type WeeklyReviewHabit = DailyReviewHabit;
+
+export type WeeklyReviewHabitCheckin = DailyReviewHabitCheckin;
+
+export type WeeklyReviewSchedule = DailyReviewSchedule & {
+  scheduleDate: string;
+};
+
+export type WeeklyReviewLifeEvent = DailyReviewLifeEvent & {
+  eventDate: string;
+};
+
+export type WeeklyReviewIdea = DailyReviewIdea & {
+  ideaDate: string;
+};
+
+export type WeeklyReviewRows = {
+  tasks: WeeklyReviewTask[];
+  habits: WeeklyReviewHabit[];
+  habitCheckins: WeeklyReviewHabitCheckin[];
+  schedules: WeeklyReviewSchedule[];
+  lifeEvents: WeeklyReviewLifeEvent[];
+  ideas: WeeklyReviewIdea[];
+};
+
 function mapTodayTask(row: TaskRow): TodayTask {
   return {
     id: row.id,
@@ -1730,6 +1759,129 @@ export async function getDailyReviewRowsForUser(
       content: row.content,
       status: row.status,
       solutionNote: row.solution_note,
+      createdAt: new Date(row.created_at),
+    })),
+  };
+}
+
+export async function getWeeklyReviewRowsForUser(
+  userId: string,
+  weekStart: string,
+  weekEnd: string,
+): Promise<WeeklyReviewRows> {
+  const supabase = await createClient();
+  const [tasksResult, habitsResult, habitCheckinsResult, schedulesResult, lifeEventsResult, ideasResult] =
+    await Promise.all([
+      supabase
+        .from("tasks")
+        .select("id,title,category,status,is_postponed,review_note,completed_at,task_date,created_at")
+        .eq("user_id", userId)
+        .gte("task_date", weekStart)
+        .lte("task_date", weekEnd)
+        .is("deleted_at", null)
+        .order("task_date", { ascending: true })
+        .order("created_at", { ascending: true })
+        .returns<TaskRow[]>(),
+      supabase
+        .from("habits")
+        .select("id,name,category,created_at")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: true })
+        .returns<HabitRow[]>(),
+      supabase
+        .from("habit_checkins")
+        .select("habit_id,checkin_date,status,note")
+        .eq("user_id", userId)
+        .gte("checkin_date", weekStart)
+        .lte("checkin_date", weekEnd)
+        .order("checkin_date", { ascending: true })
+        .returns<HabitCheckinRow[]>(),
+      supabase
+        .from("schedule_items")
+        .select("id,title,category,start_time,end_time,description,schedule_date,created_at")
+        .eq("user_id", userId)
+        .gte("schedule_date", weekStart)
+        .lte("schedule_date", weekEnd)
+        .is("deleted_at", null)
+        .order("schedule_date", { ascending: true })
+        .order("start_time", { ascending: true, nullsFirst: false })
+        .returns<ScheduleItemRow[]>(),
+      supabase
+        .from("life_events")
+        .select("id,content,emotion_tags,tags,specific_event,next_action,ai_analysis_permission,summary,event_date,created_at")
+        .eq("user_id", userId)
+        .gte("event_date", weekStart)
+        .lte("event_date", weekEnd)
+        .is("deleted_at", null)
+        .order("event_date", { ascending: true })
+        .order("created_at", { ascending: false })
+        .returns<LifeEventRow[]>(),
+      supabase
+        .from("ideas")
+        .select("id,content,status,solution_note,idea_date,created_at")
+        .eq("user_id", userId)
+        .gte("idea_date", weekStart)
+        .lte("idea_date", weekEnd)
+        .is("deleted_at", null)
+        .order("idea_date", { ascending: true })
+        .order("created_at", { ascending: false })
+        .returns<IdeaRow[]>(),
+    ]);
+
+  return {
+    tasks: assertArray(tasksResult.data, tasksResult.error).map((row) => ({
+      id: row.id,
+      title: row.title,
+      category: row.category,
+      status: row.status,
+      isPostponed: row.is_postponed,
+      reviewNote: row.review_note,
+      completedAt: toDate(row.completed_at),
+      taskDate: row.task_date,
+      createdAt: new Date(row.created_at),
+    })),
+    habits: assertArray(habitsResult.data, habitsResult.error).map((row) => ({
+      id: row.id,
+      name: row.name,
+      category: row.category,
+      createdAt: new Date(row.created_at),
+    })),
+    habitCheckins: assertArray(habitCheckinsResult.data, habitCheckinsResult.error).map((checkin) => ({
+      habitId: checkin.habit_id,
+      checkinDate: checkin.checkin_date,
+      status: checkin.status,
+      note: checkin.note,
+    })),
+    schedules: assertArray(schedulesResult.data, schedulesResult.error).map((row) => ({
+      id: row.id,
+      title: row.title,
+      category: row.category,
+      startTime: row.start_time,
+      endTime: row.end_time,
+      description: row.description,
+      scheduleDate: row.schedule_date,
+      createdAt: new Date(row.created_at),
+    })),
+    lifeEvents: assertArray(lifeEventsResult.data, lifeEventsResult.error).map((row) => ({
+      id: row.id,
+      content: row.content,
+      emotionTags: row.emotion_tags,
+      tags: row.tags,
+      specificEvent: row.specific_event,
+      nextAction: row.next_action,
+      aiAnalysisPermission: row.ai_analysis_permission,
+      summary: row.summary,
+      eventDate: row.event_date,
+      createdAt: new Date(row.created_at),
+    })),
+    ideas: assertArray(ideasResult.data, ideasResult.error).map((row) => ({
+      id: row.id,
+      content: row.content,
+      status: row.status,
+      solutionNote: row.solution_note,
+      ideaDate: row.idea_date,
       createdAt: new Date(row.created_at),
     })),
   };

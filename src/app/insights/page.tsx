@@ -12,6 +12,12 @@ import { EmotionStatsChart } from "@/components/insights/emotion-stats-chart";
 import { HabitCheckinChart } from "@/components/insights/habit-checkin-chart";
 import { RecordTrendChart } from "@/components/insights/record-trend-chart";
 import { TaskCompletionChart } from "@/components/insights/task-completion-chart";
+import {
+  buildWeeklyReviewContext,
+  buildWeeklyReviewInputWithSelectedOriginals,
+  type WeeklyReviewContext,
+} from "@/lib/ai/weekly-review-context";
+import { getAiConfigStatus } from "@/lib/ai/config";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getAllHabitCheckinsForUser, getInsightRowsForUser } from "@/lib/data/user-data";
@@ -20,6 +26,10 @@ import { getTaskCategoryLabel } from "@/lib/tasks/options";
 const weekDayCount = 7;
 const maxHabitRows = 6;
 const maxEmotionRows = 8;
+
+type InsightsPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
 
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
   timeZone: "Asia/Shanghai",
@@ -75,6 +85,33 @@ function getRecordCountByDate<T, K extends keyof T>(
   dateValue: string,
 ) {
   return rows.filter((row) => row[dateKey] === dateValue).length;
+}
+
+function getSearchParamValues(
+  params: Awaited<NonNullable<InsightsPageProps["searchParams"]>> | undefined,
+  key: "weeklyOriginalEventId",
+) {
+  const value = params?.[key];
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  return value ? [value] : [];
+}
+
+function getStatsSection(stats: Record<string, unknown>, key: string) {
+  const value = stats[key];
+
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function getNumberStat(stats: Record<string, unknown>, section: string, key: string) {
+  const value = getStatsSection(stats, section)[key];
+
+  return typeof value === "number" ? value : 0;
 }
 
 async function getInsightData(userId: string) {
@@ -270,8 +307,171 @@ async function getInsightData(userId: string) {
   };
 }
 
-export default async function InsightsPage() {
+function WeeklyReviewPreview({
+  context,
+  selectedOriginalEventIds,
+  isAiReady,
+}: {
+  context: WeeklyReviewContext;
+  selectedOriginalEventIds: string[];
+  isAiReady: boolean;
+}) {
+  const previewInput = buildWeeklyReviewInputWithSelectedOriginals(context, selectedOriginalEventIds);
+  const selectedOriginalIds = new Set(selectedOriginalEventIds);
+  const previewMetrics = [
+    {
+      label: "任务完成率",
+      value: `${getNumberStat(context.stats, "tasks", "completionRate")}%`,
+      detail: `${getNumberStat(context.stats, "tasks", "completed")}/${getNumberStat(context.stats, "tasks", "total")} 项已完成`,
+    },
+    {
+      label: "习惯打卡率",
+      value: `${getNumberStat(context.stats, "habits", "completionRate")}%`,
+      detail: `${getNumberStat(context.stats, "habits", "checkedCount")}/${getNumberStat(context.stats, "habits", "possibleCount")} 次可能打卡`,
+    },
+    {
+      label: "日程记录",
+      value: `${getNumberStat(context.stats, "schedules", "total")}`,
+      detail: "最近 7 天固定事项数量",
+    },
+    {
+      label: "随手记录",
+      value: `${getNumberStat(context.stats, "records", "events") + getNumberStat(context.stats, "records", "ideas")}`,
+      detail: `事件 ${getNumberStat(context.stats, "records", "events")} · 灵感 ${getNumberStat(context.stats, "records", "ideas")}`,
+    },
+  ];
+
+  return (
+    <section id="weekly-review-preview" aria-labelledby="weekly-review-preview-title" className="panel-card review-preview-panel">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="page-kicker">周复盘发送预览</p>
+          <h2 id="weekly-review-preview-title" className="section-heading mt-1">
+            将用于 AI 的周复盘上下文
+          </h2>
+          <p className="body-copy mt-2">
+            打开预览只整理统计、摘要和候选原文，不调用 AI。生成入口会在用户确认后才进入后续流程。
+          </p>
+        </div>
+        <div className="overview-detail-row">
+          <span className="status-pill">预览模式</span>
+          <span className="status-pill">{isAiReady ? "周复盘 AI 已配置" : "周复盘 AI 待配置"}</span>
+          <span className="status-pill">
+            原文 {previewInput.selectedOriginals?.length ?? 0}/{context.originalCandidates.length}
+          </span>
+        </div>
+      </div>
+
+      <div className="review-preview-grid mt-5">
+        {previewMetrics.map((metric) => (
+          <article key={metric.label} className="field-tile review-preview-metric">
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+            <p className="body-copy">{metric.detail}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className="review-preview-section">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="list-label">统计与关键摘要</h3>
+            <p className="body-copy mt-1">这些内容会作为周复盘 AI 输入的主体，不包含未授权原文。</p>
+          </div>
+          <span className="status-pill">{context.highlights.length} 条摘要</span>
+        </div>
+        {context.highlights.length ? (
+          <div className="review-highlight-list mt-3">
+            {context.highlights.slice(0, 14).map((highlight, index) => (
+              <p key={`${highlight}-${index}`} className="review-highlight-item">
+                {highlight}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="body-copy mt-3">最近 7 天暂无可发送的关键摘要。</p>
+        )}
+      </div>
+
+      <form action="/insights#weekly-review-preview" className="review-preview-section" method="get">
+        <input type="hidden" name="weeklyPreview" value="1" />
+        <input type="hidden" name="weeklyOriginalSelection" value="custom" />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="list-label">事件原文候选</h3>
+            <p className="body-copy mt-1">
+              只有允许原文参与、且未命中敏感规则的事件会出现在这里。取消勾选后不会进入后续 AI 输入。
+            </p>
+          </div>
+          <button className="quiet-button w-full sm:w-auto" type="submit">
+            更新预览
+          </button>
+        </div>
+
+        {context.originalCandidates.length ? (
+          <div className="review-original-list mt-3">
+            {context.originalCandidates.map((candidate) => (
+              <label key={candidate.eventId} className="review-original-item">
+                <input
+                  type="checkbox"
+                  name="weeklyOriginalEventId"
+                  value={candidate.eventId}
+                  defaultChecked={selectedOriginalIds.has(candidate.eventId)}
+                />
+                <span>
+                  {candidate.eventDate} · {candidate.content}
+                </span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <p className="body-copy mt-3">最近 7 天暂无可发送的事件原文候选。</p>
+        )}
+      </form>
+
+      {context.downgradedEvents.length ? (
+        <div className="review-preview-section">
+          <h3 className="list-label">已降级为摘要的事件</h3>
+          <div className="review-highlight-list mt-3">
+            {context.downgradedEvents.map((event) => (
+              <p key={event.eventId} className="review-highlight-item">
+                {event.eventDate} · {event.summary}
+              </p>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="review-preview-section">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="list-label">个人说明书关联边界</h3>
+            <p className="body-copy mt-1">
+              当前只确认周复盘已能读取个人说明书状态，不会把个人说明书内容放入 AI 输入。
+            </p>
+          </div>
+          <span className="status-pill">
+            {context.personalManual.manual ? "已读取当前账号" : "暂无说明书"}
+          </span>
+        </div>
+      </div>
+
+      <div className="review-preview-actions">
+        <Link href="/insights" className="quiet-button">
+          取消预览
+        </Link>
+        <button className="soft-button" type="button" disabled>
+          {isAiReady ? "确认生成将在 Step 13.3 接入" : "AI 周复盘待配置"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+export default async function InsightsPage({ searchParams }: InsightsPageProps) {
+  const params = searchParams ? await searchParams : undefined;
   const user = await getCurrentUser();
+  const aiStatus = getAiConfigStatus();
   const isLoggedIn = Boolean(user);
   const loginPath = buildLoginPath({ next: "/insights", message: loginRequiredMessage });
   const insightData = user ? await getInsightData(user.id) : null;
@@ -310,6 +510,23 @@ export default async function InsightsPage() {
   const weeklyHabitRate = insightData
     ? getRate(insightData.weeklyCheckedHabitCount, weeklyHabitPossibleCount)
     : 0;
+  const weeklyPreviewOpen = params?.weeklyPreview === "1";
+  const weeklyReviewContext =
+    user && insightData && weeklyPreviewOpen
+      ? await buildWeeklyReviewContext(user.id, {
+          start: insightData.weekStart,
+          end: insightData.today,
+        })
+      : null;
+  const selectedWeeklyOriginalEventIds = weeklyReviewContext
+    ? params?.weeklyOriginalSelection === "custom"
+      ? getSearchParamValues(params, "weeklyOriginalEventId").filter((eventId) =>
+          weeklyReviewContext.originalCandidates.some((candidate) => candidate.eventId === eventId),
+        )
+      : weeklyReviewContext.originalCandidates.map((candidate) => candidate.eventId)
+    : [];
+  const isWeeklyAiReady =
+    aiStatus.hasProvider && aiStatus.hasBaseUrl && aiStatus.hasApiKey && aiStatus.hasWeeklyModel;
 
   return (
     <div className="page-stack">
@@ -404,6 +621,12 @@ export default async function InsightsPage() {
                 ))}
               </div>
             </div>
+
+            <div className="review-preview-actions">
+              <Link className="soft-button" href="/insights?weeklyPreview=1#weekly-review-preview">
+                打开周复盘发送预览
+              </Link>
+            </div>
           </>
         ) : (
           <div className="empty-state mt-5">
@@ -417,6 +640,14 @@ export default async function InsightsPage() {
           </div>
         )}
       </section>
+
+      {weeklyReviewContext ? (
+        <WeeklyReviewPreview
+          context={weeklyReviewContext}
+          selectedOriginalEventIds={selectedWeeklyOriginalEventIds}
+          isAiReady={isWeeklyAiReady}
+        />
+      ) : null}
 
       <section aria-labelledby="today-insights" className="panel-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
