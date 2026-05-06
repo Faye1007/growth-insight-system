@@ -71,8 +71,11 @@ type RecordTypeFilter = (typeof recordTypeOptions)[number]["value"];
 type DateRangeFilter = (typeof dateRangeOptions)[number]["value"];
 type RecordsPageProps = {
   searchParams?: Promise<{
+    eventDeleted?: string;
+    ideaDeleted?: string;
     type?: string;
     range?: string;
+    scheduleDeleted?: string;
     taskDeleted?: string;
   }>;
 };
@@ -323,6 +326,30 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
           detail: "这条任务已从成长记录和统计中移除。",
         }
       : null;
+  const scheduleDeletedFeedback =
+    params?.scheduleDeleted === "1"
+      ? {
+          tone: "success" as const,
+          title: "日程已删除",
+          detail: "这条日程已从成长记录和统计中移除。",
+        }
+      : null;
+  const eventDeletedFeedback =
+    params?.eventDeleted === "1"
+      ? {
+          tone: "success" as const,
+          title: "事件已删除",
+          detail: "这条事件已从成长记录、统计和复盘上下文中移除。",
+        }
+      : null;
+  const ideaDeletedFeedback =
+    params?.ideaDeleted === "1"
+      ? {
+          tone: "success" as const,
+          title: "灵感已删除",
+          detail: "这条灵感已从成长记录和统计中移除。",
+        }
+      : null;
 
   return (
     <div className="page-stack">
@@ -340,6 +367,9 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
       </header>
 
       <FeedbackMessage feedback={taskDeletedFeedback} />
+      <FeedbackMessage feedback={scheduleDeletedFeedback} />
+      <FeedbackMessage feedback={eventDeletedFeedback} />
+      <FeedbackMessage feedback={ideaDeletedFeedback} />
 
       {!isLoggedIn ? (
         <section className="panel-card">

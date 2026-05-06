@@ -1,7 +1,18 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { softDeleteTaskAction, updateTaskAction } from "@/app/daily/actions";
+import {
+  deactivateHabitAction,
+  softDeleteIdeaAction,
+  softDeleteLifeEventAction,
+  softDeleteScheduleItemAction,
+  softDeleteTaskAction,
+  updateIdeaAction,
+  updateHabitAction,
+  updateLifeEventAction,
+  updateScheduleItemAction,
+  updateTaskAction,
+} from "@/app/daily/actions";
 import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -19,8 +30,17 @@ import {
   taskStatuses,
 } from "@/lib/tasks/options";
 import {
+  dailyHabitErrorFeedback,
+  dailyHabitUpdatedFeedback,
+  dailyRecordErrorFeedback,
+  dailyRecordUpdatedFeedback,
+  dailyScheduleErrorFeedback,
+  dailyScheduleUpdatedFeedback,
   dailyTaskErrorFeedback,
   dailyTaskUpdatedFeedback,
+  defaultHabitErrorFeedback,
+  defaultRecordErrorFeedback,
+  defaultScheduleErrorFeedback,
   defaultTaskErrorFeedback,
   getFeedbackByCode,
 } from "@/lib/feedback";
@@ -32,6 +52,12 @@ type DetailPageProps = {
     id?: string;
   }>;
   searchParams?: Promise<{
+    habitError?: string;
+    habitUpdated?: string;
+    recordError?: string;
+    recordUpdated?: string;
+    scheduleError?: string;
+    scheduleUpdated?: string;
     taskError?: string;
     taskUpdated?: string;
   }>;
@@ -62,6 +88,29 @@ const aiAnalysisPermissionLabels: Record<string, string> = {
   summary_only: "仅摘要参与",
   allow_original: "允许原文参与",
 };
+
+const emotionOptions = [
+  "平静",
+  "开心",
+  "满足",
+  "期待",
+  "兴奋",
+  "焦虑",
+  "疲惫",
+  "低落",
+  "委屈",
+  "生气",
+  "压力",
+  "混乱",
+  "孤独",
+  "感激",
+];
+
+const aiAnalysisPermissions = [
+  { value: "none", label: "不参与 AI 分析" },
+  { value: "summary_only", label: "仅摘要参与" },
+  { value: "allow_original", label: "允许原文参与" },
+] as const;
 
 const dateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
   timeZone: "Asia/Shanghai",
@@ -231,6 +280,15 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
 
   if (kind === "habit") {
     const checkin = await getHabitDetailForUser(user.id, id);
+    const habitErrorFeedback = getFeedbackByCode(
+      resolvedSearchParams?.habitError,
+      dailyHabitErrorFeedback,
+      defaultHabitErrorFeedback,
+    );
+    const habitUpdatedFeedback = getFeedbackByCode(
+      resolvedSearchParams?.habitUpdated,
+      dailyHabitUpdatedFeedback,
+    );
 
     if (!checkin) {
       return <NotFoundDetail kindLabel={kindLabels[kind]} />;
@@ -241,6 +299,8 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
         <section className="panel-card">
           <div className="detail-grid">
             <DetailField label="习惯分类" value={getTaskCategoryLabel(checkin.habitCategory)} />
+            <DetailField label="启用状态" value={checkin.habitIsActive ? "启用中" : "已停用"} />
+            <DetailField label="开始日期" value={formatDateValue(checkin.habitStartDate)} />
             <DetailField label="打卡日期" value={formatDateValue(checkin.checkinDate)} />
             <DetailField label="打卡状态" value={habitCheckinStatusLabels[checkin.status] ?? checkin.status} />
             <DetailField label="创建时间" value={formatDateTimeValue(checkin.createdAt)} />
@@ -251,12 +311,28 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
           <h2 className="section-heading">复盘 / 备注</h2>
           <p className="detail-copy mt-3">{checkin.note || "未记录"}</p>
         </section>
+        <section className="panel-card">
+          <h2 className="section-heading">习惯说明</h2>
+          <p className="detail-copy mt-3">{checkin.habitDescription || "未记录"}</p>
+        </section>
+        <FeedbackMessage feedback={habitErrorFeedback} />
+        <FeedbackMessage feedback={habitUpdatedFeedback} />
+        <HabitDetailEditSection recordId={id} habit={checkin} />
       </DetailLayout>
     );
   }
 
   if (kind === "schedule") {
     const item = await getScheduleDetailForUser(user.id, id);
+    const scheduleErrorFeedback = getFeedbackByCode(
+      resolvedSearchParams?.scheduleError,
+      dailyScheduleErrorFeedback,
+      defaultScheduleErrorFeedback,
+    );
+    const scheduleUpdatedFeedback = getFeedbackByCode(
+      resolvedSearchParams?.scheduleUpdated,
+      dailyScheduleUpdatedFeedback,
+    );
 
     if (!item) {
       return <NotFoundDetail kindLabel={kindLabels[kind]} />;
@@ -264,6 +340,8 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
 
     return (
       <DetailLayout kindLabel={kindLabels[kind]} title={item.title}>
+        <FeedbackMessage feedback={scheduleErrorFeedback} />
+        <FeedbackMessage feedback={scheduleUpdatedFeedback} />
         <section className="panel-card">
           <div className="detail-grid">
             <DetailField label="分类" value={getTaskCategoryLabel(item.category)} />
@@ -277,12 +355,22 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
           <h2 className="section-heading">日程说明</h2>
           <p className="detail-copy mt-3">{item.description || "未记录"}</p>
         </section>
+        <ScheduleDetailEditSection scheduleId={id} item={item} />
       </DetailLayout>
     );
   }
 
   if (kind === "event") {
     const event = await getEventDetailForUser(user.id, id);
+    const recordErrorFeedback = getFeedbackByCode(
+      resolvedSearchParams?.recordError,
+      dailyRecordErrorFeedback,
+      defaultRecordErrorFeedback,
+    );
+    const recordUpdatedFeedback = getFeedbackByCode(
+      resolvedSearchParams?.recordUpdated,
+      dailyRecordUpdatedFeedback,
+    );
 
     if (!event) {
       return <NotFoundDetail kindLabel={kindLabels[kind]} />;
@@ -290,6 +378,8 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
 
     return (
       <DetailLayout kindLabel={kindLabels[kind]} title="事件记录">
+        <FeedbackMessage feedback={recordErrorFeedback} />
+        <FeedbackMessage feedback={recordUpdatedFeedback} />
         <section className="panel-card">
           <div className="detail-grid">
             <DetailField label="事件日期" value={formatDateValue(event.eventDate)} />
@@ -322,11 +412,21 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
             <DetailField label="摘要" value={event.summary ?? "未记录"} />
           </div>
         </section>
+        <EventDetailEditSection eventId={id} event={event} />
       </DetailLayout>
     );
   }
 
   const idea = await getIdeaDetailForUser(user.id, id);
+  const recordErrorFeedback = getFeedbackByCode(
+    resolvedSearchParams?.recordError,
+    dailyRecordErrorFeedback,
+    defaultRecordErrorFeedback,
+  );
+  const recordUpdatedFeedback = getFeedbackByCode(
+    resolvedSearchParams?.recordUpdated,
+    dailyRecordUpdatedFeedback,
+  );
 
   if (!idea) {
     return <NotFoundDetail kindLabel={kindLabels[kind]} />;
@@ -334,6 +434,8 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
 
   return (
     <DetailLayout kindLabel={kindLabels[kind]} title="灵感记录">
+      <FeedbackMessage feedback={recordErrorFeedback} />
+      <FeedbackMessage feedback={recordUpdatedFeedback} />
       <section className="panel-card">
         <div className="detail-grid">
           <DetailField label="记录日期" value={formatDateValue(idea.ideaDate)} />
@@ -351,6 +453,7 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
         <h2 className="section-heading">处理说明</h2>
         <p className="detail-copy mt-3">{idea.solutionNote || "未记录"}</p>
       </section>
+      <IdeaDetailEditSection ideaId={id} idea={idea} />
     </DetailLayout>
   );
 }
@@ -436,6 +539,334 @@ function TaskDetailEditSection({
         </div>
         <button className="quiet-button danger-button" type="submit">
           删除任务
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function HabitDetailEditSection({
+  recordId,
+  habit,
+}: {
+  recordId: string;
+  habit: {
+    habitId: string;
+    habitName: string;
+    habitDescription: string | null;
+    habitCategory: (typeof taskCategories)[number]["value"];
+    habitStartDate: string | null;
+    habitIsActive: boolean;
+  };
+}) {
+  return (
+    <section className="panel-card">
+      <h2 className="section-heading">维护习惯</h2>
+      <form action={updateHabitAction} className="task-form mt-4">
+        <input type="hidden" name="habitId" value={habit.habitId} />
+        <input type="hidden" name="recordId" value={recordId} />
+        <input type="hidden" name="source" value="detail" />
+
+        <label className="form-field">
+          <span>习惯名称</span>
+          <input name="name" type="text" maxLength={120} defaultValue={habit.habitName} required />
+        </label>
+
+        <div className="task-form-grid">
+          <label className="form-field">
+            <span>分类</span>
+            <select name="category" defaultValue={habit.habitCategory}>
+              {taskCategories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="form-field">
+            <span>开始日期</span>
+            <input name="startDate" type="date" defaultValue={habit.habitStartDate ?? ""} required />
+          </label>
+        </div>
+
+        <label className="form-field">
+          <span>习惯说明</span>
+          <textarea name="description" rows={4} defaultValue={habit.habitDescription ?? ""} />
+        </label>
+
+        <div className="task-edit-actions">
+          <button className="soft-button" type="submit">
+            保存习惯
+          </button>
+        </div>
+      </form>
+
+      {habit.habitIsActive ? (
+        <form action={deactivateHabitAction} className="danger-zone mt-4">
+          <input type="hidden" name="habitId" value={habit.habitId} />
+          <input type="hidden" name="recordId" value={recordId} />
+          <input type="hidden" name="source" value="detail" />
+          <div>
+            <h3 className="list-label">停用习惯</h3>
+            <p className="body-copy mt-1">停用后，这个习惯不会再出现在今日打卡列表，历史打卡记录仍会保留。</p>
+          </div>
+          <button className="quiet-button danger-button" type="submit">
+            停用习惯
+          </button>
+        </form>
+      ) : null}
+    </section>
+  );
+}
+
+function ScheduleDetailEditSection({
+  scheduleId,
+  item,
+}: {
+  scheduleId: string;
+  item: {
+    title: string;
+    description: string | null;
+    category: (typeof taskCategories)[number]["value"];
+    scheduleDate: string;
+    startTime: string | null;
+    endTime: string | null;
+  };
+}) {
+  return (
+    <section className="panel-card">
+      <h2 className="section-heading">编辑日程</h2>
+      <form action={updateScheduleItemAction} className="task-form mt-4">
+        <input type="hidden" name="scheduleId" value={scheduleId} />
+        <input type="hidden" name="source" value="detail" />
+
+        <label className="form-field">
+          <span>日程标题</span>
+          <input name="title" type="text" maxLength={120} defaultValue={item.title} required />
+        </label>
+
+        <div className="task-form-grid">
+          <label className="form-field">
+            <span>分类</span>
+            <select name="category" defaultValue={item.category}>
+              {taskCategories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="form-field">
+            <span>日期</span>
+            <input name="scheduleDate" type="date" defaultValue={item.scheduleDate} required />
+          </label>
+
+          <label className="form-field">
+            <span>开始时间</span>
+            <input name="startTime" type="time" defaultValue={item.startTime?.slice(0, 5) ?? ""} required />
+          </label>
+
+          <label className="form-field">
+            <span>结束时间</span>
+            <input name="endTime" type="time" defaultValue={item.endTime?.slice(0, 5) ?? ""} />
+          </label>
+        </div>
+
+        <label className="form-field">
+          <span>日程说明</span>
+          <textarea name="description" rows={4} defaultValue={item.description ?? ""} />
+        </label>
+
+        <div className="task-edit-actions">
+          <button className="soft-button" type="submit">
+            保存日程
+          </button>
+        </div>
+      </form>
+
+      <form action={softDeleteScheduleItemAction} className="danger-zone mt-4">
+        <input type="hidden" name="scheduleId" value={scheduleId} />
+        <input type="hidden" name="source" value="detail" />
+        <div>
+          <h3 className="list-label">删除日程</h3>
+          <p className="body-copy mt-1">删除后，这条日程不会再出现在工作台、成长记录和统计里。</p>
+        </div>
+        <button className="quiet-button danger-button" type="submit">
+          删除日程
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function EventDetailEditSection({
+  eventId,
+  event,
+}: {
+  eventId: string;
+  event: {
+    content: string;
+    eventDate: string;
+    emotionTags: string[];
+    tags: string[];
+    specificEvent: string | null;
+    nextAction: string | null;
+    aiAnalysisPermission: string;
+    summary: string | null;
+  };
+}) {
+  return (
+    <section className="panel-card">
+      <h2 className="section-heading">编辑事件</h2>
+      <form action={updateLifeEventAction} className="task-form mt-4">
+        <input type="hidden" name="eventId" value={eventId} />
+        <input type="hidden" name="source" value="detail" />
+
+        <div className="task-form-grid">
+          <label className="form-field">
+            <span>日期</span>
+            <input name="recordDate" type="date" defaultValue={event.eventDate} required />
+          </label>
+
+          <label className="form-field">
+            <span>AI 分析权限</span>
+            <select name="aiAnalysisPermission" defaultValue={event.aiAnalysisPermission}>
+              {aiAnalysisPermissions.map((permission) => (
+                <option key={permission.value} value={permission.value}>
+                  {permission.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <label className="form-field">
+          <span>内容</span>
+          <textarea name="content" maxLength={1200} defaultValue={event.content} required rows={5} />
+        </label>
+
+        <div className="task-form-grid">
+          <label className="form-field">
+            <span>情绪标签</span>
+            <select name="emotionTags" multiple size={5} defaultValue={event.emotionTags}>
+              {emotionOptions.map((emotion) => (
+                <option key={emotion} value={emotion}>
+                  {emotion}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="form-field">
+            <span>普通标签</span>
+            <input name="tags" type="text" defaultValue={event.tags.join(", ")} />
+          </label>
+
+          <label className="form-field">
+            <span>摘要</span>
+            <textarea name="summary" rows={5} defaultValue={event.summary ?? ""} />
+          </label>
+        </div>
+
+        <div className="task-form-grid">
+          <label className="form-field">
+            <span>具体事件</span>
+            <input name="specificEvent" type="text" defaultValue={event.specificEvent ?? ""} />
+          </label>
+
+          <label className="form-field">
+            <span>下次行动</span>
+            <input name="nextAction" type="text" defaultValue={event.nextAction ?? ""} />
+          </label>
+        </div>
+
+        <div className="task-edit-actions">
+          <button className="soft-button" type="submit">
+            保存事件
+          </button>
+        </div>
+      </form>
+
+      <form action={softDeleteLifeEventAction} className="danger-zone mt-4">
+        <input type="hidden" name="eventId" value={eventId} />
+        <input type="hidden" name="source" value="detail" />
+        <div>
+          <h3 className="list-label">删除事件</h3>
+          <p className="body-copy mt-1">删除后，这条事件不会再出现在工作台、成长记录、统计和复盘上下文里。</p>
+        </div>
+        <button className="quiet-button danger-button" type="submit">
+          删除事件
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function IdeaDetailEditSection({
+  ideaId,
+  idea,
+}: {
+  ideaId: string;
+  idea: {
+    content: string;
+    ideaDate: string;
+    status: string;
+    solutionNote: string | null;
+  };
+}) {
+  return (
+    <section className="panel-card">
+      <h2 className="section-heading">编辑灵感</h2>
+      <form action={updateIdeaAction} className="task-form mt-4">
+        <input type="hidden" name="ideaId" value={ideaId} />
+        <input type="hidden" name="source" value="detail" />
+
+        <div className="task-form-grid">
+          <label className="form-field">
+            <span>日期</span>
+            <input name="ideaDate" type="date" defaultValue={idea.ideaDate} required />
+          </label>
+
+          <label className="form-field">
+            <span>状态</span>
+            <select name="status" defaultValue={idea.status}>
+              {Object.entries(ideaStatusLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <label className="form-field">
+          <span>内容</span>
+          <textarea name="content" maxLength={1200} defaultValue={idea.content} required rows={5} />
+        </label>
+
+        <label className="form-field">
+          <span>处理说明</span>
+          <textarea name="solutionNote" rows={4} defaultValue={idea.solutionNote ?? ""} />
+        </label>
+
+        <div className="task-edit-actions">
+          <button className="soft-button" type="submit">
+            保存灵感
+          </button>
+        </div>
+      </form>
+
+      <form action={softDeleteIdeaAction} className="danger-zone mt-4">
+        <input type="hidden" name="ideaId" value={ideaId} />
+        <input type="hidden" name="source" value="detail" />
+        <div>
+          <h3 className="list-label">删除灵感</h3>
+          <p className="body-copy mt-1">删除后，这条灵感不会再出现在工作台、成长记录和统计里。</p>
+        </div>
+        <button className="quiet-button danger-button" type="submit">
+          删除灵感
         </button>
       </form>
     </section>

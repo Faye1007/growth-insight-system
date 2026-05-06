@@ -144,6 +144,16 @@ export const dailyHabitUpdatedFeedback: Record<string, FeedbackMessage> = {
     title: "打卡已取消",
     detail: "今日打卡状态已恢复为未完成。",
   },
+  edited: {
+    tone: "success",
+    title: "习惯已保存",
+    detail: "习惯名称、分类、说明或开始日期已更新。",
+  },
+  deactivated: {
+    tone: "success",
+    title: "习惯已停用",
+    detail: "这个习惯不会再出现在今日打卡列表，历史打卡记录仍会保留。",
+  },
 };
 
 export const dailyScheduleErrorFeedback: Record<string, FeedbackMessage> = {
@@ -162,10 +172,28 @@ export const dailyScheduleErrorFeedback: Record<string, FeedbackMessage> = {
     title: "日程时间格式不正确",
     detail: "请重新选择开始时间或结束时间。",
   },
+  missing_schedule: {
+    tone: "error",
+    title: "没有找到这条日程",
+    detail: "这条日程可能已经不存在。请刷新页面后重试。",
+  },
   save_failed: {
     tone: "error",
     title: "日程没有保存成功",
     detail: "请稍后重试；如果连续失败，可以先刷新页面再操作。",
+  },
+};
+
+export const dailyScheduleUpdatedFeedback: Record<string, FeedbackMessage> = {
+  edited: {
+    tone: "success",
+    title: "日程已保存",
+    detail: "日程标题、分类、日期、时间或说明已更新。",
+  },
+  deleted: {
+    tone: "success",
+    title: "日程已删除",
+    detail: "这条日程已从每日工作台、成长记录和统计中移除。",
   },
 };
 
@@ -179,6 +207,16 @@ export const dailyRecordErrorFeedback: Record<string, FeedbackMessage> = {
     tone: "error",
     title: "记录类型无法识别",
     detail: "请刷新页面后重新选择事件或灵感。",
+  },
+  missing_event: {
+    tone: "error",
+    title: "没有找到这条事件",
+    detail: "这条事件可能已经不存在。请刷新页面后重试。",
+  },
+  missing_idea: {
+    tone: "error",
+    title: "没有找到这条灵感",
+    detail: "这条灵感可能已经不存在。请刷新页面后重试。",
   },
   save_failed: {
     tone: "error",
@@ -197,6 +235,29 @@ export const dailyRecordCreatedFeedback: Record<string, FeedbackMessage> = {
     tone: "success",
     title: "灵感已保存",
     detail: "灵感已保存为待处理状态。",
+  },
+};
+
+export const dailyRecordUpdatedFeedback: Record<string, FeedbackMessage> = {
+  event_edited: {
+    tone: "success",
+    title: "事件已保存",
+    detail: "事件内容、日期、标签或 AI 分析权限已更新。",
+  },
+  event_deleted: {
+    tone: "success",
+    title: "事件已删除",
+    detail: "这条事件已从每日工作台、成长记录、统计和复盘上下文中移除。",
+  },
+  idea_edited: {
+    tone: "success",
+    title: "灵感已保存",
+    detail: "灵感内容、日期、状态或处理说明已更新。",
+  },
+  idea_deleted: {
+    tone: "success",
+    title: "灵感已删除",
+    detail: "这条灵感已从每日工作台、成长记录和统计中移除。",
   },
 };
 

@@ -16,11 +16,19 @@ import {
   createLifeEventForUser,
   createScheduleItemForUser,
   createTaskForUser,
+  deactivateHabitForUser,
   getActiveHabitIdForUser,
   getCompletedDailyReviewReportIdForUser,
   getTaskDateForUser,
   postponeTaskForUser,
+  softDeleteIdeaForUser,
+  softDeleteLifeEventForUser,
+  softDeleteScheduleItemForUser,
   softDeleteTaskForUser,
+  updateIdeaForUser,
+  updateHabitForUser,
+  updateLifeEventForUser,
+  updateScheduleItemForUser,
   updateTaskStatusForUser,
   updateTaskForUser,
   upsertDailyReviewReportForUser,
@@ -77,6 +85,12 @@ function isAiAnalysisPermission(
   value: string,
 ): value is "none" | "summary_only" | "allow_original" {
   return value === "none" || value === "summary_only" || value === "allow_original";
+}
+
+function isIdeaStatus(
+  value: string,
+): value is "to_review" | "converted_to_task" | "shelved" | "abandoned" {
+  return value === "to_review" || value === "converted_to_task" || value === "shelved" || value === "abandoned";
 }
 
 export async function createTaskAction(formData: FormData) {
@@ -290,6 +304,104 @@ export async function createHabitAction(formData: FormData) {
   redirect("/daily?habitCreated=1#habits");
 }
 
+export async function updateHabitAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const habitId = getStringValue(formData, "habitId");
+  const source = getStringValue(formData, "source");
+  const recordId = getStringValue(formData, "recordId");
+  const name = getStringValue(formData, "name");
+  const description = getStringValue(formData, "description");
+  const categoryValue = getStringValue(formData, "category");
+  const startDateValue = getStringValue(formData, "startDate");
+  const category = isTaskCategory(categoryValue) ? categoryValue : "other";
+  const startDate = isValidDateValue(startDateValue) ? startDateValue : getBeijingDateValue();
+
+  if (!habitId) {
+    redirect(
+      source === "detail" && recordId
+        ? `/records/habit/${recordId}?habitError=missing_habit`
+        : "/daily?habitError=missing_habit#habits",
+    );
+  }
+
+  if (!name) {
+    redirect(
+      source === "detail" && recordId
+        ? `/records/habit/${recordId}?habitError=missing_name`
+        : "/daily?habitError=missing_name#habits",
+    );
+  }
+
+  try {
+    await updateHabitForUser({
+      userId: user.id,
+      habitId,
+      name,
+      description: description || null,
+      category,
+      startDate,
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect(
+      source === "detail" && recordId
+        ? `/records/habit/${recordId}?habitError=save_failed`
+        : "/daily?habitError=save_failed#habits",
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+
+  if (source === "detail" && recordId) {
+    revalidatePath(`/records/habit/${recordId}`);
+    redirect(`/records/habit/${recordId}?habitUpdated=edited`);
+  }
+
+  redirect("/daily?habitUpdated=edited#habits");
+}
+
+export async function deactivateHabitAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const habitId = getStringValue(formData, "habitId");
+  const source = getStringValue(formData, "source");
+  const recordId = getStringValue(formData, "recordId");
+
+  if (!habitId) {
+    redirect(
+      source === "detail" && recordId
+        ? `/records/habit/${recordId}?habitError=missing_habit`
+        : "/daily?habitError=missing_habit#habits",
+    );
+  }
+
+  try {
+    await deactivateHabitForUser({
+      userId: user.id,
+      habitId,
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect(
+      source === "detail" && recordId
+        ? `/records/habit/${recordId}?habitError=save_failed`
+        : "/daily?habitError=save_failed#habits",
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+
+  if (source === "detail" && recordId) {
+    revalidatePath(`/records/habit/${recordId}`);
+    redirect(`/records/habit/${recordId}?habitUpdated=deactivated`);
+  }
+
+  redirect("/daily?habitUpdated=deactivated#habits");
+}
+
 export async function updateHabitCheckinAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const habitId = getStringValue(formData, "habitId");
@@ -370,6 +482,117 @@ export async function createScheduleItemAction(formData: FormData) {
   redirect("/daily?scheduleCreated=1#schedule");
 }
 
+export async function updateScheduleItemAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const scheduleId = getStringValue(formData, "scheduleId");
+  const title = getStringValue(formData, "title");
+  const source = getStringValue(formData, "source");
+  const baseDetailPath = scheduleId ? `/records/schedule/${scheduleId}` : "/records";
+
+  if (!scheduleId) {
+    redirect("/daily?scheduleError=missing_schedule#schedule");
+  }
+
+  if (!title) {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?scheduleError=missing_title`
+        : "/daily?scheduleError=missing_title#schedule",
+    );
+  }
+
+  const categoryValue = getStringValue(formData, "category");
+  const scheduleDateValue = getStringValue(formData, "scheduleDate");
+  const startTimeValue = getStringValue(formData, "startTime");
+  const endTimeValue = getStringValue(formData, "endTime");
+  const category = isTaskCategory(categoryValue) ? categoryValue : "other";
+  const scheduleDate = isValidDateValue(scheduleDateValue) ? scheduleDateValue : getBeijingDateValue();
+  const description = getStringValue(formData, "description") || null;
+
+  if (!isValidTimeValue(startTimeValue)) {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?scheduleError=missing_time`
+        : "/daily?scheduleError=missing_time#schedule",
+    );
+  }
+
+  if (endTimeValue && !isValidTimeValue(endTimeValue)) {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?scheduleError=invalid_time`
+        : "/daily?scheduleError=invalid_time#schedule",
+    );
+  }
+
+  try {
+    await updateScheduleItemForUser({
+      userId: user.id,
+      scheduleId,
+      title,
+      description,
+      category,
+      scheduleDate,
+      startTime: startTimeValue,
+      endTime: endTimeValue || null,
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?scheduleError=save_failed`
+        : "/daily?scheduleError=save_failed#schedule",
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+  revalidatePath(baseDetailPath);
+
+  if (source === "detail") {
+    redirect(`${baseDetailPath}?scheduleUpdated=edited`);
+  }
+
+  redirect("/daily?scheduleUpdated=edited#schedule");
+}
+
+export async function softDeleteScheduleItemAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const scheduleId = getStringValue(formData, "scheduleId");
+  const source = getStringValue(formData, "source");
+  const baseDetailPath = scheduleId ? `/records/schedule/${scheduleId}` : "/records";
+
+  if (!scheduleId) {
+    redirect("/daily?scheduleError=missing_schedule#schedule");
+  }
+
+  try {
+    await softDeleteScheduleItemForUser({
+      userId: user.id,
+      scheduleId,
+      deletedAt: new Date(),
+    });
+  } catch {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?scheduleError=save_failed`
+        : "/daily?scheduleError=save_failed#schedule",
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+  revalidatePath(baseDetailPath);
+
+  if (source === "detail") {
+    redirect("/records?scheduleDeleted=1");
+  }
+
+  redirect("/daily?scheduleUpdated=deleted#schedule");
+}
+
 export async function createQuickRecordAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const recordType = getStringValue(formData, "recordType");
@@ -421,6 +644,192 @@ export async function createQuickRecordAction(formData: FormData) {
   }
 
   redirect("/daily?recordError=invalid_type#notes");
+}
+
+export async function updateLifeEventAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const eventId = getStringValue(formData, "eventId");
+  const content = getStringValue(formData, "content");
+  const source = getStringValue(formData, "source");
+  const baseDetailPath = eventId ? `/records/event/${eventId}` : "/records";
+
+  if (!eventId) {
+    redirect("/daily?recordError=missing_event#notes");
+  }
+
+  if (!content) {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?recordError=missing_content`
+        : "/daily?recordError=missing_content#notes",
+    );
+  }
+
+  const dateValue = getStringValue(formData, "recordDate");
+  const recordDate = isValidDateValue(dateValue) ? dateValue : getBeijingDateValue();
+  const aiPermissionValue = getStringValue(formData, "aiAnalysisPermission");
+  const aiAnalysisPermission = isAiAnalysisPermission(aiPermissionValue)
+    ? aiPermissionValue
+    : "summary_only";
+
+  try {
+    await updateLifeEventForUser({
+      userId: user.id,
+      eventId,
+      eventDate: recordDate,
+      content,
+      emotionTags: getStringValues(formData, "emotionTags"),
+      tags: getTagsValue(getStringValue(formData, "tags")),
+      specificEvent: getStringValue(formData, "specificEvent") || null,
+      nextAction: getStringValue(formData, "nextAction") || null,
+      aiAnalysisPermission,
+      summary: getStringValue(formData, "summary") || null,
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?recordError=save_failed`
+        : "/daily?recordError=save_failed#notes",
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+  revalidatePath(baseDetailPath);
+
+  if (source === "detail") {
+    redirect(`${baseDetailPath}?recordUpdated=event_edited`);
+  }
+
+  redirect("/daily?recordUpdated=event_edited#notes");
+}
+
+export async function softDeleteLifeEventAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const eventId = getStringValue(formData, "eventId");
+  const source = getStringValue(formData, "source");
+  const baseDetailPath = eventId ? `/records/event/${eventId}` : "/records";
+
+  if (!eventId) {
+    redirect("/daily?recordError=missing_event#notes");
+  }
+
+  try {
+    await softDeleteLifeEventForUser({
+      userId: user.id,
+      eventId,
+      deletedAt: new Date(),
+    });
+  } catch {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?recordError=save_failed`
+        : "/daily?recordError=save_failed#notes",
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+  revalidatePath(baseDetailPath);
+
+  if (source === "detail") {
+    redirect("/records?eventDeleted=1");
+  }
+
+  redirect("/daily?recordUpdated=event_deleted#notes");
+}
+
+export async function updateIdeaAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const ideaId = getStringValue(formData, "ideaId");
+  const content = getStringValue(formData, "content");
+  const source = getStringValue(formData, "source");
+  const baseDetailPath = ideaId ? `/records/idea/${ideaId}` : "/records";
+
+  if (!ideaId) {
+    redirect("/daily?recordError=missing_idea#notes");
+  }
+
+  if (!content) {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?recordError=missing_content`
+        : "/daily?recordError=missing_content#notes",
+    );
+  }
+
+  const dateValue = getStringValue(formData, "ideaDate");
+  const ideaDate = isValidDateValue(dateValue) ? dateValue : getBeijingDateValue();
+  const statusValue = getStringValue(formData, "status");
+  const status = isIdeaStatus(statusValue) ? statusValue : "to_review";
+
+  try {
+    await updateIdeaForUser({
+      userId: user.id,
+      ideaId,
+      ideaDate,
+      content,
+      status,
+      solutionNote: getStringValue(formData, "solutionNote") || null,
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?recordError=save_failed`
+        : "/daily?recordError=save_failed#notes",
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+  revalidatePath(baseDetailPath);
+
+  if (source === "detail") {
+    redirect(`${baseDetailPath}?recordUpdated=idea_edited`);
+  }
+
+  redirect("/daily?recordUpdated=idea_edited#notes");
+}
+
+export async function softDeleteIdeaAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const ideaId = getStringValue(formData, "ideaId");
+  const source = getStringValue(formData, "source");
+  const baseDetailPath = ideaId ? `/records/idea/${ideaId}` : "/records";
+
+  if (!ideaId) {
+    redirect("/daily?recordError=missing_idea#notes");
+  }
+
+  try {
+    await softDeleteIdeaForUser({
+      userId: user.id,
+      ideaId,
+      deletedAt: new Date(),
+    });
+  } catch {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?recordError=save_failed`
+        : "/daily?recordError=save_failed#notes",
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+  revalidatePath(baseDetailPath);
+
+  if (source === "detail") {
+    redirect("/records?ideaDeleted=1");
+  }
+
+  redirect("/daily?recordUpdated=idea_deleted#notes");
 }
 
 export async function generateDailyReviewAction(formData: FormData) {

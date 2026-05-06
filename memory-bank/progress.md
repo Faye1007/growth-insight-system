@@ -2,11 +2,11 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试和 Step 10.1 任务编辑与软删除。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除和 Step 10.5 习惯维护。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
 - 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
@@ -1507,6 +1507,139 @@ Supabase Auth Redirect URL 需要配置：
 - 生产构建本地服务 `http://localhost:3005/insights` 返回 `200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
+### Step 10.2：日程编辑与删除
+
+已完成内容：
+
+- 在每日工作台今日日程列表中加入日程详情入口、编辑入口和软删除入口。
+- 支持编辑日程标题、分类、日期、开始时间、结束时间和说明。
+- 在日程详情页加入完整编辑表单，支持编辑同一批字段。
+- 支持软删除日程，写入 `schedule_items.deleted_at` 和 `updated_at`，不做物理删除。
+- 删除后的日程不再出现在每日工作台、成长记录、洞察统计和每日复盘上下文中。
+- 编辑日期后，日程会从当前日期工作台移出，并出现在对应日期的数据查询结果中。
+- 日程编辑和软删除 Server Action 写入前都必须通过 `requireCurrentUser()` 获取当前登录用户。
+- 日程编辑和软删除的数据访问层继续使用 Supabase SSR client，并显式限定当前 `user_id` 和 `deleted_at is null`。
+- 用户 A 不能通过页面操作编辑或软删除用户 B 的日程；不存在、已删除或不属于当前账号的日程会被视为找不到。
+- 本 Step 复用已有 `schedule_items.deleted_at` 字段，没有修改数据库 schema，也没有执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/records/page.tsx`
+- `src/app/records/[kind]/[id]/page.tsx`
+- `src/lib/data/user-data.ts`
+- `src/lib/feedback.ts`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
+
+### Step 10.3：事件编辑与删除
+
+已完成内容：
+
+- 在每日工作台随手记录的事件列表中加入事件详情入口、编辑入口和软删除入口。
+- 支持编辑事件内容、日期、情绪标签、普通标签、AI 分析权限、具体事件、下次行动和摘要。
+- 在事件详情页加入完整编辑表单，支持编辑同一批字段。
+- 支持软删除事件，写入 `life_events.deleted_at` 和 `updated_at`，不做物理删除。
+- 删除后的事件不再出现在每日工作台、成长记录、洞察统计和每日复盘上下文中。
+- 编辑 AI 分析权限后，每日复盘预览会按最新权限生成候选内容。
+- 事件编辑和软删除 Server Action 写入前都必须通过 `requireCurrentUser()` 获取当前登录用户。
+- 事件编辑和软删除的数据访问层继续使用 Supabase SSR client，并显式限定当前 `user_id` 和 `deleted_at is null`。
+- 用户 A 不能通过页面操作编辑或软删除用户 B 的事件；不存在、已删除或不属于当前账号的事件会被视为找不到。
+- 本 Step 复用已有 `life_events.deleted_at` 字段，没有修改数据库 schema，也没有执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/records/page.tsx`
+- `src/app/records/[kind]/[id]/page.tsx`
+- `src/lib/data/user-data.ts`
+- `src/lib/feedback.ts`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
+
+### Step 10.4：灵感编辑与删除
+
+已完成内容：
+
+- 在每日工作台随手记录的灵感列表中加入灵感详情入口、编辑入口和软删除入口。
+- 支持编辑灵感内容、日期、状态和处理说明。
+- 在灵感详情页加入完整编辑表单，支持编辑同一批字段。
+- 支持软删除灵感，写入 `ideas.deleted_at` 和 `updated_at`，不做物理删除。
+- 删除后的灵感不再出现在每日工作台、成长记录、洞察统计和每日复盘上下文中。
+- 编辑状态后，灵感会按最新状态在每日工作台和详情页展示。
+- 灵感编辑和软删除 Server Action 写入前都必须通过 `requireCurrentUser()` 获取当前登录用户。
+- 灵感编辑和软删除的数据访问层继续使用 Supabase SSR client，并显式限定当前 `user_id` 和 `deleted_at is null`。
+- 用户 A 不能通过页面操作编辑或软删除用户 B 的灵感；不存在、已删除或不属于当前账号的灵感会被视为找不到。
+- 本 Step 复用已有 `ideas.deleted_at` 字段，没有修改数据库 schema，也没有执行迁移。
+
+本次新增或更新的文件：
+
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/records/page.tsx`
+- `src/app/records/[kind]/[id]/page.tsx`
+- `src/lib/data/user-data.ts`
+- `src/lib/feedback.ts`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
+
+### Step 10.5：习惯维护
+
+已完成内容：
+
+- 在每日工作台习惯列表中加入习惯编辑入口和停用入口。
+- 支持编辑习惯名称、分类、说明和开始日期。
+- 在习惯打卡详情页展示对应习惯的说明、启用状态和开始日期。
+- 在习惯打卡详情页加入对应习惯的编辑表单和停用入口。
+- 支持停用习惯，写入 `habits.is_active = false` 和 `updated_at`，不删除习惯记录。
+- 停用后的习惯不再出现在今日打卡列表和启用习惯统计中。
+- 停用习惯不会删除 `habit_checkins`，历史打卡记录仍保留在成长记录和打卡详情中。
+- 习惯编辑和停用 Server Action 写入前都必须通过 `requireCurrentUser()` 获取当前登录用户。
+- 习惯编辑和停用的数据访问层继续使用 Supabase SSR client，并显式限定当前 `user_id` 和 `deleted_at is null`。
+- 用户 A 不能通过页面操作编辑或停用用户 B 的习惯；不存在、已删除或不属于当前账号的习惯会被视为找不到。
+- 本 Step 复用已有 `habits.description`、`habits.start_date` 和 `habits.is_active` 字段，没有修改数据库 schema，也没有执行迁移。
+- 本 Step 不实现习惯删除或软删除；习惯删除或软删除需先确认历史打卡展示和统计规则。
+
+本次新增或更新的文件：
+
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/records/[kind]/[id]/page.tsx`
+- `src/lib/data/user-data.ts`
+- `src/lib/feedback.ts`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
+
 ## Not Started
 
 - 自定义正式域名绑定
@@ -1514,6 +1647,6 @@ Supabase Auth Redirect URL 需要配置：
 
 ## Next Step Candidate
 
-Step 10.2：日程编辑与删除。
+Step 11.1：写入区默认收起。
 
-下一步建议继续补齐基础记录可维护能力，为日程加入编辑、软删除和详情页编辑入口。
+下一步建议优化每日工作台结构，让任务、习惯、日程和随手记录的创建表单默认收起，降低首屏信息密度。

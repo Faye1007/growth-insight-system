@@ -154,6 +154,7 @@ export type TodayTask = {
 export type ActiveHabit = {
   id: string;
   name: string;
+  description: string | null;
   category: TaskCategory;
   isActive: boolean;
   startDate: string | null;
@@ -169,6 +170,7 @@ export type HabitCheckin = {
 export type TodayScheduleItem = {
   id: string;
   title: string;
+  description: string | null;
   category: TaskCategory;
   scheduleDate: string;
   startTime: string | null;
@@ -182,7 +184,10 @@ export type TodayLifeEvent = {
   eventDate: string;
   emotionTags: string[];
   tags: string[];
+  specificEvent: string | null;
+  nextAction: string | null;
   aiAnalysisPermission: AiAnalysisPermission;
+  summary: string | null;
   createdAt: Date;
 };
 
@@ -191,6 +196,7 @@ export type TodayIdea = {
   content: string;
   ideaDate: string;
   status: IdeaStatus;
+  solutionNote: string | null;
   createdAt: Date;
 };
 
@@ -267,8 +273,12 @@ export type TaskDetail = {
 };
 
 export type HabitDetail = {
+  habitId: string;
   habitName: string;
+  habitDescription: string | null;
   habitCategory: TaskCategory;
+  habitStartDate: string | null;
+  habitIsActive: boolean;
   checkinDate: string;
   status: HabitCheckinStatus;
   note: string | null;
@@ -422,6 +432,7 @@ function mapActiveHabit(row: HabitRow): ActiveHabit {
   return {
     id: row.id,
     name: row.name,
+    description: row.description,
     category: row.category,
     isActive: row.is_active,
     startDate: row.start_date,
@@ -610,6 +621,55 @@ export async function createHabitForUser(input: {
   }
 }
 
+export async function updateHabitForUser(input: {
+  userId: string;
+  habitId: string;
+  name: string;
+  description: string | null;
+  category: TaskCategory;
+  startDate: string;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("habits")
+    .update({
+      name: input.name,
+      description: input.description,
+      category: input.category,
+      start_date: input.startDate,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.habitId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function deactivateHabitForUser(input: {
+  userId: string;
+  habitId: string;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("habits")
+    .update({
+      is_active: false,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.habitId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function getActiveHabitIdForUser(userId: string, habitId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -673,6 +733,60 @@ export async function createScheduleItemForUser(input: {
   }
 }
 
+export async function updateScheduleItemForUser(input: {
+  userId: string;
+  scheduleId: string;
+  title: string;
+  description: string | null;
+  category: TaskCategory;
+  scheduleDate: string;
+  startTime: string;
+  endTime: string | null;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("schedule_items")
+    .update({
+      title: input.title,
+      description: input.description,
+      category: input.category,
+      schedule_date: input.scheduleDate,
+      start_time: input.startTime,
+      end_time: input.endTime,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.scheduleId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function softDeleteScheduleItemForUser(input: {
+  userId: string;
+  scheduleId: string;
+  deletedAt: Date;
+}) {
+  const deletedAtIso = input.deletedAt.toISOString();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("schedule_items")
+    .update({
+      deleted_at: deletedAtIso,
+      updated_at: deletedAtIso,
+    })
+    .eq("id", input.scheduleId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function createLifeEventForUser(input: {
   userId: string;
   eventDate: string;
@@ -696,6 +810,64 @@ export async function createLifeEventForUser(input: {
   }
 }
 
+export async function updateLifeEventForUser(input: {
+  userId: string;
+  eventId: string;
+  eventDate: string;
+  content: string;
+  emotionTags: string[];
+  tags: string[];
+  specificEvent: string | null;
+  nextAction: string | null;
+  aiAnalysisPermission: AiAnalysisPermission;
+  summary: string | null;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("life_events")
+    .update({
+      event_date: input.eventDate,
+      content: input.content,
+      emotion_tags: input.emotionTags,
+      tags: input.tags,
+      specific_event: input.specificEvent,
+      next_action: input.nextAction,
+      ai_analysis_permission: input.aiAnalysisPermission,
+      summary: input.summary,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.eventId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function softDeleteLifeEventForUser(input: {
+  userId: string;
+  eventId: string;
+  deletedAt: Date;
+}) {
+  const deletedAtIso = input.deletedAt.toISOString();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("life_events")
+    .update({
+      deleted_at: deletedAtIso,
+      updated_at: deletedAtIso,
+    })
+    .eq("id", input.eventId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function createIdeaForUser(input: {
   userId: string;
   ideaDate: string;
@@ -708,6 +880,56 @@ export async function createIdeaForUser(input: {
     content: input.content,
     status: "to_review",
   });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updateIdeaForUser(input: {
+  userId: string;
+  ideaId: string;
+  ideaDate: string;
+  content: string;
+  status: IdeaStatus;
+  solutionNote: string | null;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("ideas")
+    .update({
+      idea_date: input.ideaDate,
+      content: input.content,
+      status: input.status,
+      solution_note: input.solutionNote,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.ideaId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function softDeleteIdeaForUser(input: {
+  userId: string;
+  ideaId: string;
+  deletedAt: Date;
+}) {
+  const deletedAtIso = input.deletedAt.toISOString();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("ideas")
+    .update({
+      deleted_at: deletedAtIso,
+      updated_at: deletedAtIso,
+    })
+    .eq("id", input.ideaId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
 
   if (error) {
     throw error;
@@ -798,7 +1020,7 @@ export async function getActiveHabitsForUser(userId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("habits")
-    .select("id,name,category,is_active,start_date,created_at")
+    .select("id,name,description,category,is_active,start_date,created_at")
     .eq("user_id", userId)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -815,7 +1037,7 @@ export async function getTodayScheduleItemsForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("id,title,category,schedule_date,start_time,end_time,created_at")
+    .select("id,title,description,category,schedule_date,start_time,end_time,created_at")
     .eq("user_id", userId)
     .eq("schedule_date", todayDate)
     .is("deleted_at", null)
@@ -826,6 +1048,7 @@ export async function getTodayScheduleItemsForUser(
   return assertArray(data, error).map((row) => ({
     id: row.id,
     title: row.title,
+    description: row.description,
     category: row.category,
     scheduleDate: row.schedule_date,
     startTime: row.start_time,
@@ -841,7 +1064,7 @@ export async function getTodayLifeEventsForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("life_events")
-    .select("id,content,event_date,emotion_tags,tags,ai_analysis_permission,created_at")
+    .select("id,content,event_date,emotion_tags,tags,specific_event,next_action,ai_analysis_permission,summary,created_at")
     .eq("user_id", userId)
     .eq("event_date", todayDate)
     .is("deleted_at", null)
@@ -854,7 +1077,10 @@ export async function getTodayLifeEventsForUser(
     eventDate: row.event_date,
     emotionTags: row.emotion_tags,
     tags: row.tags,
+    specificEvent: row.specific_event,
+    nextAction: row.next_action,
     aiAnalysisPermission: row.ai_analysis_permission,
+    summary: row.summary,
     createdAt: new Date(row.created_at),
   }));
 }
@@ -863,7 +1089,7 @@ export async function getTodayIdeasForUser(userId: string, todayDate: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("ideas")
-    .select("id,content,idea_date,status,created_at")
+    .select("id,content,idea_date,status,solution_note,created_at")
     .eq("user_id", userId)
     .eq("idea_date", todayDate)
     .is("deleted_at", null)
@@ -875,6 +1101,7 @@ export async function getTodayIdeasForUser(userId: string, todayDate: string) {
     content: row.content,
     ideaDate: row.idea_date,
     status: row.status,
+    solutionNote: row.solution_note,
     createdAt: new Date(row.created_at),
   }));
 }
@@ -1077,22 +1304,42 @@ export async function getHabitDetailForUser(userId: string, id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("habit_checkins")
-    .select("checkin_date,status,note,created_at,updated_at,habits!inner(name,category,user_id,deleted_at)")
+    .select("habit_id,checkin_date,status,note,created_at,updated_at,habits!inner(name,description,category,is_active,start_date,user_id,deleted_at)")
     .eq("id", id)
     .eq("user_id", userId)
     .eq("habits.user_id", userId)
     .is("habits.deleted_at", null)
-    .returns<HabitCheckinRow & { habits: { name: string; category: TaskCategory } }>()
+    .returns<HabitCheckinRow & {
+      habits: {
+        name: string;
+        description: string | null;
+        category: TaskCategory;
+        is_active: boolean;
+        start_date: string | null;
+      };
+    }>()
     .maybeSingle();
   const row = assertRow(
-    data as (HabitCheckinRow & { habits: { name: string; category: TaskCategory } }) | null,
+    data as (HabitCheckinRow & {
+      habits: {
+        name: string;
+        description: string | null;
+        category: TaskCategory;
+        is_active: boolean;
+        start_date: string | null;
+      };
+    }) | null,
     error,
   );
 
   return row
     ? {
+        habitId: row.habit_id,
         habitName: row.habits.name,
+        habitDescription: row.habits.description,
         habitCategory: row.habits.category,
+        habitStartDate: row.habits.start_date,
+        habitIsActive: row.habits.is_active,
         checkinDate: row.checkin_date,
         status: row.status,
         note: row.note,
