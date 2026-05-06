@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { and, asc, eq, gte, inArray, isNull, lte } from "drizzle-orm";
 import {
   BarChart3,
   CalendarDays,
@@ -9,21 +8,13 @@ import {
   Repeat2,
 } from "lucide-react";
 
-import { db } from "@/db";
-import {
-  habitCheckins as habitCheckinTable,
-  habits as habitTable,
-  ideas as ideaTable,
-  lifeEvents as lifeEventTable,
-  scheduleItems as scheduleItemTable,
-  tasks as taskTable,
-} from "@/db/schema";
 import { EmotionStatsChart } from "@/components/insights/emotion-stats-chart";
 import { HabitCheckinChart } from "@/components/insights/habit-checkin-chart";
 import { RecordTrendChart } from "@/components/insights/record-trend-chart";
 import { TaskCompletionChart } from "@/components/insights/task-completion-chart";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getAllHabitCheckinsForUser, getInsightRowsForUser } from "@/lib/data/user-data";
 import { getTaskCategoryLabel } from "@/lib/tasks/options";
 
 const weekDayCount = 7;
@@ -93,110 +84,21 @@ async function getInsightData(userId: string) {
     getBeijingDateAfter(index - (weekDayCount - 1)),
   );
 
-  const [tasks, activeHabits, habitCheckins, schedules, lifeEvents, ideas] = await Promise.all([
-    db
-      .select({
-        id: taskTable.id,
-        category: taskTable.category,
-        status: taskTable.status,
-        taskDate: taskTable.taskDate,
-      })
-      .from(taskTable)
-      .where(
-        and(
-          eq(taskTable.userId, userId),
-          isNull(taskTable.deletedAt),
-          gte(taskTable.taskDate, weekStart),
-          lte(taskTable.taskDate, today),
-        ),
-      )
-      .orderBy(asc(taskTable.taskDate)),
-    db
-      .select({
-        id: habitTable.id,
-        name: habitTable.name,
-        category: habitTable.category,
-      })
-      .from(habitTable)
-      .where(
-        and(eq(habitTable.userId, userId), eq(habitTable.isActive, true), isNull(habitTable.deletedAt)),
-      )
-      .orderBy(asc(habitTable.createdAt)),
-    db
-      .select({
-        habitId: habitCheckinTable.habitId,
-        checkinDate: habitCheckinTable.checkinDate,
-        status: habitCheckinTable.status,
-      })
-      .from(habitCheckinTable)
-      .where(
-        and(
-          eq(habitCheckinTable.userId, userId),
-          gte(habitCheckinTable.checkinDate, weekStart),
-          lte(habitCheckinTable.checkinDate, today),
-        ),
-      ),
-    db
-      .select({
-        scheduleDate: scheduleItemTable.scheduleDate,
-      })
-      .from(scheduleItemTable)
-      .where(
-        and(
-          eq(scheduleItemTable.userId, userId),
-          isNull(scheduleItemTable.deletedAt),
-          gte(scheduleItemTable.scheduleDate, weekStart),
-          lte(scheduleItemTable.scheduleDate, today),
-        ),
-      ),
-    db
-      .select({
-        eventDate: lifeEventTable.eventDate,
-        emotionTags: lifeEventTable.emotionTags,
-      })
-      .from(lifeEventTable)
-      .where(
-        and(
-          eq(lifeEventTable.userId, userId),
-          isNull(lifeEventTable.deletedAt),
-          gte(lifeEventTable.eventDate, weekStart),
-          lte(lifeEventTable.eventDate, today),
-        ),
-      ),
-    db
-      .select({
-        ideaDate: ideaTable.ideaDate,
-      })
-      .from(ideaTable)
-      .where(
-        and(
-          eq(ideaTable.userId, userId),
-          isNull(ideaTable.deletedAt),
-          gte(ideaTable.ideaDate, weekStart),
-          lte(ideaTable.ideaDate, today),
-        ),
-      ),
-  ]);
+  const {
+    tasks,
+    activeHabits,
+    habitCheckins,
+    schedules,
+    lifeEvents,
+    ideas,
+  } = await getInsightRowsForUser(userId, weekStart, today);
 
   const activeHabitIds = new Set(activeHabits.map((habit) => habit.id));
   const allHabitCheckins = activeHabits.length
-    ? await db
-        .select({
-          habitId: habitCheckinTable.habitId,
-          checkinDate: habitCheckinTable.checkinDate,
-          status: habitCheckinTable.status,
-        })
-        .from(habitCheckinTable)
-        .where(
-          and(
-            eq(habitCheckinTable.userId, userId),
-            inArray(
-              habitCheckinTable.habitId,
-              activeHabits.map((habit) => habit.id),
-            ),
-          ),
-        )
-        .orderBy(asc(habitCheckinTable.checkinDate))
+    ? await getAllHabitCheckinsForUser(
+        userId,
+        activeHabits.map((habit) => habit.id),
+      )
     : [];
   const todayTasks = tasks.filter((task) => task.taskDate === today);
   const todayCompletedTasks = todayTasks.filter((task) => task.status === "completed");

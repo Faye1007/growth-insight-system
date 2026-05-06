@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { and, desc, eq, isNull } from "drizzle-orm";
 import {
   CalendarDays,
   CheckCircle2,
@@ -9,17 +8,15 @@ import {
   Repeat2,
 } from "lucide-react";
 
-import { db } from "@/db";
-import {
-  habitCheckins as habitCheckinTable,
-  habits as habitTable,
-  ideas as ideaTable,
-  lifeEvents as lifeEventTable,
-  scheduleItems as scheduleItemTable,
-  tasks as taskTable,
-} from "@/db/schema";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
+import {
+  getRecentHabitCheckinsForUser,
+  getRecentIdeasForUser,
+  getRecentLifeEventsForUser,
+  getRecentScheduleItemsForUser,
+  getRecentTasksForUser,
+} from "@/lib/data/user-data";
 import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
 
 const recentLimitPerType = 12;
@@ -158,20 +155,7 @@ function getPreview(content: string) {
 }
 
 async function getRecentTasks(userId: string): Promise<TimelineRecord[]> {
-  const rows = await db
-    .select({
-      id: taskTable.id,
-      title: taskTable.title,
-      category: taskTable.category,
-      status: taskTable.status,
-      taskDate: taskTable.taskDate,
-      isPostponed: taskTable.isPostponed,
-      createdAt: taskTable.createdAt,
-    })
-    .from(taskTable)
-    .where(and(eq(taskTable.userId, userId), isNull(taskTable.deletedAt)))
-    .orderBy(desc(taskTable.createdAt))
-    .limit(recentLimitPerType);
+  const rows = await getRecentTasksForUser(userId, recentLimitPerType);
 
   return rows.map((task) => ({
     id: `task-${task.id}`,
@@ -193,25 +177,7 @@ async function getRecentTasks(userId: string): Promise<TimelineRecord[]> {
 }
 
 async function getRecentHabitCheckins(userId: string): Promise<TimelineRecord[]> {
-  const rows = await db
-    .select({
-      id: habitCheckinTable.id,
-      habitName: habitTable.name,
-      checkinDate: habitCheckinTable.checkinDate,
-      status: habitCheckinTable.status,
-      createdAt: habitCheckinTable.createdAt,
-    })
-    .from(habitCheckinTable)
-    .innerJoin(habitTable, eq(habitCheckinTable.habitId, habitTable.id))
-    .where(
-      and(
-        eq(habitCheckinTable.userId, userId),
-        eq(habitTable.userId, userId),
-        isNull(habitTable.deletedAt),
-      ),
-    )
-    .orderBy(desc(habitCheckinTable.createdAt))
-    .limit(recentLimitPerType);
+  const rows = await getRecentHabitCheckinsForUser(userId, recentLimitPerType);
 
   return rows.map((checkin) => ({
     id: `habit-${checkin.id}`,
@@ -229,20 +195,7 @@ async function getRecentHabitCheckins(userId: string): Promise<TimelineRecord[]>
 }
 
 async function getRecentScheduleItems(userId: string): Promise<TimelineRecord[]> {
-  const rows = await db
-    .select({
-      id: scheduleItemTable.id,
-      title: scheduleItemTable.title,
-      category: scheduleItemTable.category,
-      scheduleDate: scheduleItemTable.scheduleDate,
-      startTime: scheduleItemTable.startTime,
-      endTime: scheduleItemTable.endTime,
-      createdAt: scheduleItemTable.createdAt,
-    })
-    .from(scheduleItemTable)
-    .where(and(eq(scheduleItemTable.userId, userId), isNull(scheduleItemTable.deletedAt)))
-    .orderBy(desc(scheduleItemTable.createdAt))
-    .limit(recentLimitPerType);
+  const rows = await getRecentScheduleItemsForUser(userId, recentLimitPerType);
 
   return rows.map((item) => ({
     id: `schedule-${item.id}`,
@@ -260,19 +213,7 @@ async function getRecentScheduleItems(userId: string): Promise<TimelineRecord[]>
 }
 
 async function getRecentLifeEvents(userId: string): Promise<TimelineRecord[]> {
-  const rows = await db
-    .select({
-      id: lifeEventTable.id,
-      content: lifeEventTable.content,
-      eventDate: lifeEventTable.eventDate,
-      emotionTags: lifeEventTable.emotionTags,
-      tags: lifeEventTable.tags,
-      createdAt: lifeEventTable.createdAt,
-    })
-    .from(lifeEventTable)
-    .where(and(eq(lifeEventTable.userId, userId), isNull(lifeEventTable.deletedAt)))
-    .orderBy(desc(lifeEventTable.createdAt))
-    .limit(recentLimitPerType);
+  const rows = await getRecentLifeEventsForUser(userId, recentLimitPerType);
 
   return rows.map((event) => ({
     id: `event-${event.id}`,
@@ -290,18 +231,7 @@ async function getRecentLifeEvents(userId: string): Promise<TimelineRecord[]> {
 }
 
 async function getRecentIdeas(userId: string): Promise<TimelineRecord[]> {
-  const rows = await db
-    .select({
-      id: ideaTable.id,
-      content: ideaTable.content,
-      ideaDate: ideaTable.ideaDate,
-      status: ideaTable.status,
-      createdAt: ideaTable.createdAt,
-    })
-    .from(ideaTable)
-    .where(and(eq(ideaTable.userId, userId), isNull(ideaTable.deletedAt)))
-    .orderBy(desc(ideaTable.createdAt))
-    .limit(recentLimitPerType);
+  const rows = await getRecentIdeasForUser(userId, recentLimitPerType);
 
   return rows.map((idea) => ({
     id: `idea-${idea.id}`,

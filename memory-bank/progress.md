@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Step 8.1：更新架构文档。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移和本地 RLS 策略迁移文件生成。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果和 Step 8.1 架构文档完成态稳定。
-- 后续逐步接入 Row Level Security。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、每日工作台结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 后续如要真实启用 Row Level Security，必须先单独确认迁移文件、真实数据库执行权限和 RLS 后手工验收安排。
 
 ## Confirmed Decisions
 
@@ -1281,12 +1281,166 @@
 - 本 Step 只修改文档，未运行 `npm run lint` 或 `npm run build`。
 - Faye 已确认 Step 8.1 通过，并要求更新文档和提交 Git。
 
+### Step 8.2：更新进度文档
+
+已完成内容：
+
+- 更新 `memory-bank/progress.md`，把当前状态从 Step 8.1 调整为 Step 8.2。
+- 确认基础功能第一轮已完成的内容仍然只记录已验收通过的功能。
+- 保留未完成内容：Row Level Security 尚未配置。
+- 将下一步候选从 Step 8.2 调整为 Row Level Security 前置规划，避免继续停留在已完成的进度文档更新步骤。
+- 本 Step 只修改进度文档，不修改应用代码、架构文档、数据库 schema、迁移文件、`.env.local` 或真实数据库数据。
+
+本次新增或更新的文件：
+
+- `memory-bank/progress.md`
+
+验证记录：
+
+- 对照 `memory-bank/implementation-plan.md` 中 Step 8.2 的执行指令和验证测试检查。
+- 检查通过：已完成内容没有新增未验收功能。
+- 检查通过：未完成内容仍保留 Row Level Security。
+- 本 Step 只修改文档，未运行 `npm run lint` 或 `npm run build`。
+
+### Row Level Security 前置规划
+
+已完成内容：
+
+- 在 `memory-bank/@architecture.md` 中新增 Row Level Security 前置规划章节。
+- 明确当前关键约束：业务表已有 `user_id`，应用层已按用户 ID 限定，但业务读写主要通过 Drizzle 的 `DATABASE_URL` 直连数据库。
+- 明确风险：直接启用依赖 `auth.uid()` 的 RLS 策略，可能与当前 Drizzle 直连方式不匹配，导致 Server Actions 失效或策略没有达到预期保护效果。
+- 写清推荐路线：先保持应用层 `user_id` 限定，再为 RLS 做独立迁移；真实启用前必须在 Supabase SSR client 用户态读写和 Drizzle RLS 兼容会话之间选定路线。
+- 补充第一批 8 张业务表的 RLS 策略草案，包括 `tasks`、`habits`、`habit_checkins`、`schedule_items`、`life_events`、`ideas`、`insight_reports` 和 `personal_manuals`。
+- 补充真实启用前的验证清单，包括未登录访问、登录用户读写、跨用户 ID 篡改、写入当前用户 ID、设置页健康检查、lint 和 build。
+- 本 Step 只做规划文档，不启用 RLS，不生成迁移，不执行数据库变更，不修改 `.env.local`。
+
+本次新增或更新的文件：
+
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- 对照 `src/db/schema.ts` 和 `drizzle/0000_true_silver_sable.sql` 检查 8 张业务表均有 `user_id`。
+- 对照 `src/db/index.ts` 确认当前业务读写使用 Drizzle `DATABASE_URL` 直连数据库。
+- 对照 `src/lib/auth/session.ts` 和 `src/app/daily/actions.ts` 确认当前应用层写入仍通过 `requireCurrentUser()` 获取用户并写入 `user_id`。
+- 本 Step 只修改文档，未运行 `npm run lint` 或 `npm run build`。
+
+### Row Level Security 路线确认与策略迁移设计
+
+已完成内容：
+
+- 确认 RLS 路线采用 Supabase SSR client 用户态读写。
+- 新增 `src/lib/data/user-data.ts`，集中承载登录用户的任务、习惯、打卡、日程、事件、灵感、成长记录、洞察统计和每日复盘缓存读写。
+- 每日工作台 Server Actions 改为通过 Supabase SSR client 写入业务表，不再通过 Drizzle `DATABASE_URL` 直连执行普通用户请求。
+- 每日工作台、成长记录列表、记录详情、洞察报告和每日复盘上下文读取均改为通过 Supabase SSR client。
+- 所有用户态查询和写入继续显式限定当前 `user_id`，不只依赖 RLS。
+- `src/db/index.ts` 保留给 Drizzle schema、迁移、设置页数据库健康检查和必要的服务端内部维护用途。
+- 新增本地迁移文件 `drizzle/0001_rls_user_policies.sql`，为 `tasks`、`habits`、`habit_checkins`、`schedule_items`、`life_events`、`ideas`、`insight_reports` 和 `personal_manuals` 启用 RLS 并创建基础策略。
+- `habit_checkins` 写入和更新策略要求 `habit_id` 属于当前用户。
+- `ideas` 写入和更新策略要求 `converted_task_id` 为空或目标任务属于当前用户。
+- 更新 `drizzle/meta/_journal.json`，让本地迁移文件进入 Drizzle 迁移序列。
+- 本 Step 后续已在 Faye 允许后执行真实数据库 RLS 迁移；未修改 `.env.local`，未配置生产环境变量，未部署。
+
+本次新增或更新的文件：
+
+- `src/lib/data/user-data.ts`
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/records/page.tsx`
+- `src/app/records/[kind]/[id]/page.tsx`
+- `src/app/insights/page.tsx`
+- `src/lib/ai/daily-review-context.ts`
+- `drizzle/0001_rls_user_policies.sql`
+- `drizzle/meta/_journal.json`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- 源码检查通过：`src/app` 和 `src/lib` 中普通用户态业务读写不再导入 `@/db`、`@/db/schema` 或 `drizzle-orm`。
+- 迁移 SQL 人工检查通过：8 张业务表均启用 RLS，并包含 `select`、`insert`、`update`、`delete` 基础策略。
+- 迁移 SQL 人工检查通过：未包含 `service_role`、`anon`、`DATABASE_URL`、`API_KEY` 或密码。
+- `git diff --check` 通过。
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- 生产构建本地服务下，未登录状态 `/`、`/daily`、`/records`、`/insights`、`/manual` 和 `/settings` 均返回 `200`。
+
+### Row Level Security 真实数据库启用
+
+已完成内容：
+
+- Faye 已明确允许执行真实数据库迁移。
+- 首次执行 `npm run db:migrate` 时，Drizzle CLI 在执行 RLS SQL 过程中返回失败码，但数据库检查确认该次事务未留下半套 RLS 状态。
+- 使用同一份 `drizzle/0001_rls_user_policies.sql` 在事务中逐条诊断，确认 72 条 SQL 语句本身均可执行。
+- 后续按表分短事务补齐执行 8 张业务表 RLS 策略，避免长 DDL 事务连接中断。
+- 写入 Drizzle 迁移记录，迁移 hash 为 `688d09fb007a9e8b996791155c8a01f9fdbcf9e938c2e1420851865820678713`。
+- 再次执行 `npm run db:migrate` 通过，确认 Drizzle 迁移记录与真实数据库状态一致。
+
+验证记录：
+
+- 数据库只读检查通过：8 张业务表均已启用 RLS。
+- 数据库只读检查通过：8 张业务表共有 32 条 RLS policy。
+- 数据库只读检查通过：Drizzle 迁移记录包含 0000 和 0001 两条记录。
+- RLS 只读探针通过：模拟已有用户可见自己的任务、习惯、打卡、日程、事件、灵感和每日复盘。
+- RLS 只读探针通过：模拟随机其他用户时，任务、习惯、打卡、日程、事件、灵感、复盘和个人说明书均返回 0。
+- `npm run db:migrate` 通过。
+- `git diff --check` 通过。
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- 生产构建本地服务 `http://localhost:3003` 下，未登录状态 `/`、`/daily`、`/records`、`/insights`、`/manual` 和 `/settings` 均返回 `200`。
+- 本 Step 未修改 `.env.local`，未配置生产环境变量，未部署，未提交 Git，未 push。
+
+### Step 9.1：预览部署准备盘点
+
+已完成内容：
+
+- 只读检查 `.env.example`、设置页、Supabase 配置读取逻辑、AI 配置读取逻辑、认证回调逻辑和项目部署配置。
+- 确认项目当前没有 `vercel.json`，可使用 Vercel 默认 Next.js 部署。
+- 确认注册邮件回调使用当前请求 `origin` 生成 `/auth/confirm`，因此 Vercel Preview 和正式域名都需要加入 Supabase Auth Redirect URL。
+- 确认设置页只展示 Supabase、数据库和 AI 配置状态，不展示真实密钥、连接字符串或底层错误。
+- 确认 `SUPABASE_SERVICE_ROLE_KEY` 当前不需要配置，继续暂缓。
+- 输出 Vercel Preview/Production 需要配置的环境变量清单。
+- 本 Step 未修改 `.env.local`，未配置 Vercel 环境变量，未配置 Supabase Auth Redirect URL，未部署。
+
+Vercel 需要配置：
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `DATABASE_URL`
+- `AI_PROVIDER`
+- `AI_BASE_URL`
+- `AI_API_KEY`
+- `AI_MODEL_DAILY`
+
+可暂缓配置：
+
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`：只有不用 publishable key 时才需要。
+- `AI_MODEL_WEEKLY` 和 `AI_MODEL_MONTHLY`：周复盘和月度复盘尚未进入部署门槛。
+- `SUPABASE_SERVICE_ROLE_KEY`：当前无服务端高权限需求。
+
+Supabase Auth Redirect URL 需要配置：
+
+- Vercel Preview：`https://<vercel-preview-domain>/auth/confirm`
+- 正式域名：`https://<production-domain>/auth/confirm`
+- 本地开发保留：`http://localhost:3001/auth/confirm`
+
+验证记录：
+
+- `git diff --check` 通过。
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- 生产构建本地服务 `http://localhost:3004/settings` 返回 `200`。
+- `/settings` 页面扫描未发现数据库连接串、AI key、service role key、Bearer token 等明文泄露。
+
 ## Not Started
 
-- Row Level Security
+- 预览部署验证
+- 生产环境变量配置
+- Supabase Auth 生产 Redirect URL 配置
 
 ## Next Step Candidate
 
-Step 8.2：更新进度文档。
+Step 9.2：配置 Vercel 环境变量和 Supabase Auth Redirect URL。
 
 进入下一步前，需要按项目 Step Workflow 单独确认目标、影响文件和验证方式。

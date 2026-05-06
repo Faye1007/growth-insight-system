@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成 Step 7.3，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界验证、设置页基础信息展示、统一错误提示规范和基础闭环手工验收记录。
+当前项目已完成基础闭环、Step 8.1 架构文档更新、Step 8.2 进度文档更新、Row Level Security 前置规划、Supabase SSR client 用户态读写迁移和本地 RLS 策略迁移文件生成，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录、随手记录、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界验证、设置页基础信息展示、统一错误提示规范、基础闭环手工验收记录和 RLS 接入风险说明。
 
 当前已存在：
 
@@ -25,7 +25,8 @@
 - Drizzle ORM、Drizzle Kit 和 Postgres client 依赖。
 - `drizzle.config.ts` 迁移配置。
 - `src/db/schema.ts` 基础数据表 schema。
-- `src/db/index.ts` 服务端数据库查询入口。
+- `src/db/index.ts` 服务端数据库查询入口，保留给迁移、设置页数据库健康检查和必要的服务端内部维护用途。
+- `src/lib/data/user-data.ts` 用户态业务数据访问层，使用 Supabase SSR client 携带当前用户会话，并继续显式限定 `user_id`。
 - `drizzle/0000_true_silver_sable.sql` 第一版迁移 SQL。
 - 真实 Supabase 数据库中的第一批 8 张基础业务表。
 - `/login` 登录/注册页面。
@@ -97,7 +98,6 @@
 
 尚未开始：
 
-- Row Level Security。
 - 其他交互组件视觉细化。
 
 目标技术方向：
@@ -109,7 +109,7 @@ Server Actions / Route Handlers
   ↓
 Domain Services
   ↓
-Supabase Postgres via Drizzle ORM
+Supabase Postgres via Supabase SSR client for user data
   ↓
 AI Provider Adapter for scheduled/manual reviews
 ```
@@ -167,9 +167,11 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/lib/tasks/options.ts`: 任务分类和任务状态的统一选项定义，提供英文枚举值、中文显示文案、状态分组顺序和合法性校验。
 - `drizzle.config.ts`: Drizzle Kit 配置，读取 `.env.local` 中的 `DATABASE_URL`，用于生成和执行迁移。
 - `drizzle/0000_true_silver_sable.sql`: 第一版数据库迁移 SQL，创建基础枚举、8 张基础业务表、索引和内部外键。
+- `drizzle/0001_rls_user_policies.sql`: RLS 策略迁移 SQL，已在真实 Supabase 数据库为 8 张业务表启用 RLS，并创建按 `auth.uid() = user_id` 隔离的基础策略。
 - `drizzle/meta/`: Drizzle 迁移快照和迁移日志元数据，用于后续增量迁移。
 - `src/db/schema.ts`: Drizzle schema，定义 `tasks`、`habits`、`habit_checkins`、`schedule_items`、`life_events`、`ideas`、`insight_reports` 和 `personal_manuals`。
-- `src/db/index.ts`: 服务端数据库入口，使用 `DATABASE_URL` 创建 Drizzle client；当前仅供后续服务端读写使用。
+- `src/db/index.ts`: 服务端数据库入口，使用 `DATABASE_URL` 创建 Drizzle client；当前保留给 Drizzle schema、迁移、设置页数据库健康检查和必要的服务端内部维护用途，不作为普通登录用户请求的主读写通道。
+- `src/lib/data/user-data.ts`: 服务端用户态数据访问入口，使用 Supabase SSR client 执行每日工作台、成长记录、详情页、洞察报告和每日复盘相关读写；所有查询和写入仍显式限定当前 `user_id`，不只依赖 RLS。
 - `src/lib/utils.ts`: 通用工具函数入口，当前提供 `cn()` 用于合并 Tailwind className。
 
 当前基础闭环遵循的约束：
@@ -263,7 +265,6 @@ Step 7.3 后，当前基础闭环的实际用户流程是：
 
 当前仍未完成：
 
-- Row Level Security 尚未启用；当前先由应用层查询和写入条件按 `user_id` 隔离，后续需要补上数据库层 RLS。
 - 个人说明书仍是页面壳，尚未接入真实编辑和保存。
 - 周复盘、月度复盘、纪念日、礼物记录、场景工具箱和 Obsidian 导入导出暂缓。
 
@@ -320,7 +321,7 @@ Step 2.2 已安装并接入：
 - 尚未配置 `SUPABASE_SERVICE_ROLE_KEY`。
 - 已接入 Supabase Auth 页面入口和基础 Server Actions。
 - 已建立认证安全跳转和登录后写入保护 helper。
-- 尚未启用 Row Level Security；当前业务查询和写入已在应用层按当前用户 ID 限定，后续仍需要用 RLS 补强数据库层隔离。
+- 已在真实数据库启用 Row Level Security；当前业务查询和写入通过 Supabase SSR client 携带用户会话，并在应用层继续按当前用户 ID 限定。
 
 ### 3.2.3 Supabase Auth Baseline
 
@@ -346,9 +347,48 @@ Step 2.4A 已接入 Supabase Auth 基线，Step 2.4B 已补充安全跳转和写
 当前限制：
 
 - 每日工作台任务、习惯、习惯打卡、日程、事件、灵感和每日复盘已接入真实写入。
-- Row Level Security 尚未配置。
-- 登录后的每日工作台、成长记录、洞察报告和每日复盘查询已在查询层按当前用户 ID 隔离；后续仍需要用 RLS 补强数据库层隔离。
+- Row Level Security 已在真实数据库启用。
+- 登录后的每日工作台、成长记录、洞察报告和每日复盘查询已迁到 Supabase SSR client，并在查询层继续按当前用户 ID 隔离。
 - 邮箱确认回调仍需要 Supabase Dashboard 允许 `http://localhost:3001/auth/confirm` 作为 Redirect URL。
+
+### 3.2.4 Row Level Security Pre-Plan
+
+当前 RLS 已在真实数据库启用。本节记录已选路线、迁移设计和验证结果。
+
+当前关键约束：
+
+- 业务表均已有 `user_id` 字段，应用层读写已经按当前登录用户 ID 限定。
+- 用户态业务读写已经迁到 `src/lib/data/user-data.ts`，通过 Supabase SSR client 携带当前用户会话。
+- `src/db/index.ts` 中的 Drizzle client 仍保留给 schema、迁移、设置页健康检查和必要的服务端内部维护用途。
+- 所有用户态查询和写入继续显式限定当前用户 ID，不能只依赖 RLS。
+
+推荐接入路线：
+
+1. 先保持当前应用层 `user_id` 限定不变，作为现有安全基线。
+2. 为 RLS 设计独立迁移，不混入业务功能开发。
+3. 采用路线 A：用户态业务读写迁移到 Supabase SSR client，让请求携带用户会话，由 RLS 通过 `auth.uid()` 判定。
+4. `drizzle/0001_rls_user_policies.sql` 已执行到真实 Supabase 数据库；由于 Drizzle CLI 首次执行时连接中断，本次采用同一份 SQL 按表分短事务补齐，并写入 Drizzle 迁移记录。
+
+第一批 RLS 策略设计：
+
+- `tasks`: 当前用户只能 `select`、`insert`、`update`、`delete` 自己的任务，基础条件为 `auth.uid() = user_id`。
+- `habits`: 当前用户只能操作自己的习惯，基础条件为 `auth.uid() = user_id`。
+- `habit_checkins`: 当前用户只能操作自己的打卡；写入时除了 `auth.uid() = user_id`，还应确保 `habit_id` 属于当前用户。
+- `schedule_items`: 当前用户只能操作自己的日程，基础条件为 `auth.uid() = user_id`。
+- `life_events`: 当前用户只能操作自己的人生笔记，基础条件为 `auth.uid() = user_id`。
+- `ideas`: 当前用户只能操作自己的灵感；如果设置 `converted_task_id`，还应确保目标任务属于当前用户。
+- `insight_reports`: 当前用户只能读取和生成自己的复盘报告，基础条件为 `auth.uid() = user_id`。
+- `personal_manuals`: 当前用户只能读取和维护自己的个人说明书，基础条件为 `auth.uid() = user_id`。
+
+真实启用后的验证记录：
+
+- 未登录用户仍可访问公开页面，但无法读取个人数据。
+- 数据库只读检查确认 8 张业务表均已启用 RLS，策略数量为 32。
+- Drizzle 迁移记录已包含 `0001_rls_user_policies.sql` 对应 hash。
+- 只读 RLS 探针确认模拟本人可见自己的任务、习惯、打卡、日程、事件、灵感和复盘；模拟随机其他用户时这些表均返回 0。
+- 设置页数据库健康检查不展示底层错误和连接字符串。
+- `npm run db:migrate` 再次执行通过，确认迁移记录与数据库状态一致。
+- `npm run lint` 和 `npm run build` 通过。
 
 ### 3.2.2 Drizzle Migration Baseline
 
@@ -409,7 +449,7 @@ Server Action / Route Handler
   ↓
 Domain validation
   ↓
-Drizzle query
+Supabase SSR client query with explicit user_id filter
   ↓
 Supabase Postgres
   ↓

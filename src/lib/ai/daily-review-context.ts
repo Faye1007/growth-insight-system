@@ -1,18 +1,8 @@
 import "server-only";
 
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
-
-import { db } from "@/db";
-import {
-  habitCheckins as habitCheckinTable,
-  habits as habitTable,
-  ideas as ideaTable,
-  lifeEvents as lifeEventTable,
-  scheduleItems as scheduleItemTable,
-  tasks as taskTable,
-} from "@/db/schema";
 import { checkSensitiveContent, type SensitivityReason } from "@/lib/ai/sensitive-rules";
 import type { GenerateReviewInput } from "@/lib/ai/types";
+import { getDailyReviewRowsForUser } from "@/lib/data/user-data";
 import { getTaskCategoryLabel, getTaskStatusLabel, type TaskCategory, type TaskStatus } from "@/lib/tasks/options";
 
 const maxOriginalEvents = 5;
@@ -127,109 +117,7 @@ function getEventSummary(event: {
 }
 
 async function getDailyReviewRows(userId: string, date: string) {
-  const tasksQuery = db
-    .select({
-      id: taskTable.id,
-      title: taskTable.title,
-      category: taskTable.category,
-      status: taskTable.status,
-      isPostponed: taskTable.isPostponed,
-      reviewNote: taskTable.reviewNote,
-      completedAt: taskTable.completedAt,
-      createdAt: taskTable.createdAt,
-    })
-    .from(taskTable)
-    .where(and(eq(taskTable.userId, userId), eq(taskTable.taskDate, date), isNull(taskTable.deletedAt)))
-    .orderBy(asc(taskTable.createdAt));
-
-  const habitsQuery = db
-    .select({
-      id: habitTable.id,
-      name: habitTable.name,
-      category: habitTable.category,
-      createdAt: habitTable.createdAt,
-    })
-    .from(habitTable)
-    .where(and(eq(habitTable.userId, userId), eq(habitTable.isActive, true), isNull(habitTable.deletedAt)))
-    .orderBy(asc(habitTable.createdAt));
-
-  const schedulesQuery = db
-    .select({
-      id: scheduleItemTable.id,
-      title: scheduleItemTable.title,
-      category: scheduleItemTable.category,
-      startTime: scheduleItemTable.startTime,
-      endTime: scheduleItemTable.endTime,
-      description: scheduleItemTable.description,
-      createdAt: scheduleItemTable.createdAt,
-    })
-    .from(scheduleItemTable)
-    .where(
-      and(
-        eq(scheduleItemTable.userId, userId),
-        eq(scheduleItemTable.scheduleDate, date),
-        isNull(scheduleItemTable.deletedAt),
-      ),
-    )
-    .orderBy(asc(scheduleItemTable.startTime), asc(scheduleItemTable.createdAt));
-
-  const lifeEventsQuery = db
-    .select({
-      id: lifeEventTable.id,
-      content: lifeEventTable.content,
-      emotionTags: lifeEventTable.emotionTags,
-      tags: lifeEventTable.tags,
-      specificEvent: lifeEventTable.specificEvent,
-      nextAction: lifeEventTable.nextAction,
-      aiAnalysisPermission: lifeEventTable.aiAnalysisPermission,
-      summary: lifeEventTable.summary,
-      createdAt: lifeEventTable.createdAt,
-    })
-    .from(lifeEventTable)
-    .where(and(eq(lifeEventTable.userId, userId), eq(lifeEventTable.eventDate, date), isNull(lifeEventTable.deletedAt)))
-    .orderBy(desc(lifeEventTable.createdAt));
-
-  const ideasQuery = db
-    .select({
-      id: ideaTable.id,
-      content: ideaTable.content,
-      status: ideaTable.status,
-      solutionNote: ideaTable.solutionNote,
-      createdAt: ideaTable.createdAt,
-    })
-    .from(ideaTable)
-    .where(and(eq(ideaTable.userId, userId), eq(ideaTable.ideaDate, date), isNull(ideaTable.deletedAt)))
-    .orderBy(desc(ideaTable.createdAt));
-
-  const [tasks, habits, schedules, lifeEvents, ideas] = await Promise.all([
-    tasksQuery,
-    habitsQuery,
-    schedulesQuery,
-    lifeEventsQuery,
-    ideasQuery,
-  ]);
-
-  const habitCheckins = habits.length
-    ? await db
-        .select({
-          habitId: habitCheckinTable.habitId,
-          checkinDate: habitCheckinTable.checkinDate,
-          status: habitCheckinTable.status,
-          note: habitCheckinTable.note,
-        })
-        .from(habitCheckinTable)
-        .where(and(eq(habitCheckinTable.userId, userId), inArray(habitCheckinTable.habitId, habits.map((habit) => habit.id))))
-        .orderBy(asc(habitCheckinTable.checkinDate))
-    : [];
-
-  return {
-    tasks,
-    habits,
-    habitCheckins,
-    schedules,
-    lifeEvents,
-    ideas,
-  };
+  return getDailyReviewRowsForUser(userId, date);
 }
 
 export async function buildDailyReviewContext(

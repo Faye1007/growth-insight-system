@@ -2,18 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, isNull } from "drizzle-orm";
-
-import { db } from "@/db";
-import {
-  habitCheckins,
-  habits,
-  ideas,
-  insightReports,
-  lifeEvents,
-  scheduleItems,
-  tasks,
-} from "@/db/schema";
 import { requireCurrentUser } from "@/lib/auth/session";
 import {
   buildDailyReviewContext,
@@ -22,6 +10,20 @@ import {
 } from "@/lib/ai/daily-review-context";
 import { AiConfigurationError, generateReview } from "@/lib/ai/provider";
 import type { GenerateReviewOutput } from "@/lib/ai/types";
+import {
+  createHabitForUser,
+  createIdeaForUser,
+  createLifeEventForUser,
+  createScheduleItemForUser,
+  createTaskForUser,
+  getActiveHabitIdForUser,
+  getCompletedDailyReviewReportIdForUser,
+  getTaskDateForUser,
+  postponeTaskForUser,
+  updateTaskStatusForUser,
+  upsertDailyReviewReportForUser,
+  upsertHabitCheckinForUser,
+} from "@/lib/data/user-data";
 import { isTaskCategory, isTaskStatus } from "@/lib/tasks/options";
 
 function getStringValue(formData: FormData, key: string) {
@@ -69,7 +71,9 @@ function getTagsValue(value: string) {
     .slice(0, 8);
 }
 
-function isAiAnalysisPermission(value: string) {
+function isAiAnalysisPermission(
+  value: string,
+): value is "none" | "summary_only" | "allow_original" {
   return value === "none" || value === "summary_only" || value === "allow_original";
 }
 
@@ -88,7 +92,7 @@ export async function createTaskAction(formData: FormData) {
   const status = isTaskStatus(statusValue) ? statusValue : "todo";
 
   try {
-    await db.insert(tasks).values({
+    await createTaskForUser({
       userId: user.id,
       title,
       category,
@@ -116,11 +120,7 @@ export async function updateTaskStatusAction(formData: FormData) {
   let existingTask: { taskDate: string } | undefined;
 
   try {
-    [existingTask] = await db
-      .select({ taskDate: tasks.taskDate })
-      .from(tasks)
-      .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)))
-      .limit(1);
+    existingTask = (await getTaskDateForUser(user.id, taskId)) ?? undefined;
   } catch {
     redirect("/daily?taskError=save_failed#tasks");
   }
@@ -139,18 +139,13 @@ export async function updateTaskStatusAction(formData: FormData) {
     }
 
     try {
-      await db
-        .update(tasks)
-        .set({
-          status: "postponed",
-          taskDate: postponedToDate,
-          isPostponed: true,
-          postponedFromDate: existingTask.taskDate,
-          postponedToDate,
-          completedAt: null,
-          updatedAt: now,
-        })
-        .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)));
+      await postponeTaskForUser({
+        userId: user.id,
+        taskId,
+        postponedFromDate: existingTask.taskDate,
+        postponedToDate,
+        updatedAt: now,
+      });
     } catch {
       redirect("/daily?taskError=save_failed#tasks");
     }
@@ -160,14 +155,13 @@ export async function updateTaskStatusAction(formData: FormData) {
   }
 
   try {
-    await db
-      .update(tasks)
-      .set({
-        status: statusValue,
-        completedAt: statusValue === "completed" ? now : null,
-        updatedAt: now,
-      })
-      .where(and(eq(tasks.id, taskId), eq(tasks.userId, user.id)));
+    await updateTaskStatusForUser({
+      userId: user.id,
+      taskId,
+      status: statusValue,
+      completedAt: statusValue === "completed" ? now : null,
+      updatedAt: now,
+    });
   } catch {
     redirect("/daily?taskError=save_failed#tasks");
   }
@@ -190,11 +184,10 @@ export async function createHabitAction(formData: FormData) {
   const startDate = isValidDateValue(startDateValue) ? startDateValue : getBeijingDateValue();
 
   try {
-    await db.insert(habits).values({
+    await createHabitForUser({
       userId: user.id,
       name,
       category,
-      isActive: true,
       startDate,
     });
   } catch {
@@ -218,18 +211,7 @@ export async function updateHabitCheckinAction(formData: FormData) {
   let existingHabit: { id: string } | undefined;
 
   try {
-    [existingHabit] = await db
-      .select({ id: habits.id })
-      .from(habits)
-      .where(
-        and(
-          eq(habits.id, habitId),
-          eq(habits.userId, user.id),
-          eq(habits.isActive, true),
-          isNull(habits.deletedAt),
-        ),
-      )
-      .limit(1);
+    existingHabit = (await getActiveHabitIdForUser(user.id, habitId)) ?? undefined;
   } catch {
     redirect("/daily?habitError=save_failed#habits");
   }
@@ -241,22 +223,13 @@ export async function updateHabitCheckinAction(formData: FormData) {
   const status = intent === "check" ? "checked" : "skipped";
 
   try {
-    await db
-      .insert(habitCheckins)
-      .values({
-        userId: user.id,
-        habitId,
-        checkinDate: todayDate,
-        status,
-        updatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: [habitCheckins.habitId, habitCheckins.checkinDate],
-        set: {
-          status,
-          updatedAt: new Date(),
-        },
-      });
+    await upsertHabitCheckinForUser({
+      userId: user.id,
+      habitId,
+      checkinDate: todayDate,
+      status,
+      updatedAt: new Date(),
+    });
   } catch {
     redirect("/daily?habitError=save_failed#habits");
   }
@@ -289,7 +262,7 @@ export async function createScheduleItemAction(formData: FormData) {
   }
 
   try {
-    await db.insert(scheduleItems).values({
+    await createScheduleItemForUser({
       userId: user.id,
       title,
       category,
@@ -324,7 +297,7 @@ export async function createQuickRecordAction(formData: FormData) {
       : "summary_only";
 
     try {
-      await db.insert(lifeEvents).values({
+      await createLifeEventForUser({
         userId: user.id,
         eventDate: recordDate,
         content,
@@ -342,11 +315,10 @@ export async function createQuickRecordAction(formData: FormData) {
 
   if (recordType === "idea") {
     try {
-      await db.insert(ideas).values({
+      await createIdeaForUser({
         userId: user.id,
         ideaDate: recordDate,
         content,
-        status: "to_review",
       });
     } catch {
       redirect("/daily?recordError=save_failed#notes");
@@ -365,19 +337,8 @@ export async function generateDailyReviewAction(formData: FormData) {
   let existingReport: { id: string } | undefined;
 
   try {
-    [existingReport] = await db
-      .select({ id: insightReports.id })
-      .from(insightReports)
-      .where(
-        and(
-          eq(insightReports.userId, user.id),
-          eq(insightReports.reportType, "daily"),
-          eq(insightReports.periodStart, todayDate),
-          eq(insightReports.periodEnd, todayDate),
-          eq(insightReports.generationStatus, "completed"),
-        ),
-      )
-      .limit(1);
+    existingReport =
+      (await getCompletedDailyReviewReportIdForUser(user.id, todayDate)) ?? undefined;
   } catch {
     redirect("/daily?reviewError=context_failed#daily-review-entry");
   }
@@ -414,52 +375,21 @@ export async function generateDailyReviewAction(formData: FormData) {
   const now = new Date();
 
   try {
-    await db
-      .insert(insightReports)
-      .values({
-        userId: user.id,
-        reportType: "daily",
-        periodStart: todayDate,
-        periodEnd: todayDate,
-        title: output.title,
-        summary: output.summary,
-        patterns: output.patterns,
-        suggestions: output.suggestions,
-        nextActions: output.nextActions,
-        sourceStats: reviewInput.stats,
-        sourceHighlights: reviewInput.highlights,
-        selectedOriginalEventIds: reviewInput.selectedOriginals?.map((item) => item.eventId) ?? [],
-        modelProvider: output.modelProvider,
-        modelName: output.modelName,
-        generationStatus: "completed",
-        errorMessage: null,
-        generatedAt: now,
-        updatedAt: now,
-      })
-      .onConflictDoUpdate({
-        target: [
-          insightReports.userId,
-          insightReports.reportType,
-          insightReports.periodStart,
-          insightReports.periodEnd,
-        ],
-        set: {
-          title: output.title,
-          summary: output.summary,
-          patterns: output.patterns,
-          suggestions: output.suggestions,
-          nextActions: output.nextActions,
-          sourceStats: reviewInput.stats,
-          sourceHighlights: reviewInput.highlights,
-          selectedOriginalEventIds: reviewInput.selectedOriginals?.map((item) => item.eventId) ?? [],
-          modelProvider: output.modelProvider,
-          modelName: output.modelName,
-          generationStatus: "completed",
-          errorMessage: null,
-          generatedAt: now,
-          updatedAt: now,
-        },
-      });
+    await upsertDailyReviewReportForUser({
+      userId: user.id,
+      date: todayDate,
+      title: output.title,
+      summary: output.summary,
+      patterns: output.patterns,
+      suggestions: output.suggestions,
+      nextActions: output.nextActions,
+      sourceStats: reviewInput.stats,
+      sourceHighlights: reviewInput.highlights,
+      selectedOriginalEventIds: reviewInput.selectedOriginals?.map((item) => item.eventId) ?? [],
+      modelProvider: output.modelProvider,
+      modelName: output.modelName,
+      generatedAt: now,
+    });
   } catch {
     redirect("/daily?reviewError=save_failed#daily-review-entry");
   }

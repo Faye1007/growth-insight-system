@@ -1,18 +1,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { and, eq, isNull } from "drizzle-orm";
 
-import { db } from "@/db";
-import {
-  habitCheckins as habitCheckinTable,
-  habits as habitTable,
-  ideas as ideaTable,
-  lifeEvents as lifeEventTable,
-  scheduleItems as scheduleItemTable,
-  tasks as taskTable,
-} from "@/db/schema";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
+import {
+  getEventDetailForUser,
+  getHabitDetailForUser,
+  getIdeaDetailForUser,
+  getScheduleDetailForUser,
+  getTaskDetailForUser,
+} from "@/lib/data/user-data";
 import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
 
 type RecordKind = "task" | "habit" | "schedule" | "event" | "idea";
@@ -108,113 +105,6 @@ function TagRow({ items }: { items: string[] }) {
   );
 }
 
-async function getTaskDetail(userId: string, id: string) {
-  const [task] = await db
-    .select({
-      title: taskTable.title,
-      description: taskTable.description,
-      category: taskTable.category,
-      status: taskTable.status,
-      taskDate: taskTable.taskDate,
-      isPostponed: taskTable.isPostponed,
-      postponedFromDate: taskTable.postponedFromDate,
-      postponedToDate: taskTable.postponedToDate,
-      reviewNote: taskTable.reviewNote,
-      completedAt: taskTable.completedAt,
-      createdAt: taskTable.createdAt,
-      updatedAt: taskTable.updatedAt,
-    })
-    .from(taskTable)
-    .where(and(eq(taskTable.id, id), eq(taskTable.userId, userId), isNull(taskTable.deletedAt)))
-    .limit(1);
-
-  return task;
-}
-
-async function getHabitDetail(userId: string, id: string) {
-  const [checkin] = await db
-    .select({
-      habitName: habitTable.name,
-      habitCategory: habitTable.category,
-      checkinDate: habitCheckinTable.checkinDate,
-      status: habitCheckinTable.status,
-      note: habitCheckinTable.note,
-      createdAt: habitCheckinTable.createdAt,
-      updatedAt: habitCheckinTable.updatedAt,
-    })
-    .from(habitCheckinTable)
-    .innerJoin(habitTable, eq(habitCheckinTable.habitId, habitTable.id))
-    .where(
-      and(
-        eq(habitCheckinTable.id, id),
-        eq(habitCheckinTable.userId, userId),
-        eq(habitTable.userId, userId),
-        isNull(habitTable.deletedAt),
-      ),
-    )
-    .limit(1);
-
-  return checkin;
-}
-
-async function getScheduleDetail(userId: string, id: string) {
-  const [item] = await db
-    .select({
-      title: scheduleItemTable.title,
-      description: scheduleItemTable.description,
-      category: scheduleItemTable.category,
-      scheduleDate: scheduleItemTable.scheduleDate,
-      startTime: scheduleItemTable.startTime,
-      endTime: scheduleItemTable.endTime,
-      createdAt: scheduleItemTable.createdAt,
-      updatedAt: scheduleItemTable.updatedAt,
-    })
-    .from(scheduleItemTable)
-    .where(and(eq(scheduleItemTable.id, id), eq(scheduleItemTable.userId, userId), isNull(scheduleItemTable.deletedAt)))
-    .limit(1);
-
-  return item;
-}
-
-async function getEventDetail(userId: string, id: string) {
-  const [event] = await db
-    .select({
-      content: lifeEventTable.content,
-      eventDate: lifeEventTable.eventDate,
-      emotionTags: lifeEventTable.emotionTags,
-      tags: lifeEventTable.tags,
-      specificEvent: lifeEventTable.specificEvent,
-      nextAction: lifeEventTable.nextAction,
-      aiAnalysisPermission: lifeEventTable.aiAnalysisPermission,
-      summary: lifeEventTable.summary,
-      createdAt: lifeEventTable.createdAt,
-      updatedAt: lifeEventTable.updatedAt,
-    })
-    .from(lifeEventTable)
-    .where(and(eq(lifeEventTable.id, id), eq(lifeEventTable.userId, userId), isNull(lifeEventTable.deletedAt)))
-    .limit(1);
-
-  return event;
-}
-
-async function getIdeaDetail(userId: string, id: string) {
-  const [idea] = await db
-    .select({
-      content: ideaTable.content,
-      ideaDate: ideaTable.ideaDate,
-      status: ideaTable.status,
-      solutionNote: ideaTable.solutionNote,
-      convertedTaskId: ideaTable.convertedTaskId,
-      createdAt: ideaTable.createdAt,
-      updatedAt: ideaTable.updatedAt,
-    })
-    .from(ideaTable)
-    .where(and(eq(ideaTable.id, id), eq(ideaTable.userId, userId), isNull(ideaTable.deletedAt)))
-    .limit(1);
-
-  return idea;
-}
-
 function NotFoundState() {
   return (
     <section className="panel-card">
@@ -271,7 +161,7 @@ export default async function RecordDetailPage({ params }: DetailPageProps) {
   }
 
   if (kind === "task") {
-    const task = await getTaskDetail(user.id, id);
+    const task = await getTaskDetailForUser(user.id, id);
 
     if (!task) {
       return <NotFoundDetail kindLabel={kindLabels[kind]} />;
@@ -310,7 +200,7 @@ export default async function RecordDetailPage({ params }: DetailPageProps) {
   }
 
   if (kind === "habit") {
-    const checkin = await getHabitDetail(user.id, id);
+    const checkin = await getHabitDetailForUser(user.id, id);
 
     if (!checkin) {
       return <NotFoundDetail kindLabel={kindLabels[kind]} />;
@@ -336,7 +226,7 @@ export default async function RecordDetailPage({ params }: DetailPageProps) {
   }
 
   if (kind === "schedule") {
-    const item = await getScheduleDetail(user.id, id);
+    const item = await getScheduleDetailForUser(user.id, id);
 
     if (!item) {
       return <NotFoundDetail kindLabel={kindLabels[kind]} />;
@@ -362,7 +252,7 @@ export default async function RecordDetailPage({ params }: DetailPageProps) {
   }
 
   if (kind === "event") {
-    const event = await getEventDetail(user.id, id);
+    const event = await getEventDetailForUser(user.id, id);
 
     if (!event) {
       return <NotFoundDetail kindLabel={kindLabels[kind]} />;
@@ -406,7 +296,7 @@ export default async function RecordDetailPage({ params }: DetailPageProps) {
     );
   }
 
-  const idea = await getIdeaDetail(user.id, id);
+  const idea = await getIdeaDetailForUser(user.id, id);
 
   if (!idea) {
     return <NotFoundDetail kindLabel={kindLabels[kind]} />;

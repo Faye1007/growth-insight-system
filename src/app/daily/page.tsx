@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import {
   CalendarDays,
   CheckCircle2,
@@ -21,16 +20,6 @@ import {
   updateTaskStatusAction,
 } from "@/app/daily/actions";
 import { FeedbackMessage } from "@/components/feedback-message";
-import { db } from "@/db";
-import {
-  habitCheckins as habitCheckinTable,
-  habits as habitTable,
-  ideas as ideaTable,
-  insightReports as insightReportTable,
-  lifeEvents as lifeEventTable,
-  scheduleItems as scheduleItemTable,
-  tasks as taskTable,
-} from "@/db/schema";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import {
@@ -38,6 +27,18 @@ import {
   buildDailyReviewContext,
   type DailyReviewContext,
 } from "@/lib/ai/daily-review-context";
+import {
+  getActiveHabitsForUser,
+  getHabitCheckinsForUser,
+  getTodayDailyReviewReportForUser,
+  getTodayIdeasForUser,
+  getTodayLifeEventsForUser,
+  getTodayScheduleItemsForUser,
+  getTodayTasksForUser,
+  type ActiveHabit,
+  type HabitCheckin,
+  type TodayTask,
+} from "@/lib/data/user-data";
 import {
   getTaskCategoryLabel,
   getTaskStatusLabel,
@@ -290,169 +291,6 @@ function WriteAction({
     </button>
   );
 }
-
-async function getTodayTasks(userId: string, todayDate: string) {
-  return db
-    .select({
-      id: taskTable.id,
-      title: taskTable.title,
-      category: taskTable.category,
-      status: taskTable.status,
-      taskDate: taskTable.taskDate,
-      isPostponed: taskTable.isPostponed,
-      postponedFromDate: taskTable.postponedFromDate,
-      postponedToDate: taskTable.postponedToDate,
-      createdAt: taskTable.createdAt,
-    })
-    .from(taskTable)
-    .where(
-      and(
-        eq(taskTable.userId, userId),
-        eq(taskTable.taskDate, todayDate),
-        isNull(taskTable.deletedAt),
-      ),
-    )
-    .orderBy(asc(taskTable.createdAt));
-}
-
-async function getActiveHabits(userId: string) {
-  return db
-    .select({
-      id: habitTable.id,
-      name: habitTable.name,
-      category: habitTable.category,
-      isActive: habitTable.isActive,
-      startDate: habitTable.startDate,
-      createdAt: habitTable.createdAt,
-    })
-    .from(habitTable)
-    .where(
-      and(
-        eq(habitTable.userId, userId),
-        eq(habitTable.isActive, true),
-        isNull(habitTable.deletedAt),
-      ),
-    )
-    .orderBy(asc(habitTable.createdAt));
-}
-
-type TodayTask = Awaited<ReturnType<typeof getTodayTasks>>[number];
-type ActiveHabit = Awaited<ReturnType<typeof getActiveHabits>>[number];
-
-async function getTodayScheduleItems(userId: string, todayDate: string) {
-  return db
-    .select({
-      id: scheduleItemTable.id,
-      title: scheduleItemTable.title,
-      category: scheduleItemTable.category,
-      scheduleDate: scheduleItemTable.scheduleDate,
-      startTime: scheduleItemTable.startTime,
-      endTime: scheduleItemTable.endTime,
-      createdAt: scheduleItemTable.createdAt,
-    })
-    .from(scheduleItemTable)
-    .where(
-      and(
-        eq(scheduleItemTable.userId, userId),
-        eq(scheduleItemTable.scheduleDate, todayDate),
-        isNull(scheduleItemTable.deletedAt),
-      ),
-    )
-    .orderBy(asc(scheduleItemTable.startTime), asc(scheduleItemTable.createdAt));
-}
-
-async function getTodayLifeEvents(userId: string, todayDate: string) {
-  return db
-    .select({
-      id: lifeEventTable.id,
-      content: lifeEventTable.content,
-      eventDate: lifeEventTable.eventDate,
-      emotionTags: lifeEventTable.emotionTags,
-      tags: lifeEventTable.tags,
-      aiAnalysisPermission: lifeEventTable.aiAnalysisPermission,
-      createdAt: lifeEventTable.createdAt,
-    })
-    .from(lifeEventTable)
-    .where(
-      and(
-        eq(lifeEventTable.userId, userId),
-        eq(lifeEventTable.eventDate, todayDate),
-        isNull(lifeEventTable.deletedAt),
-      ),
-    )
-    .orderBy(desc(lifeEventTable.createdAt));
-}
-
-async function getTodayIdeas(userId: string, todayDate: string) {
-  return db
-    .select({
-      id: ideaTable.id,
-      content: ideaTable.content,
-      ideaDate: ideaTable.ideaDate,
-      status: ideaTable.status,
-      createdAt: ideaTable.createdAt,
-    })
-    .from(ideaTable)
-    .where(
-      and(
-        eq(ideaTable.userId, userId),
-        eq(ideaTable.ideaDate, todayDate),
-        isNull(ideaTable.deletedAt),
-      ),
-    )
-    .orderBy(desc(ideaTable.createdAt));
-}
-
-async function getTodayDailyReviewReport(userId: string, todayDate: string) {
-  const [report] = await db
-    .select({
-      id: insightReportTable.id,
-      title: insightReportTable.title,
-      summary: insightReportTable.summary,
-      patterns: insightReportTable.patterns,
-      suggestions: insightReportTable.suggestions,
-      nextActions: insightReportTable.nextActions,
-      modelProvider: insightReportTable.modelProvider,
-      modelName: insightReportTable.modelName,
-      generatedAt: insightReportTable.generatedAt,
-    })
-    .from(insightReportTable)
-    .where(
-      and(
-        eq(insightReportTable.userId, userId),
-        eq(insightReportTable.reportType, "daily"),
-        eq(insightReportTable.periodStart, todayDate),
-        eq(insightReportTable.periodEnd, todayDate),
-        eq(insightReportTable.generationStatus, "completed"),
-      ),
-    )
-    .limit(1);
-
-  return report ?? null;
-}
-
-async function getHabitCheckins(userId: string, habitIds: string[]) {
-  if (habitIds.length === 0) {
-    return [];
-  }
-
-  return db
-    .select({
-      habitId: habitCheckinTable.habitId,
-      checkinDate: habitCheckinTable.checkinDate,
-      status: habitCheckinTable.status,
-    })
-    .from(habitCheckinTable)
-    .where(
-      and(
-        eq(habitCheckinTable.userId, userId),
-        inArray(habitCheckinTable.habitId, habitIds),
-      ),
-    )
-    .orderBy(asc(habitCheckinTable.checkinDate));
-}
-
-type HabitCheckin = Awaited<ReturnType<typeof getHabitCheckins>>[number];
 
 function getHabitStats(habit: ActiveHabit, checkins: HabitCheckin[], todayDate: string) {
   const habitCheckins = checkins.filter((checkin) => checkin.habitId === habit.id);
@@ -736,7 +574,7 @@ function DailyReviewPreview({
   );
 }
 
-type DailyReviewReport = NonNullable<Awaited<ReturnType<typeof getTodayDailyReviewReport>>>;
+type DailyReviewReport = NonNullable<Awaited<ReturnType<typeof getTodayDailyReviewReportForUser>>>;
 
 function ReviewListSection({ title, items }: { title: string; items: string[] }) {
   return (
@@ -794,12 +632,12 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const shortDate = beijingShortDateFormatter.format(now);
   const todayDate = getBeijingDateValue(now);
   const defaultPostponedDate = getBeijingDateAfter(1, now);
-  const todayTasks = user ? await getTodayTasks(user.id, todayDate) : [];
-  const activeHabits = user ? await getActiveHabits(user.id) : [];
-  const todayScheduleItems = user ? await getTodayScheduleItems(user.id, todayDate) : [];
-  const todayLifeEvents = user ? await getTodayLifeEvents(user.id, todayDate) : [];
-  const todayIdeas = user ? await getTodayIdeas(user.id, todayDate) : [];
-  const todayDailyReviewReport = user ? await getTodayDailyReviewReport(user.id, todayDate) : null;
+  const todayTasks = user ? await getTodayTasksForUser(user.id, todayDate) : [];
+  const activeHabits = user ? await getActiveHabitsForUser(user.id) : [];
+  const todayScheduleItems = user ? await getTodayScheduleItemsForUser(user.id, todayDate) : [];
+  const todayLifeEvents = user ? await getTodayLifeEventsForUser(user.id, todayDate) : [];
+  const todayIdeas = user ? await getTodayIdeasForUser(user.id, todayDate) : [];
+  const todayDailyReviewReport = user ? await getTodayDailyReviewReportForUser(user.id, todayDate) : null;
   const reviewPreviewOpen = params?.reviewPreview === "1";
   const dailyReviewContext = user && reviewPreviewOpen
     ? await buildDailyReviewContext(user.id, todayDate)
@@ -812,7 +650,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
       : dailyReviewContext.originalCandidates.map((candidate) => candidate.eventId)
     : [];
   const habitCheckins = user
-    ? await getHabitCheckins(
+      ? await getHabitCheckinsForUser(
         user.id,
         activeHabits.map((habit) => habit.id),
       )
