@@ -284,6 +284,20 @@ export const dailyReviewErrorFeedback: Record<string, FeedbackMessage> = {
   },
 };
 
+export const manualSavedFeedback: FeedbackMessage = {
+  tone: "success",
+  title: "个人说明书已保存",
+  detail: "这些内容已关联到当前账号，刷新后可以继续读回。",
+};
+
+export const manualErrorFeedback: Record<string, FeedbackMessage> = {
+  save_failed: {
+    tone: "error",
+    title: "个人说明书没有保存成功",
+    detail: "请稍后重试；如果连续失败，可以先刷新页面再操作。",
+  },
+};
+
 export const defaultAuthErrorFeedback: FeedbackMessage = {
   tone: "error",
   title: "操作没有成功",
@@ -318,4 +332,10 @@ export const defaultReviewErrorFeedback: FeedbackMessage = {
   tone: "error",
   title: "今日复盘没有生成成功",
   detail: "请稍后重试；普通记录和统计不受影响。",
+};
+
+export const defaultManualErrorFeedback: FeedbackMessage = {
+  tone: "error",
+  title: "个人说明书没有保存成功",
+  detail: "请稍后重试；已保存的记录和统计不受影响。",
 };

@@ -137,6 +137,22 @@ type InsightReportRow = {
   updated_at: string;
 };
 
+type PersonalManualRow = {
+  id: string;
+  user_id: string;
+  life_stage: string | null;
+  current_goals: string[];
+  ability_profile: string | null;
+  emotion_patterns: string | null;
+  energy_sources: string[];
+  drain_sources: string[];
+  recurring_problems: string[];
+  preferred_action_style: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type TodayTask = {
   id: string;
   title: string;
@@ -210,6 +226,20 @@ export type DailyReviewReport = {
   modelProvider: string;
   modelName: string;
   generatedAt: Date | null;
+};
+
+export type PersonalManual = {
+  lifeStage: string | null;
+  currentGoals: string[];
+  abilityProfile: string | null;
+  emotionPatterns: string | null;
+  energySources: string[];
+  drainSources: string[];
+  recurringProblems: string[];
+  preferredActionStyle: string | null;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export type RecentTaskRecord = {
@@ -995,6 +1025,61 @@ export async function upsertDailyReviewReportForUser(input: {
       updated_at: nowIso,
     },
     { onConflict: "user_id,report_type,period_start,period_end" },
+  );
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function getPersonalManualForUser(userId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("personal_manuals")
+    .select("life_stage,current_goals,ability_profile,emotion_patterns,energy_sources,drain_sources,recurring_problems,preferred_action_style,notes,created_at,updated_at")
+    .eq("user_id", userId)
+    .returns<PersonalManualRow>()
+    .maybeSingle();
+  const row = assertRow(data as PersonalManualRow | null, error);
+
+  return row
+    ? {
+        lifeStage: row.life_stage,
+        currentGoals: row.current_goals,
+        abilityProfile: row.ability_profile,
+        emotionPatterns: row.emotion_patterns,
+        energySources: row.energy_sources,
+        drainSources: row.drain_sources,
+        recurringProblems: row.recurring_problems,
+        preferredActionStyle: row.preferred_action_style,
+        notes: row.notes,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+      }
+    : null;
+}
+
+export async function upsertPersonalManualForUser(input: {
+  userId: string;
+  lifeStage: string | null;
+  currentGoals: string[];
+  abilityProfile: string | null;
+  emotionPatterns: string | null;
+  drainSources: string[];
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("personal_manuals").upsert(
+    {
+      user_id: input.userId,
+      life_stage: input.lifeStage,
+      current_goals: input.currentGoals,
+      ability_profile: input.abilityProfile,
+      emotion_patterns: input.emotionPatterns,
+      drain_sources: input.drainSources,
+      updated_at: input.updatedAt.toISOString(),
+    },
+    { onConflict: "user_id" },
   );
 
   if (error) {
