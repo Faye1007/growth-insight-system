@@ -3,9 +3,11 @@ import {
   BarChart3,
   CalendarDays,
   CheckCircle2,
+  Download,
   HeartPulse,
   NotebookPen,
   Repeat2,
+  Sparkles,
 } from "lucide-react";
 
 import {
@@ -924,6 +926,15 @@ function ReviewListSection({ title, items }: { title: string; items: string[] })
   );
 }
 
+function MarkdownExportButton({ kind }: { kind: "weekly" | "monthly" }) {
+  return (
+    <a className="quiet-button" href={`/export/markdown?kind=${kind}`}>
+      <Download aria-hidden="true" className="h-4 w-4" />
+      导出 Markdown
+    </a>
+  );
+}
+
 function WeeklyReviewReportCard({
   report,
   weekDatesText,
@@ -1149,6 +1160,32 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
         </section>
       ) : null}
 
+      <section aria-labelledby="review-entry-title" className="panel-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="page-kicker">复盘入口</p>
+            <h2 id="review-entry-title" className="section-heading mt-1">
+              AI 复盘与问题拆解
+            </h2>
+            <p className="body-copy mt-2">
+              问题拆解用于临时整理情绪、压力或明日计划，当前默认程序化输出，不自动调用 AI。
+            </p>
+          </div>
+          <div className="review-preview-actions">
+            <Link className="quiet-button" href="/toolbox">
+              <Sparkles aria-hidden="true" className="h-4 w-4" />
+              问题拆解
+            </Link>
+            <Link className="soft-button" href="/insights?weeklyPreview=1#weekly-review-preview">
+              周复盘
+            </Link>
+            <Link className="soft-button" href="/insights?monthlyPreview=1#monthly-review-preview">
+              月复盘
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section aria-labelledby="monthly-program-review" className="panel-card insight-order-monthly">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -1237,6 +1274,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
             ) : null}
 
             <div className="review-preview-actions">
+              {isLoggedIn ? <MarkdownExportButton kind="monthly" /> : null}
               {monthlyReviewReport ? (
                 <Link className="soft-button" href="#monthly-review-report">
                   查看已生成月复盘
@@ -1342,6 +1380,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
             </div>
 
             <div className="review-preview-actions">
+              {isLoggedIn ? <MarkdownExportButton kind="weekly" /> : null}
               {weeklyReviewReport ? (
                 <Link className="soft-button" href="#weekly-review-report">
                   查看已生成周复盘

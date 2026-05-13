@@ -70,7 +70,7 @@ const anniversarySavedFeedback: Record<string, FeedbackMessageType> = {
   deleted: {
     tone: "success",
     title: "纪念日已删除",
-    detail: "这条纪念日已从生活扩展列表中移除。",
+    detail: "这条纪念日已从纪念日列表中移除。",
   },
 };
 
@@ -106,7 +106,7 @@ const giftSavedFeedback: Record<string, FeedbackMessageType> = {
   deleted: {
     tone: "success",
     title: "礼物记录已删除",
-    detail: "这条礼物记录已从生活扩展列表中移除。",
+    detail: "这条礼物记录已从纪念日列表中移除。",
   },
 };
 
@@ -345,7 +345,7 @@ function AnniversaryCard({ anniversary }: { anniversary: AnniversaryRecord }) {
               <div>
                 <h4 className="list-label">删除纪念日</h4>
                 <p className="body-copy mt-1">
-                  删除后这条纪念日不会再出现在生活扩展列表中。
+                  删除后这条纪念日不会再出现在纪念日列表中。
                 </p>
               </div>
               <button className="quiet-button danger-button" type="submit">
@@ -404,7 +404,7 @@ function GiftRecordCard({
               <div>
                 <h4 className="list-label">删除礼物记录</h4>
                 <p className="body-copy mt-1">
-                  删除后这条礼物记录不会再出现在生活扩展列表中。
+                  删除后这条礼物记录不会再出现在纪念日列表中。
                 </p>
               </div>
               <button className="quiet-button danger-button" type="submit">
@@ -454,10 +454,10 @@ export default async function LifePage({ searchParams }: LifePageProps) {
       <header className="page-header">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="page-kicker">生活扩展</p>
+            <p className="page-kicker">纪念日</p>
             <h1 className="page-title">纪念日与礼物记录</h1>
           </div>
-          <span className="status-pill w-fit">当前：生活扩展</span>
+          <span className="status-pill w-fit">当前：纪念日</span>
         </div>
         <p className="page-description">
           记录重要日期、关系对象和历史礼物。当前只做列表和维护，不做推送提醒，也不调用 AI。
@@ -471,7 +471,7 @@ export default async function LifePage({ searchParams }: LifePageProps) {
         <section className="panel-card">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="section-heading">登录后维护生活扩展记录</h2>
+              <h2 className="section-heading">登录后维护纪念日记录</h2>
               <p className="body-copy mt-2">
                 未登录时可以浏览页面结构；登录后可以保存自己的纪念日和礼物记录。
               </p>

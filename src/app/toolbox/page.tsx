@@ -55,12 +55,12 @@ const toolLabels: Record<ToolType, string> = {
 const toolErrorFeedback: Record<string, FeedbackMessageType> = {
   invalid_input: {
     tone: "error",
-    title: "工具输入还没填完整",
-    detail: "请选择工具类型，并写下这次想整理的内容。",
+    title: "拆解输入还没填完整",
+    detail: "请选择拆解类型，并写下这次想整理的内容。",
   },
   save_failed: {
     tone: "error",
-    title: "工具记录没有保存成功",
+    title: "问题拆解记录没有保存成功",
     detail: "请稍后重试；这次操作不会影响其他记录。",
   },
 };
@@ -68,7 +68,7 @@ const toolErrorFeedback: Record<string, FeedbackMessageType> = {
 const toolSavedFeedback: Record<string, FeedbackMessageType> = {
   created: {
     tone: "success",
-    title: "工具记录已保存",
+    title: "问题拆解记录已保存",
     detail: "本次输入和程序化整理结果已关联到当前账号。",
   },
 };
@@ -138,13 +138,13 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
       <header className="page-header">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="page-kicker">场景工具箱</p>
-            <h1 className="page-title">具体场景整理工具</h1>
+            <p className="page-kicker">问题拆解</p>
+            <h1 className="page-title">即时问题整理</h1>
           </div>
           <span className="status-pill w-fit">当前：基础版</span>
         </div>
         <p className="page-description">
-          先提供情绪复盘、压力整理和明日计划。当前默认使用程序化输出，不调用 AI。
+          用来临时拆解情绪、压力和明日计划。当前默认使用程序化输出，不自动调用 AI。
         </p>
       </header>
 
@@ -154,9 +154,9 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
         <section className="panel-card">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="section-heading">登录后保存工具记录</h2>
+              <h2 className="section-heading">登录后保存问题拆解</h2>
               <p className="body-copy mt-2">
-                未登录时可以浏览工具结构；登录后可以保存输入和整理结果。
+                未登录时可以浏览结构；登录后可以保存输入和整理结果。
               </p>
             </div>
             <Link className="soft-button w-full sm:w-auto" href={loginPath}>
@@ -169,9 +169,9 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
       <section aria-labelledby="tool-options-title" className="panel-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="page-kicker">工具</p>
+            <p className="page-kicker">拆解类型</p>
             <h2 id="tool-options-title" className="section-heading mt-1">
-              第一批场景
+              第一批问题类型
             </h2>
           </div>
           <span className="status-pill w-fit">不自动调用 AI</span>
@@ -198,7 +198,7 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
           <div>
             <p className="page-kicker">新记录</p>
             <h2 id="new-tool-title" className="section-heading mt-1">
-              保存一次工具整理
+              保存一次问题拆解
             </h2>
           </div>
           <span className="status-pill w-fit">保存输入 + 输出</span>
@@ -208,7 +208,7 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
           <form action={createToolSessionAction} className="task-form mt-5">
             <div className="task-form-grid">
               <label className="form-field">
-                工具类型
+                拆解类型
                 <select name="toolType" defaultValue={selectedToolType ?? "emotion_review"}>
                   {toolOptions.map((tool) => (
                     <option key={tool.type} value={tool.type}>
@@ -229,7 +229,7 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
             </div>
             <div className="task-edit-actions">
               <button className="soft-button" type="submit">
-                保存工具记录
+                保存问题拆解
               </button>
             </div>
           </form>
@@ -240,7 +240,7 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
             </span>
             <div>
               <p className="list-label">登录后可以保存</p>
-              <p className="body-copy mt-1">工具记录会关联到当前账号，不会写入展示数据。</p>
+              <p className="body-copy mt-1">问题拆解记录会关联到当前账号，不会写入展示数据。</p>
             </div>
           </div>
         )}
@@ -251,7 +251,7 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
           <div>
             <p className="page-kicker">历史</p>
             <h2 id="tool-history-title" className="section-heading mt-1">
-              最近工具记录
+              最近问题拆解记录
             </h2>
           </div>
           <span className="status-pill w-fit">最多显示 20 条</span>
@@ -262,9 +262,9 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
             <div className="task-form-grid">
               <label className="form-field">
                 <Filter aria-hidden="true" className="h-4 w-4" />
-                按工具筛选
+                按拆解类型筛选
                 <select name="toolType" defaultValue={selectedToolType ?? ""}>
-                  <option value="">全部工具</option>
+                  <option value="">全部类型</option>
                   {toolOptions.map((tool) => (
                     <option key={tool.type} value={tool.type}>
                       {tool.title}
@@ -296,7 +296,7 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
               <Sparkles aria-hidden="true" className="h-5 w-5" />
             </span>
             <div>
-              <p className="list-label">暂无工具记录</p>
+              <p className="list-label">暂无问题拆解记录</p>
               <p className="body-copy mt-1">
                 保存一次情绪复盘、压力整理或明日计划后，会在这里看到历史记录。
               </p>

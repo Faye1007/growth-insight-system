@@ -1,17 +1,14 @@
 import Link from "next/link";
 import {
   BarChart3,
-  BookOpenText,
   CalendarCheck,
   ClipboardList,
-  Download,
   Gift,
   Home,
   LogIn,
   LogOut,
   Menu,
   Settings,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 
@@ -24,10 +21,7 @@ const navigationItems = [
   { href: "/daily", label: "每日工作台", icon: CalendarCheck },
   { href: "/records", label: "成长记录", icon: ClipboardList },
   { href: "/insights", label: "洞察报告", icon: BarChart3 },
-  { href: "/manual", label: "个人说明书", icon: BookOpenText },
-  { href: "/life", label: "生活扩展", icon: Gift },
-  { href: "/toolbox", label: "场景工具箱", icon: Sparkles },
-  { href: "/export", label: "Markdown 导出", icon: Download },
+  { href: "/life", label: "纪念日", icon: Gift },
   { href: "/settings", label: "设置", icon: Settings },
 ];
 

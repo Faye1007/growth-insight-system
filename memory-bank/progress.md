@@ -2,11 +2,11 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化和 Step 16.2 日程循环规则。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则和 Modification Step 17.1 导航收敛与导出入口回收。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、工作台四类简洁列表、移动端抽屉导航、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、事件详情情绪标签兜底显示、洞察报告今日优先展示、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、生活扩展页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、场景工具箱页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 导出页面、复盘报告导出和近期成长记录导出、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、工作台四类简洁列表、移动端抽屉导航、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、事件详情情绪标签兜底显示、洞察报告今日优先展示、洞察报告 AI 复盘与问题拆解快捷入口、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、周复盘 Markdown 导出、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、月复盘 Markdown 导出、纪念日页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、问题拆解页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 下载路由、复盘报告导出和近期成长记录导出、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
 - 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
@@ -16,7 +16,7 @@
 - 第一版用户：Faye 自用
 - 第一版核心：每日工作台
 - 基础功能第一轮：先做每日工作台、基础记录、基础图表和每日 AI 复盘
-- 后续阶段：Obsidian 双向同步暂缓；周复盘、月度复盘、纪念日记录、礼物记录、场景工具箱基础版和 Markdown 导出已进入基础闭环
+- 后续阶段：Obsidian 双向同步暂缓；周复盘、月度复盘、纪念日记录、礼物记录、问题拆解基础版和 Markdown 导出已进入基础闭环
 - 数据方向：Supabase Postgres 作为主数据库
 - 认证方向：支持注册登录；未登录用户可浏览界面，写入时提示注册/登录
 - 访问方向：未登录用户可浏览基础界面和展示数据
@@ -39,12 +39,13 @@
 - `memory-bank/@product-requirements-document.md`
 - `memory-bank/@architecture.md`
 - `memory-bank/implementation-plan.md`
+- `memory-bank/modification-plan.md`
 - `memory-bank/progress.md`
 - `memory-bank/tech-stack.md`
 
 ## Completed
 
-### Step 1.1：创建 Next.js 应用骨架
+### ✅ Step 1.1：创建 Next.js 应用骨架
 
 已完成内容：
 
@@ -78,7 +79,7 @@
 - `npm run lint` 曾因依赖未安装报错 `eslint: not found`；这是依赖安装前的预期状态。
 - Faye 已接管并确认 Step 1.1 验证通过。
 
-### Step 1.2：整理项目初始目录
+### ✅ Step 1.2：整理项目初始目录
 
 已完成内容：
 
@@ -98,7 +99,7 @@
 - AI 适配目录存在。
 - Faye 已确认继续进入下一步。
 
-### Step 1.3：建立基础页面壳
+### ✅ Step 1.3：建立基础页面壳
 
 已完成内容：
 
@@ -119,7 +120,7 @@
 - 当前本地没有 `node_modules` 时无法由 Codex 运行 `npm run lint` 或 `npm run build`。
 - Faye 已要求更新文档并提交 Git，视为 Step 1.3 验证已通过。
 
-### Step 1.4：建立基础视觉规范
+### ✅ Step 1.4：建立基础视觉规范
 
 已完成内容：
 
@@ -139,7 +140,7 @@
 - `git diff --check` 通过。
 - Faye 已要求更新文档并提交 Git，视为 Step 1.4 验证已通过。
 
-### Step 2.1：确定基础数据模型
+### ✅ Step 2.1：确定基础数据模型
 
 已完成内容：
 
@@ -160,7 +161,7 @@
 - 本 Step 只修改文档，没有运行 `npm run lint` 或 `npm run build`。
 - Faye 已确认 Step 2.1 数据模型调整方向，并要求更新文档和提交 Git。
 
-### Step 2.2：接入 Supabase 数据库
+### ✅ Step 2.2：接入 Supabase 数据库
 
 已完成内容：
 
@@ -186,7 +187,7 @@
 - Step 2.3 已补充真实 `.env.local` 配置、Drizzle schema、迁移流程和真实业务表。
 - 尚未配置 `SUPABASE_SERVICE_ROLE_KEY`，当前阶段暂不需要。
 
-### Step 2.3：建立数据库迁移流程
+### ✅ Step 2.3：建立数据库迁移流程
 
 已完成内容：
 
@@ -229,7 +230,7 @@
 - 未配置 Row Level Security。
 - 未实现真实业务数据读写。
 
-### Step 2.4A：认证入口和未登录写入拦截基线
+### ✅ Step 2.4A：认证入口和未登录写入拦截基线
 
 已完成内容：
 
@@ -258,7 +259,7 @@
 - 未验证 Supabase Auth 邮件确认完整链路；需要在 Supabase Dashboard 中确认 Redirect URL 允许 `http://localhost:3001/auth/confirm`。
 - 未配置 `SUPABASE_SERVICE_ROLE_KEY`，当前阶段仍不需要。
 
-### Step 2.4B：认证安全跳转和登录后写入保护基础
+### ✅ Step 2.4B：认证安全跳转和登录后写入保护基础
 
 已完成内容：
 
@@ -286,7 +287,7 @@
 - 未配置 Row Level Security。
 - 未配置 `SUPABASE_SERVICE_ROLE_KEY`，当前阶段仍不需要。
 
-### Step 3.1：实现每日工作台页面结构
+### ✅ Step 3.1：实现每日工作台页面结构
 
 已完成内容：
 
@@ -316,7 +317,7 @@
 - 今日概览中的任务卡已接入真实今日任务完成率，习惯卡已接入真实启用习惯数量，其他统计仍为静态占位。
 - 未配置 Row Level Security。
 
-### Step 3.2：实现今日任务创建
+### ✅ Step 3.2：实现今日任务创建
 
 已完成内容：
 
@@ -354,7 +355,7 @@
 - Row Level Security 尚未配置。
 - 当前只接入任务创建，习惯、日程、随手记录和复盘仍未接真实写入。
 
-### Step 3.3：实现任务状态更新
+### ✅ Step 3.3：实现任务状态更新
 
 已完成内容：
 
@@ -392,7 +393,7 @@
 - Row Level Security 尚未配置。
 - 当前只接入任务创建和状态更新，习惯、日程、随手记录和复盘仍未接真实写入。
 
-### Step 3.4：实现习惯创建
+### ✅ Step 3.4：实现习惯创建
 
 已完成内容：
 
@@ -428,7 +429,7 @@
 - Row Level Security 尚未配置。
 - 当前只接入任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录和随手记录，复盘仍未接真实写入。
 
-### Step 3.7：实现随手记录
+### ✅ Step 3.7：实现随手记录
 
 已完成内容：
 
@@ -474,7 +475,7 @@
 - Row Level Security 尚未配置。
 - 当前只接入任务创建、任务状态更新、习惯创建、习惯打卡、今日日程记录和随手记录，复盘仍未接真实写入。
 
-### Step 3.6：实现今日日程记录
+### ✅ Step 3.6：实现今日日程记录
 
 已完成内容：
 
@@ -514,7 +515,7 @@
 - Row Level Security 尚未配置。
 - 当前只接入任务创建、任务状态更新、习惯创建、习惯打卡和今日日程记录，随手记录和复盘仍未接真实写入。
 
-### Step 3.5：实现习惯打卡
+### ✅ Step 3.5：实现习惯打卡
 
 已完成内容：
 
@@ -552,7 +553,7 @@
 - Row Level Security 尚未配置。
 - 当前只接入任务创建、任务状态更新、习惯创建和习惯打卡，日程、随手记录和复盘仍未接真实写入。
 
-### Step 3.8：实现今日概览统计
+### ✅ Step 3.8：实现今日概览统计
 
 已完成内容：
 
@@ -588,7 +589,7 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
-### Step 4.1：实现成长记录列表页
+### ✅ Step 4.1：实现成长记录列表页
 
 已完成内容：
 
@@ -629,7 +630,7 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
-### Step 4.2：实现基础筛选
+### ✅ Step 4.2：实现基础筛选
 
 已完成内容：
 
@@ -669,7 +670,7 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
-### Step 4.3：实现记录详情查看
+### ✅ Step 4.3：实现记录详情查看
 
 已完成内容：
 
@@ -712,7 +713,7 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
-### Step 5.1：实现洞察报告页面壳
+### ✅ Step 5.1：实现洞察报告页面壳
 
 已完成内容：
 
@@ -748,7 +749,7 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
-### Step 5.2：实现任务完成率图表
+### ✅ Step 5.2：实现任务完成率图表
 
 已完成内容：
 
@@ -787,7 +788,7 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
-### Step 5.3：实现习惯打卡图表
+### ✅ Step 5.3：实现习惯打卡图表
 
 已完成内容：
 
@@ -824,7 +825,7 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
-### Step 5.4：实现记录数量趋势
+### ✅ Step 5.4：实现记录数量趋势
 
 已完成内容：
 
@@ -861,7 +862,7 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
-### Step 5.5：实现情绪基础统计
+### ✅ Step 5.5：实现情绪基础统计
 
 已完成内容：
 
@@ -898,7 +899,7 @@
 - 复盘仍未接真实写入。
 - AI provider adapter 尚未接入。
 
-### Step 6.1：建立 AI 配置检查
+### ✅ Step 6.1：建立 AI 配置检查
 
 已完成内容：
 
@@ -934,7 +935,7 @@
 - 复盘的上下文生成、发送预览和真实生成尚未实现。
 - Row Level Security 尚未配置。
 
-### Step 6.2：建立 AI Provider Adapter 基础能力
+### ✅ Step 6.2：建立 AI Provider Adapter 基础能力
 
 已完成内容：
 
@@ -973,7 +974,7 @@
 - 复盘报告缓存读写尚未接入页面。
 - Row Level Security 尚未配置。
 
-### Step 6.3：生成每日复盘上下文
+### ✅ Step 6.3：生成每日复盘上下文
 
 已完成内容：
 
@@ -1015,7 +1016,7 @@
 - 真实 AI 生成和复盘报告缓存读写尚未接入页面。
 - Row Level Security 尚未配置。
 
-### Step 6.4：实现每日复盘发送预览
+### ✅ Step 6.4：实现每日复盘发送预览
 
 已完成内容：
 
@@ -1059,7 +1060,7 @@
 - 同一天已有报告时展示缓存报告尚未实现。
 - Row Level Security 尚未配置。
 
-### Step 6.5：实现手动生成每日复盘
+### ✅ Step 6.5：实现手动生成每日复盘
 
 已完成内容：
 
@@ -1104,7 +1105,7 @@
 
 - Row Level Security 尚未配置。
 
-### Step 6.6：验证 AI 成本控制规则
+### ✅ Step 6.6：验证 AI 成本控制规则
 
 已完成内容：
 
@@ -1142,7 +1143,7 @@
 
 - Row Level Security 尚未配置。
 
-### Step 7.1：实现设置页基础信息
+### ✅ Step 7.1：实现设置页基础信息
 
 已完成内容：
 
@@ -1178,7 +1179,7 @@
 
 - Row Level Security 尚未配置。
 
-### Step 7.2：建立错误提示规范
+### ✅ Step 7.2：建立错误提示规范
 
 已完成内容：
 
@@ -1217,7 +1218,7 @@
 - 源码检查通过：新增统一提示组件和文案层不读取或展示真实密钥、数据库连接字符串、`AI_API_KEY` 或 `Authorization`。
 - Faye 已确认 Step 7.2 通过，并要求更新文档和提交 Git。
 
-### Step 7.3：完成基础闭环手工验收
+### ✅ Step 7.3：完成基础闭环手工验收
 
 已完成内容：
 
@@ -1257,7 +1258,7 @@
 - 命令行页面检查没有浏览器登录态，因此页面响应验证覆盖未登录可打开；登录用户数据可见性通过真实数据库按用户和日期聚合验证。
 - Faye 已要求更新文档和提交 Git。
 
-### Step 8.1：更新架构文档
+### ✅ Step 8.1：更新架构文档
 
 已完成内容：
 
@@ -1282,7 +1283,7 @@
 - 本 Step 只修改文档，未运行 `npm run lint` 或 `npm run build`。
 - Faye 已确认 Step 8.1 通过，并要求更新文档和提交 Git。
 
-### Step 8.2：更新进度文档
+### ✅ Step 8.2：更新进度文档
 
 已完成内容：
 
@@ -1392,7 +1393,7 @@
 - 生产构建本地服务 `http://localhost:3003` 下，未登录状态 `/`、`/daily`、`/records`、`/insights`、`/manual` 和 `/settings` 均返回 `200`。
 - 本 Step 未修改 `.env.local`，未配置生产环境变量，未部署，未提交 Git，未 push。
 
-### Step 9.1：预览部署准备盘点
+### ✅ Step 9.1：预览部署准备盘点
 
 已完成内容：
 
@@ -1430,7 +1431,7 @@ Supabase Auth Redirect URL 需要配置：
 - 生产构建本地服务 `http://localhost:3004/settings` 返回 `200`。
 - `/settings` 页面扫描未发现数据库连接串、AI key、service role key、Bearer token 等明文泄露。
 
-### Step 9.2：Vercel 正式部署与基础验收
+### ✅ Step 9.2：Vercel 正式部署与基础验收
 
 已完成内容：
 
@@ -1451,7 +1452,7 @@ Supabase Auth Redirect URL 需要配置：
 - Faye 已确认 Supabase 侧设置完成，并已完成线上测试。
 - 本 Step 未配置 AI 环境变量，AI 待配置属于预期状态。
 
-### Step 9.3：部署前最终测试
+### ✅ Step 9.3：部署前最终测试
 
 已完成内容：
 
@@ -1470,7 +1471,7 @@ Supabase Auth Redirect URL 需要配置：
 - 当前首版部署继续采用无 AI 配置路线，AI 待配置属于预期状态。
 - 本 Step 只补充部署前测试完成态文档，未修改应用代码。
 
-### Step 10.1：任务编辑与删除
+### ✅ Step 10.1：任务编辑与删除
 
 已完成内容：
 
@@ -1507,7 +1508,7 @@ Supabase Auth Redirect URL 需要配置：
 - 生产构建本地服务 `http://localhost:3005/insights` 返回 `200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
-### Step 10.2：日程编辑与删除
+### ✅ Step 10.2：日程编辑与删除
 
 已完成内容：
 
@@ -1540,7 +1541,7 @@ Supabase Auth Redirect URL 需要配置：
 - `git diff --check` 通过。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
-### Step 10.3：事件编辑与删除
+### ✅ Step 10.3：事件编辑与删除
 
 已完成内容：
 
@@ -1573,7 +1574,7 @@ Supabase Auth Redirect URL 需要配置：
 - `git diff --check` 通过。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
-### Step 10.4：灵感编辑与删除
+### ✅ Step 10.4：灵感编辑与删除
 
 已完成内容：
 
@@ -1606,7 +1607,7 @@ Supabase Auth Redirect URL 需要配置：
 - `git diff --check` 通过。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
-### Step 10.5：习惯维护
+### ✅ Step 10.5：习惯维护
 
 已完成内容：
 
@@ -1640,7 +1641,7 @@ Supabase Auth Redirect URL 需要配置：
 - `git diff --check` 通过。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
-### Step 11.1：写入区默认收起
+### ✅ Step 11.1：写入区默认收起
 
 已完成内容：
 
@@ -1667,7 +1668,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/daily` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
-### Step 11.2：今日概览卡增加快捷入口
+### ✅ Step 11.2：今日概览卡增加快捷入口
 
 已完成内容：
 
@@ -1696,7 +1697,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/daily?create=record` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
-### Step 11.3：移动端工作台检查与优化
+### ✅ Step 11.3：移动端工作台检查与优化
 
 已完成内容：
 
@@ -1724,7 +1725,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/daily?create=task` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
-### Step 12.1：个人说明书读取与保存
+### ✅ Step 12.1：个人说明书读取与保存
 
 已完成内容：
 
@@ -1756,7 +1757,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/manual` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
-### Step 12.2：个人说明书手动编辑
+### ✅ Step 12.2：个人说明书手动编辑
 
 已完成内容：
 
@@ -1785,7 +1786,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/manual` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
 
-### Step 12.3：个人说明书与复盘预留关联
+### ✅ Step 12.3：个人说明书与复盘预留关联
 
 已完成内容：
 
@@ -1812,7 +1813,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/daily?reviewPreview=1` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移，未 push。
 
-### Step 13.1：周复盘程序统计
+### ✅ Step 13.1：周复盘程序统计
 
 已完成内容：
 
@@ -1838,7 +1839,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/insights` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
 
-### Step 13.2：周复盘发送预览
+### ✅ Step 13.2：周复盘发送预览
 
 已完成内容：
 
@@ -1867,7 +1868,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/insights?weeklyPreview=1` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
 
-### Step 13.3：周复盘生成与缓存
+### ✅ Step 13.3：周复盘生成与缓存
 
 已完成内容：
 
@@ -1898,7 +1899,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/insights?weeklyPreview=1` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
 
-### Step 14.1：月复盘程序统计
+### ✅ Step 14.1：月复盘程序统计
 
 已完成内容：
 
@@ -1925,7 +1926,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/insights` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
 
-### Step 14.2：月复盘发送预览
+### ✅ Step 14.2：月复盘发送预览
 
 已完成内容：
 
@@ -1953,7 +1954,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/insights?monthlyPreview=1` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
 
-### Step 14.3：月复盘生成与缓存
+### ✅ Step 14.3：月复盘生成与缓存
 
 已完成内容：
 
@@ -1984,7 +1985,7 @@ Supabase Auth Redirect URL 需要配置：
 - 本地 `/insights?monthlyPreview=1` 响应 `HTTP 200`。
 - 本 Step 未修改 `.env.local`，未修改数据库 schema，未执行迁移。
 
-### Step 15.1：纪念日记录
+### ✅ Step 15.1：纪念日记录
 
 已完成内容：
 
@@ -2020,7 +2021,7 @@ Supabase Auth Redirect URL 需要配置：
 - `npm run lint` 通过。
 - `npm run build` 通过，构建路由包含 `/life`。
 
-### Step 15.2：礼物记录
+### ✅ Step 15.2：礼物记录
 
 已完成内容：
 
@@ -2057,7 +2058,7 @@ Supabase Auth Redirect URL 需要配置：
 - `npm run lint` 通过。
 - `npm run build` 通过，构建路由包含 `/life`。
 
-### Step 15.3：场景工具箱基础版
+### ✅ Step 15.3：场景工具箱基础版
 
 已完成内容：
 
@@ -2095,7 +2096,7 @@ Supabase Auth Redirect URL 需要配置：
 - `npm run lint` 通过。
 - `npm run build` 通过，构建路由包含 `/toolbox`。
 
-### Step 15.4：Obsidian Markdown 导出
+### ✅ Step 15.4：Obsidian Markdown 导出
 
 已完成内容：
 
@@ -2123,7 +2124,7 @@ Supabase Auth Redirect URL 需要配置：
 - `npm run lint` 通过。
 - `npm run build` 通过，构建路由包含 `/export` 和 `/export/markdown`。
 
-### Step 16.1：工作台简洁化与移动端导航优化
+### ✅ Step 16.1：工作台简洁化与移动端导航优化
 
 已完成内容：
 
@@ -2153,7 +2154,7 @@ Supabase Auth Redirect URL 需要配置：
 - `git diff --check` 通过。
 - `npm run build` 通过。
 
-### Step 16.2：日程循环规则
+### ✅ Step 16.2：日程循环规则
 
 已完成内容：
 
@@ -2192,6 +2193,39 @@ Supabase Auth Redirect URL 需要配置：
 - `git diff --check` 通过。
 - `npm run build` 通过。
 
+### ✅ Modification Step 17.1：导航收敛与导出入口回收
+
+已完成内容：
+
+- 主导航移除“Markdown 导出”入口。
+- 主导航移除“个人说明书”入口，后续作为 AI 复盘相关资料并入洞察报告入口设计。
+- 主导航移除“场景工具箱”入口。
+- “场景工具箱”命名调整为“问题拆解”；`/toolbox` 路由暂时保留，作为洞察报告中的辅助入口。
+- 洞察报告顶部新增“AI 复盘与问题拆解”快捷入口，包含问题拆解、周复盘和月复盘。
+- 洞察报告的周复盘、月复盘区域新增“导出 Markdown”快捷入口。
+- `/export` 独立页面不再展示导出界面，访问时回到 `/insights`。
+- `/export/markdown` 下载路由新增 `weekly` 和 `monthly` 类型，支持周复盘、月复盘按类型导出。
+- “生活扩展”页面和导航命名调整为“纪念日”，路由 `/life` 暂不改，避免破坏已有链接。
+- 本 Step 未修改数据库 schema，未生成迁移，未执行真实数据库迁移，未写入测试业务数据。
+
+本次新增或更新的文件：
+
+- `src/components/app-shell.tsx`
+- `src/app/insights/page.tsx`
+- `src/app/export/page.tsx`
+- `src/app/export/markdown/route.ts`
+- `src/app/life/page.tsx`
+- `src/app/toolbox/page.tsx`
+- `memory-bank/modification-plan.md`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+- `npm run build` 通过。
+
 ## Not Started
 
 - 自定义正式域名绑定
@@ -2199,6 +2233,6 @@ Supabase Auth Redirect URL 需要配置：
 
 ## Next Step Candidate
 
-下一阶段候选：本地页面验收和必要的测试数据闭环。
+下一阶段候选：Modification Step 17.2 每日工作台去掉重复概览。
 
-如果需要写入测试日程验证循环规则，测试通过后必须删除或软删除对应测试数据。
+如果后续需要写入测试数据验证页面行为，测试通过后必须删除或软删除对应测试数据。

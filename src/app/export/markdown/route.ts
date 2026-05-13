@@ -10,7 +10,7 @@ import {
 import { getCurrentUser } from "@/lib/auth/session";
 import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
 
-type ExportKind = "records" | "reports";
+type ExportKind = "records" | "reports" | "weekly" | "monthly";
 
 const exportLimit = 20;
 
@@ -75,10 +75,14 @@ function invalidKindResponse() {
   return new Response("Unsupported export kind.", { status: 400 });
 }
 
-async function buildReportsMarkdown(userId: string) {
-  const reports = await getRecentReviewReportsForUser(userId, exportLimit);
+async function buildReportsMarkdown(userId: string, reportType?: ExportReviewReport["reportType"]) {
+  const allReports = await getRecentReviewReportsForUser(userId, exportLimit);
+  const reports = reportType
+    ? allReports.filter((report) => report.reportType === reportType)
+    : allReports;
+  const reportLabel = reportType ? reportTypeLabels[reportType] : "复盘报告";
   const lines = [
-    "# Growth Insight 复盘报告导出",
+    `# Growth Insight ${reportLabel}导出`,
     "",
     `导出时间：${getBeijingDateTimeText()}`,
     `导出数量：${reports.length}`,
@@ -86,7 +90,7 @@ async function buildReportsMarkdown(userId: string) {
   ];
 
   if (!reports.length) {
-    lines.push("暂无可导出的复盘报告。");
+    lines.push(`暂无可导出的${reportLabel}。`);
     return lines.join("\n");
   }
 
@@ -219,6 +223,20 @@ export async function GET(request: Request) {
     return markdownResponse(
       await buildReportsMarkdown(user.id),
       "growth-insight-reports.md",
+    );
+  }
+
+  if (kind === "weekly") {
+    return markdownResponse(
+      await buildReportsMarkdown(user.id, "weekly"),
+      "growth-insight-weekly-reviews.md",
+    );
+  }
+
+  if (kind === "monthly") {
+    return markdownResponse(
+      await buildReportsMarkdown(user.id, "monthly"),
+      "growth-insight-monthly-reviews.md",
     );
   }
 
