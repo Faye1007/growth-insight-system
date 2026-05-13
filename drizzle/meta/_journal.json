@@ -36,6 +36,13 @@
       "when": 1778663496849,
       "tag": "0004_lonely_silver_samurai",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778673817989,
+      "tag": "0005_remarkable_doctor_strange",
+      "breakpoints": true
     }
   ]
 }

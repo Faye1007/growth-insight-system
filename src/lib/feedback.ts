@@ -172,6 +172,11 @@ export const dailyScheduleErrorFeedback: Record<string, FeedbackMessage> = {
     title: "日程时间格式不正确",
     detail: "请重新选择开始时间或结束时间。",
   },
+  invalid_date_range: {
+    tone: "error",
+    title: "日程日期范围不正确",
+    detail: "结束日期不能早于开始日期。",
+  },
   missing_schedule: {
     tone: "error",
     title: "没有找到这条日程",
@@ -188,7 +193,7 @@ export const dailyScheduleUpdatedFeedback: Record<string, FeedbackMessage> = {
   edited: {
     tone: "success",
     title: "日程已保存",
-    detail: "日程标题、分类、日期、时间或说明已更新。",
+    detail: "日程标题、分类、日期、循环周期、时间或说明已更新。",
   },
   deleted: {
     tone: "success",

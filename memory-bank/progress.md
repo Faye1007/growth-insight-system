@@ -2,11 +2,11 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出和 Step 16.1 工作台简洁化与移动端导航优化。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化和 Step 16.2 日程循环规则。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、工作台四类简洁列表、移动端抽屉导航、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、事件详情情绪标签兜底显示、洞察报告今日优先展示、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、生活扩展页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、场景工具箱页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 导出页面、复盘报告导出和近期成长记录导出、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、工作台四类简洁列表、移动端抽屉导航、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、事件详情情绪标签兜底显示、洞察报告今日优先展示、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、生活扩展页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、场景工具箱页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 导出页面、复盘报告导出和近期成长记录导出、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
 - 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
@@ -2153,14 +2153,52 @@ Supabase Auth Redirect URL 需要配置：
 - `git diff --check` 通过。
 - `npm run build` 通过。
 
+### Step 16.2：日程循环规则
+
+已完成内容：
+
+- 新增日程循环周期选项：不循环、每天、每周、每月。
+- `schedule_items` schema 新增 `start_date`、`end_date` 和 `recurrence` 字段。
+- 新增 `schedule_recurrence` 数据库枚举。
+- 新增本地迁移文件 `drizzle/0005_remarkable_doctor_strange.sql`，包含枚举、日程字段、旧数据 `start_date = schedule_date` 回填和用户开始日期索引。
+- 已执行真实 Supabase 数据库迁移；第一次命令中断后复跑成功，最终输出 `migrations applied successfully`。
+- 每日工作台创建日程时可设置开始日期、结束日期和循环周期。
+- 今日工作台读取日程时兼容旧单日日程和新循环日程；命中今天的每日、每周、每月循环日程会显示在今日列表。
+- 日程详情页展示并可编辑开始日期、结束日期和循环周期。
+- 新增日程日期范围校验，结束日期不能早于开始日期。
+- 本 Step 未写入测试业务数据，因此无需清理测试数据。
+
+本次新增或更新的文件：
+
+- `src/lib/schedules/options.ts`
+- `src/db/schema.ts`
+- `src/lib/data/user-data.ts`
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/records/[kind]/[id]/page.tsx`
+- `src/lib/feedback.ts`
+- `drizzle/0005_remarkable_doctor_strange.sql`
+- `drizzle/meta/_journal.json`
+- `drizzle/meta/0005_snapshot.json`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run db:generate` 通过，生成 `drizzle/0005_remarkable_doctor_strange.sql`。
+- 人工检查迁移 SQL：只新增 `schedule_recurrence`、`schedule_items` 三个循环字段、旧数据回填和开始日期索引。
+- `npm run db:migrate` 第二次执行通过，真实 Supabase 数据库迁移成功。
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+- `npm run build` 通过。
+
 ## Not Started
 
 - 自定义正式域名绑定
 - AI 复盘生产环境变量配置
-- 日程开始日期、结束日期和循环周期支持
 
 ## Next Step Candidate
 
-下一阶段候选：日程循环规则。
+下一阶段候选：本地页面验收和必要的测试数据闭环。
 
-下一步建议为 `schedule_items` 补充开始日期、结束日期和循环周期字段，并让每日工作台显示命中今天的循环日程。该步骤涉及数据库 schema 和迁移文件，执行真实数据库迁移 `npm run db:migrate` 必须单独确认。
+如果需要写入测试日程验证循环规则，测试通过后必须删除或软删除对应测试数据。

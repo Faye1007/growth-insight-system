@@ -34,6 +34,7 @@ import {
   upsertDailyReviewReportForUser,
   upsertHabitCheckinForUser,
 } from "@/lib/data/user-data";
+import { isScheduleRecurrence } from "@/lib/schedules/options";
 import { isTaskCategory, isTaskStatus } from "@/lib/tasks/options";
 
 function getStringValue(formData: FormData, key: string) {
@@ -67,6 +68,10 @@ function getValidTaskDate(value: string) {
 
 function isValidDateValue(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function isDateAfter(value: string, baseline: string) {
+  return new Date(`${value}T00:00:00+08:00`).getTime() > new Date(`${baseline}T00:00:00+08:00`).getTime();
 }
 
 function isValidTimeValue(value: string) {
@@ -452,10 +457,20 @@ export async function createScheduleItemAction(formData: FormData) {
 
   const categoryValue = getStringValue(formData, "category");
   const scheduleDateValue = getStringValue(formData, "scheduleDate");
+  const startDateValue = getStringValue(formData, "startDate");
+  const endDateValue = getStringValue(formData, "endDate");
+  const recurrenceValue = getStringValue(formData, "recurrence");
   const startTimeValue = getStringValue(formData, "startTime");
   const endTimeValue = getStringValue(formData, "endTime");
   const category = isTaskCategory(categoryValue) ? categoryValue : "other";
   const scheduleDate = isValidDateValue(scheduleDateValue) ? scheduleDateValue : getBeijingDateValue();
+  const startDate = isValidDateValue(startDateValue) ? startDateValue : scheduleDate;
+  const endDate = isValidDateValue(endDateValue) ? endDateValue : null;
+  const recurrence = isScheduleRecurrence(recurrenceValue) ? recurrenceValue : "none";
+
+  if (endDate && isDateAfter(startDate, endDate)) {
+    redirect("/daily?scheduleError=invalid_date_range#schedule");
+  }
 
   if (!isValidTimeValue(startTimeValue)) {
     redirect("/daily?scheduleError=missing_time#schedule");
@@ -471,6 +486,9 @@ export async function createScheduleItemAction(formData: FormData) {
       title,
       category,
       scheduleDate,
+      startDate,
+      endDate,
+      recurrence,
       startTime: startTimeValue,
       endTime: endTimeValue || null,
     });
@@ -503,11 +521,25 @@ export async function updateScheduleItemAction(formData: FormData) {
 
   const categoryValue = getStringValue(formData, "category");
   const scheduleDateValue = getStringValue(formData, "scheduleDate");
+  const startDateValue = getStringValue(formData, "startDate");
+  const endDateValue = getStringValue(formData, "endDate");
+  const recurrenceValue = getStringValue(formData, "recurrence");
   const startTimeValue = getStringValue(formData, "startTime");
   const endTimeValue = getStringValue(formData, "endTime");
   const category = isTaskCategory(categoryValue) ? categoryValue : "other";
   const scheduleDate = isValidDateValue(scheduleDateValue) ? scheduleDateValue : getBeijingDateValue();
+  const startDate = isValidDateValue(startDateValue) ? startDateValue : scheduleDate;
+  const endDate = isValidDateValue(endDateValue) ? endDateValue : null;
+  const recurrence = isScheduleRecurrence(recurrenceValue) ? recurrenceValue : "none";
   const description = getStringValue(formData, "description") || null;
+
+  if (endDate && isDateAfter(startDate, endDate)) {
+    redirect(
+      source === "detail"
+        ? `${baseDetailPath}?scheduleError=invalid_date_range`
+        : "/daily?scheduleError=invalid_date_range#schedule",
+    );
+  }
 
   if (!isValidTimeValue(startTimeValue)) {
     redirect(
@@ -533,6 +565,9 @@ export async function updateScheduleItemAction(formData: FormData) {
       description,
       category,
       scheduleDate,
+      startDate,
+      endDate,
+      recurrence,
       startTime: startTimeValue,
       endTime: endTimeValue || null,
       updatedAt: new Date(),

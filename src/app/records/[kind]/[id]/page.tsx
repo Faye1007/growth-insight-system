@@ -24,6 +24,11 @@ import {
   getTaskDetailForUser,
 } from "@/lib/data/user-data";
 import {
+  getScheduleRecurrenceLabel,
+  type ScheduleRecurrence,
+  scheduleRecurrences,
+} from "@/lib/schedules/options";
+import {
   getTaskCategoryLabel,
   getTaskStatusLabel,
   taskCategories,
@@ -377,6 +382,9 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
           <div className="detail-grid">
             <DetailField label="分类" value={getTaskCategoryLabel(item.category)} />
             <DetailField label="日程日期" value={formatDateValue(item.scheduleDate)} />
+            <DetailField label="开始日期" value={formatDateValue(item.startDate)} />
+            <DetailField label="结束日期" value={formatDateValue(item.endDate)} />
+            <DetailField label="循环周期" value={getScheduleRecurrenceLabel(item.recurrence)} />
             <DetailField label="时间" value={formatScheduleTimeRange(item.startTime, item.endTime)} />
             <DetailField label="创建时间" value={formatDateTimeValue(item.createdAt)} />
             <DetailField label="更新时间" value={formatDateTimeValue(item.updatedAt)} />
@@ -664,6 +672,9 @@ function ScheduleDetailEditSection({
     description: string | null;
     category: (typeof taskCategories)[number]["value"];
     scheduleDate: string;
+    startDate: string | null;
+    endDate: string | null;
+    recurrence: ScheduleRecurrence;
     startTime: string | null;
     endTime: string | null;
   };
@@ -695,6 +706,27 @@ function ScheduleDetailEditSection({
           <label className="form-field">
             <span>日期</span>
             <input name="scheduleDate" type="date" defaultValue={item.scheduleDate} required />
+          </label>
+
+          <label className="form-field">
+            <span>开始日期</span>
+            <input name="startDate" type="date" defaultValue={item.startDate ?? item.scheduleDate} required />
+          </label>
+
+          <label className="form-field">
+            <span>结束日期</span>
+            <input name="endDate" type="date" defaultValue={item.endDate ?? ""} />
+          </label>
+
+          <label className="form-field">
+            <span>循环周期</span>
+            <select name="recurrence" defaultValue={item.recurrence}>
+              {scheduleRecurrences.map((recurrence) => (
+                <option key={recurrence.value} value={recurrence.value}>
+                  {recurrence.label}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label className="form-field">

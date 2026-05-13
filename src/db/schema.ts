@@ -65,6 +65,13 @@ export const toolTypeEnum = pgEnum("tool_type", [
   "tomorrow_plan",
 ]);
 
+export const scheduleRecurrenceEnum = pgEnum("schedule_recurrence", [
+  "none",
+  "daily",
+  "weekly",
+  "monthly",
+]);
+
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -145,6 +152,9 @@ export const scheduleItems = pgTable(
     description: text("description"),
     category: taskCategoryEnum("category").default("other").notNull(),
     scheduleDate: date("schedule_date").notNull(),
+    startDate: date("start_date"),
+    endDate: date("end_date"),
+    recurrence: scheduleRecurrenceEnum("recurrence").default("none").notNull(),
     startTime: time("start_time"),
     endTime: time("end_time"),
     ...timestamps,
@@ -152,6 +162,7 @@ export const scheduleItems = pgTable(
   },
   (table) => [
     index("schedule_items_user_date_idx").on(table.userId, table.scheduleDate),
+    index("schedule_items_user_start_idx").on(table.userId, table.startDate),
     index("schedule_items_user_category_idx").on(table.userId, table.category),
   ],
 );

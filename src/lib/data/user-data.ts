@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import type { ScheduleRecurrence } from "@/lib/schedules/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
 
 type HabitCheckinStatus = "checked" | "skipped";
@@ -12,6 +13,44 @@ export type ToolType = "emotion_review" | "stress_sorting" | "tomorrow_plan";
 
 function toDate(value: string | null | undefined) {
   return value ? new Date(value) : null;
+}
+
+function getDateTime(value: string) {
+  return new Date(`${value}T00:00:00+08:00`).getTime();
+}
+
+function getDaysBetween(start: string, end: string) {
+  return Math.floor((getDateTime(end) - getDateTime(start)) / (24 * 60 * 60 * 1000));
+}
+
+function scheduleOccursOnDate(row: ScheduleItemRow, date: string) {
+  const startDate = row.start_date ?? row.schedule_date;
+  const endDate = row.end_date;
+
+  if (getDateTime(startDate) > getDateTime(date)) {
+    return false;
+  }
+
+  if (endDate && getDateTime(endDate) < getDateTime(date)) {
+    return false;
+  }
+
+  if (row.recurrence === "none") {
+    return row.schedule_date === date || startDate === date;
+  }
+
+  if (row.recurrence === "daily") {
+    return true;
+  }
+
+  const start = new Date(`${startDate}T00:00:00+08:00`);
+  const target = new Date(`${date}T00:00:00+08:00`);
+
+  if (row.recurrence === "weekly") {
+    return getDaysBetween(startDate, date) % 7 === 0;
+  }
+
+  return start.getDate() === target.getDate();
 }
 
 function assertArray<T>(data: T[] | null, error: unknown) {
@@ -79,6 +118,9 @@ type ScheduleItemRow = {
   description: string | null;
   category: TaskCategory;
   schedule_date: string;
+  start_date: string | null;
+  end_date: string | null;
+  recurrence: ScheduleRecurrence;
   start_time: string | null;
   end_time: string | null;
   created_at: string;
@@ -230,6 +272,9 @@ export type TodayScheduleItem = {
   description: string | null;
   category: TaskCategory;
   scheduleDate: string;
+  startDate: string | null;
+  endDate: string | null;
+  recurrence: ScheduleRecurrence;
   startTime: string | null;
   endTime: string | null;
   createdAt: Date;
@@ -405,6 +450,9 @@ export type ScheduleDetail = {
   description: string | null;
   category: TaskCategory;
   scheduleDate: string;
+  startDate: string | null;
+  endDate: string | null;
+  recurrence: ScheduleRecurrence;
   startTime: string | null;
   endTime: string | null;
   createdAt: Date;
@@ -933,6 +981,9 @@ export async function createScheduleItemForUser(input: {
   title: string;
   category: TaskCategory;
   scheduleDate: string;
+  startDate: string;
+  endDate: string | null;
+  recurrence: ScheduleRecurrence;
   startTime: string;
   endTime: string | null;
 }) {
@@ -942,6 +993,9 @@ export async function createScheduleItemForUser(input: {
     title: input.title,
     category: input.category,
     schedule_date: input.scheduleDate,
+    start_date: input.startDate,
+    end_date: input.endDate,
+    recurrence: input.recurrence,
     start_time: input.startTime,
     end_time: input.endTime,
   });
@@ -958,6 +1012,9 @@ export async function updateScheduleItemForUser(input: {
   description: string | null;
   category: TaskCategory;
   scheduleDate: string;
+  startDate: string;
+  endDate: string | null;
+  recurrence: ScheduleRecurrence;
   startTime: string;
   endTime: string | null;
   updatedAt: Date;
@@ -970,6 +1027,9 @@ export async function updateScheduleItemForUser(input: {
       description: input.description,
       category: input.category,
       schedule_date: input.scheduleDate,
+      start_date: input.startDate,
+      end_date: input.endDate,
+      recurrence: input.recurrence,
       start_time: input.startTime,
       end_time: input.endTime,
       updated_at: input.updatedAt.toISOString(),
@@ -1697,20 +1757,23 @@ export async function getTodayScheduleItemsForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("id,title,description,category,schedule_date,start_time,end_time,created_at")
+    .select("id,title,description,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,created_at")
     .eq("user_id", userId)
-    .eq("schedule_date", todayDate)
     .is("deleted_at", null)
+    .or(`schedule_date.eq.${todayDate},start_date.lte.${todayDate}`)
     .order("start_time", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true })
     .returns<ScheduleItemRow[]>();
 
-  return assertArray(data, error).map((row) => ({
+  return assertArray(data, error).filter((row) => scheduleOccursOnDate(row, todayDate)).map((row) => ({
     id: row.id,
     title: row.title,
     description: row.description,
     category: row.category,
     scheduleDate: row.schedule_date,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    recurrence: row.recurrence,
     startTime: row.start_time,
     endTime: row.end_time,
     createdAt: new Date(row.created_at),
@@ -2108,7 +2171,7 @@ export async function getScheduleDetailForUser(userId: string, id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("title,description,category,schedule_date,start_time,end_time,created_at,updated_at")
+    .select("title,description,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,created_at,updated_at")
     .eq("id", id)
     .eq("user_id", userId)
     .is("deleted_at", null)
@@ -2122,6 +2185,9 @@ export async function getScheduleDetailForUser(userId: string, id: string) {
         description: row.description,
         category: row.category,
         scheduleDate: row.schedule_date,
+        startDate: row.start_date,
+        endDate: row.end_date,
+        recurrence: row.recurrence,
         startTime: row.start_time,
         endTime: row.end_time,
         createdAt: new Date(row.created_at),

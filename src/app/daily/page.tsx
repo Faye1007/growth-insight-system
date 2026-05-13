@@ -47,6 +47,11 @@ import {
   type TodayTask,
 } from "@/lib/data/user-data";
 import {
+  getScheduleRecurrenceLabel,
+  type ScheduleRecurrence,
+  scheduleRecurrences,
+} from "@/lib/schedules/options";
+import {
   getTaskCategoryLabel,
   getTaskStatusLabel,
   taskCategories,
@@ -462,6 +467,22 @@ function formatScheduleTimeRange(startTime: string | null, endTime: string | nul
   const start = startTime ? startTime.slice(0, 5) : "未设置时间";
 
   return endTime ? `${start}-${endTime.slice(0, 5)}` : start;
+}
+
+function formatScheduleDateMeta(item: {
+  scheduleDate: string;
+  startDate: string | null;
+  endDate: string | null;
+  recurrence: ScheduleRecurrence;
+}) {
+  if (item.recurrence === "none") {
+    return item.scheduleDate;
+  }
+
+  const start = item.startDate ?? item.scheduleDate;
+  const end = item.endDate ? ` 至 ${item.endDate}` : "";
+
+  return `${getScheduleRecurrenceLabel(item.recurrence)} · ${start}${end}`;
 }
 
 function getAiAnalysisPermissionLabel(value: string) {
@@ -938,6 +959,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     params?.scheduleError === "missing_title" ||
     params?.scheduleError === "missing_time" ||
     params?.scheduleError === "invalid_time" ||
+    params?.scheduleError === "invalid_date_range" ||
     params?.scheduleError === "save_failed";
   const recordCreateFormOpen =
     params?.create === "record" ||
@@ -1335,6 +1357,27 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                       </label>
 
                       <label className="form-field">
+                        <span>开始日期</span>
+                        <input name="startDate" type="date" defaultValue={todayDate} required />
+                      </label>
+
+                      <label className="form-field">
+                        <span>结束日期</span>
+                        <input name="endDate" type="date" />
+                      </label>
+
+                      <label className="form-field">
+                        <span>循环周期</span>
+                        <select name="recurrence" defaultValue="none">
+                          {scheduleRecurrences.map((recurrence) => (
+                            <option key={recurrence.value} value={recurrence.value}>
+                              {recurrence.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="form-field">
                         <span>开始时间</span>
                         <input name="startTime" type="time" required />
                       </label>
@@ -1365,7 +1408,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                               {item.title}
                             </Link>
                             <p className="list-meta mt-1">
-                              {getTaskCategoryLabel(item.category)} · {item.scheduleDate}
+                              {getTaskCategoryLabel(item.category)} · {formatScheduleDateMeta(item)}
                             </p>
                           </div>
                         </div>
