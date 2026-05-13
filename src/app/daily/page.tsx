@@ -6,7 +6,6 @@ import {
   ClipboardList,
   Lightbulb,
   NotebookPen,
-  Pencil,
   Plus,
   Repeat2,
   Sparkles,
@@ -23,12 +22,6 @@ import {
   softDeleteIdeaAction,
   softDeleteLifeEventAction,
   softDeleteScheduleItemAction,
-  softDeleteTaskAction,
-  updateIdeaAction,
-  updateHabitAction,
-  updateLifeEventAction,
-  updateScheduleItemAction,
-  updateTaskAction,
   updateHabitCheckinAction,
   updateTaskStatusAction,
 } from "@/app/daily/actions";
@@ -51,15 +44,11 @@ import {
   getTodayTasksForUser,
   type ActiveHabit,
   type HabitCheckin,
-  type TodayIdea,
-  type TodayLifeEvent,
-  type TodayScheduleItem,
   type TodayTask,
 } from "@/lib/data/user-data";
 import {
   getTaskCategoryLabel,
   getTaskStatusLabel,
-  taskStatusOrder,
   taskCategories,
   taskStatuses,
 } from "@/lib/tasks/options";
@@ -359,211 +348,21 @@ function getHabitStats(habit: ActiveHabit, checkins: HabitCheckin[], todayDate: 
   };
 }
 
-function TaskStatusAction({
-  task,
-  status,
-  label,
-}: {
-  task: TodayTask;
-  status: "in_progress" | "completed";
-  label: string;
-}) {
-  if (task.status === status) {
-    return null;
-  }
+function TaskCompletionToggle({ task }: { task: TodayTask }) {
+  const isCompleted = task.status === "completed";
 
   return (
     <form action={updateTaskStatusAction}>
       <input type="hidden" name="taskId" value={task.id} />
-      <input type="hidden" name="status" value={status} />
-      <button className="quiet-button" type="submit">
-        {label}
+      <input type="hidden" name="status" value={isCompleted ? "todo" : "completed"} />
+      <button
+        aria-label={isCompleted ? `取消完成 ${task.title}` : `完成 ${task.title}`}
+        className={`quick-check-button ${isCompleted ? "checked" : ""}`}
+        type="submit"
+      >
+        <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
       </button>
     </form>
-  );
-}
-
-function PostponeTaskAction({
-  task,
-  defaultPostponedDate,
-}: {
-  task: TodayTask;
-  defaultPostponedDate: string;
-}) {
-  return (
-    <form action={updateTaskStatusAction} className="postpone-form">
-      <input type="hidden" name="taskId" value={task.id} />
-      <input type="hidden" name="status" value="postponed" />
-      <input
-        aria-label={`${task.title} 的延期日期`}
-        className="compact-date-input"
-        name="postponedToDate"
-        type="date"
-        defaultValue={defaultPostponedDate}
-        required
-      />
-      <button className="quiet-button" type="submit">
-        延期
-      </button>
-    </form>
-  );
-}
-
-function TaskEditDisclosure({ task }: { task: TodayTask }) {
-  return (
-    <details className="task-edit-disclosure">
-      <summary className="quiet-button">
-        <Pencil aria-hidden="true" className="h-4 w-4" />
-        编辑
-      </summary>
-      <form action={updateTaskAction} className="task-edit-form">
-        <input type="hidden" name="taskId" value={task.id} />
-        <input type="hidden" name="source" value="daily" />
-
-        <label className="form-field">
-          <span>任务标题</span>
-          <input name="title" type="text" maxLength={120} defaultValue={task.title} required />
-        </label>
-
-        <div className="task-form-grid">
-          <label className="form-field">
-            <span>分类</span>
-            <select name="category" defaultValue={task.category}>
-              {taskCategories.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="form-field">
-            <span>日期</span>
-            <input name="taskDate" type="date" defaultValue={task.taskDate} required />
-          </label>
-
-          <label className="form-field">
-            <span>状态</span>
-            <select name="status" defaultValue={task.status}>
-              {taskStatuses.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <label className="form-field">
-          <span>任务说明</span>
-          <textarea
-            name="description"
-            rows={3}
-            defaultValue={task.description ?? ""}
-            placeholder="补充背景、范围或执行标准"
-          />
-        </label>
-
-        <label className="form-field">
-          <span>复盘 / 备注</span>
-          <textarea
-            name="reviewNote"
-            rows={3}
-            defaultValue={task.reviewNote ?? ""}
-            placeholder="记录完成情况、延期原因或复盘想法"
-          />
-        </label>
-
-        <div className="task-edit-actions">
-          <button className="soft-button" type="submit">
-            保存修改
-          </button>
-        </div>
-      </form>
-    </details>
-  );
-}
-
-function DeleteTaskAction({
-  taskId,
-  source = "daily",
-}: {
-  taskId: string;
-  source?: "daily" | "detail";
-}) {
-  return (
-    <form action={softDeleteTaskAction}>
-      <input type="hidden" name="taskId" value={taskId} />
-      <input type="hidden" name="source" value={source} />
-      <button className="quiet-button danger-button" type="submit">
-        <Trash2 aria-hidden="true" className="h-4 w-4" />
-        删除
-      </button>
-    </form>
-  );
-}
-
-function ScheduleEditDisclosure({ item }: { item: TodayScheduleItem }) {
-  return (
-    <details className="task-edit-disclosure">
-      <summary className="quiet-button">
-        <Pencil aria-hidden="true" className="h-4 w-4" />
-        编辑
-      </summary>
-      <form action={updateScheduleItemAction} className="task-edit-form">
-        <input type="hidden" name="scheduleId" value={item.id} />
-        <input type="hidden" name="source" value="daily" />
-
-        <label className="form-field">
-          <span>日程标题</span>
-          <input name="title" type="text" maxLength={120} defaultValue={item.title} required />
-        </label>
-
-        <div className="task-form-grid">
-          <label className="form-field">
-            <span>分类</span>
-            <select name="category" defaultValue={item.category}>
-              {taskCategories.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="form-field">
-            <span>日期</span>
-            <input name="scheduleDate" type="date" defaultValue={item.scheduleDate} required />
-          </label>
-
-          <label className="form-field">
-            <span>开始时间</span>
-            <input name="startTime" type="time" defaultValue={item.startTime?.slice(0, 5) ?? ""} required />
-          </label>
-
-          <label className="form-field">
-            <span>结束时间</span>
-            <input name="endTime" type="time" defaultValue={item.endTime?.slice(0, 5) ?? ""} />
-          </label>
-        </div>
-
-        <label className="form-field">
-          <span>日程说明</span>
-          <textarea
-            name="description"
-            rows={3}
-            defaultValue={item.description ?? ""}
-            placeholder="补充这个日程的地点、背景或准备事项"
-          />
-        </label>
-
-        <div className="task-edit-actions">
-          <button className="soft-button" type="submit">
-            保存修改
-          </button>
-        </div>
-      </form>
-    </details>
   );
 }
 
@@ -586,85 +385,6 @@ function DeleteScheduleAction({
   );
 }
 
-function LifeEventEditDisclosure({ event }: { event: TodayLifeEvent }) {
-  return (
-    <details className="task-edit-disclosure">
-      <summary className="quiet-button">
-        <Pencil aria-hidden="true" className="h-4 w-4" />
-        编辑
-      </summary>
-      <form action={updateLifeEventAction} className="task-edit-form">
-        <input type="hidden" name="eventId" value={event.id} />
-        <input type="hidden" name="source" value="daily" />
-
-        <div className="task-form-grid">
-          <label className="form-field">
-            <span>日期</span>
-            <input name="recordDate" type="date" defaultValue={event.eventDate} required />
-          </label>
-
-          <label className="form-field">
-            <span>AI 分析权限</span>
-            <select name="aiAnalysisPermission" defaultValue={event.aiAnalysisPermission}>
-              {aiAnalysisPermissions.map((permission) => (
-                <option key={permission.value} value={permission.value}>
-                  {permission.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <label className="form-field">
-          <span>内容</span>
-          <textarea name="content" maxLength={1200} defaultValue={event.content} required rows={5} />
-        </label>
-
-        <div className="task-form-grid">
-          <label className="form-field">
-            <span>情绪标签</span>
-            <select name="emotionTags" multiple size={5} defaultValue={event.emotionTags}>
-              {emotionOptions.map((emotion) => (
-                <option key={emotion} value={emotion}>
-                  {emotion}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="form-field">
-            <span>普通标签</span>
-            <input name="tags" type="text" defaultValue={event.tags.join(", ")} />
-          </label>
-
-          <label className="form-field">
-            <span>摘要</span>
-            <textarea name="summary" rows={5} defaultValue={event.summary ?? ""} />
-          </label>
-        </div>
-
-        <div className="task-form-grid">
-          <label className="form-field">
-            <span>具体事件</span>
-            <input name="specificEvent" type="text" defaultValue={event.specificEvent ?? ""} />
-          </label>
-
-          <label className="form-field">
-            <span>下次行动</span>
-            <input name="nextAction" type="text" defaultValue={event.nextAction ?? ""} />
-          </label>
-        </div>
-
-        <div className="task-edit-actions">
-          <button className="soft-button" type="submit">
-            保存修改
-          </button>
-        </div>
-      </form>
-    </details>
-  );
-}
-
 function DeleteLifeEventAction({
   eventId,
   source = "daily",
@@ -684,55 +404,6 @@ function DeleteLifeEventAction({
   );
 }
 
-function IdeaEditDisclosure({ idea }: { idea: TodayIdea }) {
-  return (
-    <details className="task-edit-disclosure">
-      <summary className="quiet-button">
-        <Pencil aria-hidden="true" className="h-4 w-4" />
-        编辑
-      </summary>
-      <form action={updateIdeaAction} className="task-edit-form">
-        <input type="hidden" name="ideaId" value={idea.id} />
-        <input type="hidden" name="source" value="daily" />
-
-        <div className="task-form-grid">
-          <label className="form-field">
-            <span>日期</span>
-            <input name="ideaDate" type="date" defaultValue={idea.ideaDate} required />
-          </label>
-
-          <label className="form-field">
-            <span>状态</span>
-            <select name="status" defaultValue={idea.status}>
-              {ideaStatusOptions.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <label className="form-field">
-          <span>内容</span>
-          <textarea name="content" maxLength={1200} defaultValue={idea.content} required rows={5} />
-        </label>
-
-        <label className="form-field">
-          <span>处理说明</span>
-          <textarea name="solutionNote" rows={4} defaultValue={idea.solutionNote ?? ""} />
-        </label>
-
-        <div className="task-edit-actions">
-          <button className="soft-button" type="submit">
-            保存修改
-          </button>
-        </div>
-      </form>
-    </details>
-  );
-}
-
 function DeleteIdeaAction({
   ideaId,
   source = "daily",
@@ -749,60 +420,6 @@ function DeleteIdeaAction({
         删除
       </button>
     </form>
-  );
-}
-
-function HabitEditDisclosure({ habit }: { habit: ActiveHabit }) {
-  return (
-    <details className="task-edit-disclosure">
-      <summary className="quiet-button">
-        <Pencil aria-hidden="true" className="h-4 w-4" />
-        编辑
-      </summary>
-      <form action={updateHabitAction} className="task-edit-form">
-        <input type="hidden" name="habitId" value={habit.id} />
-        <input type="hidden" name="source" value="daily" />
-
-        <label className="form-field">
-          <span>习惯名称</span>
-          <input name="name" type="text" maxLength={120} defaultValue={habit.name} required />
-        </label>
-
-        <div className="task-form-grid">
-          <label className="form-field">
-            <span>分类</span>
-            <select name="category" defaultValue={habit.category}>
-              {taskCategories.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="form-field">
-            <span>开始日期</span>
-            <input name="startDate" type="date" defaultValue={habit.startDate ?? ""} required />
-          </label>
-        </div>
-
-        <label className="form-field">
-          <span>习惯说明</span>
-          <textarea
-            name="description"
-            rows={3}
-            defaultValue={habit.description ?? ""}
-            placeholder="记录这个习惯的目标、边界或执行方式"
-          />
-        </label>
-
-        <div className="task-edit-actions">
-          <button className="soft-button" type="submit">
-            保存习惯
-          </button>
-        </div>
-      </form>
-    </details>
   );
 }
 
@@ -830,8 +447,12 @@ function HabitCheckinAction({
     <form action={updateHabitCheckinAction}>
       <input type="hidden" name="habitId" value={habit.id} />
       <input type="hidden" name="intent" value={isCheckedToday ? "cancel" : "check"} />
-      <button className={isCheckedToday ? "quiet-button" : "soft-button"} type="submit">
-        {isCheckedToday ? "取消打卡" : "今日打卡"}
+      <button
+        aria-label={isCheckedToday ? `取消打卡 ${habit.name}` : `打卡 ${habit.name}`}
+        className={`quick-check-button ${isCheckedToday ? "checked" : ""}`}
+        type="submit"
+      >
+        <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
       </button>
     </form>
   );
@@ -849,6 +470,41 @@ function getAiAnalysisPermissionLabel(value: string) {
 
 function getIdeaStatusLabel(value: string) {
   return ideaStatusOptions.find((item) => item.value === value)?.label ?? value;
+}
+
+function getTaskStatusTone(status: TodayTask["status"]) {
+  return `task-status-${status}`;
+}
+
+function normalizeStringList(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed) as unknown;
+
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+      }
+    } catch {
+      return trimmed
+        .split(/[,，、]/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    return [trimmed];
+  }
+
+  return [];
 }
 
 function getRecordPreview(content: string) {
@@ -1142,7 +798,6 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const beijingDate = beijingDateFormatter.format(now);
   const shortDate = beijingShortDateFormatter.format(now);
   const todayDate = getBeijingDateValue(now);
-  const defaultPostponedDate = getBeijingDateAfter(1, now);
   const todayTasks = user ? await getTodayTasksForUser(user.id, todayDate) : [];
   const activeHabits = user ? await getActiveHabitsForUser(user.id) : [];
   const todayScheduleItems = user ? await getTodayScheduleItemsForUser(user.id, todayDate) : [];
@@ -1274,10 +929,6 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     dailyReviewErrorFeedback,
     defaultReviewErrorFeedback,
   );
-  const tasksByStatus = taskStatusOrder.map((status) => ({
-    status,
-    tasks: todayTasks.filter((task) => task.status === status),
-  }));
   const taskCreateFormOpen =
     params?.create === "task" || params?.taskError === "missing_title" || params?.taskError === "save_failed";
   const habitCreateFormOpen =
@@ -1326,19 +977,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
             </Link>
           </div>
         </section>
-      ) : (
-        <section className="panel-card">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="section-heading">已登录</h2>
-              <p className="body-copy mt-2">
-                页面结构已准备好；后续接入的保存动作会关联到当前账号。
-              </p>
-            </div>
-            <span className="status-pill w-fit">可写入账号</span>
-          </div>
-        </section>
-      )}
+      ) : null}
 
       <section aria-labelledby="daily-overview" className="panel-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1520,43 +1159,29 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
 
                 {todayTasks.length > 0 ? (
                   <div className="task-list">
-                    {tasksByStatus.map((group) =>
-                      group.tasks.length > 0 ? (
-                        <section key={group.status} className="task-status-group">
-                          <div className="task-status-heading">
-                            <span className="status-pill">{getTaskStatusLabel(group.status)}</span>
-                            <span className="body-copy">{group.tasks.length} 项</span>
+                    {todayTasks.map((task) => (
+                      <article key={task.id} className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}>
+                        <div className="compact-main-row">
+                          <TaskCompletionToggle task={task} />
+                          <div className="min-w-0">
+                            <Link className="list-label list-title-link" href={`/records/task/${task.id}`}>
+                              {task.title}
+                            </Link>
+                            <p className="list-meta mt-1">
+                              {getTaskCategoryLabel(task.category)} · {task.taskDate}
+                              {task.isPostponed
+                                ? ` · 延期 ${task.postponedFromDate ?? "未记录"} -> ${task.postponedToDate ?? "未记录"}`
+                                : ""}
+                            </p>
                           </div>
-                          <div className="task-group-list">
-                            {group.tasks.map((task) => (
-                              <article key={task.id} className="task-list-item">
-                                <div className="min-w-0">
-                                  <p className="list-label">{task.title}</p>
-                                  <p className="body-copy mt-1">
-                                    {getTaskCategoryLabel(task.category)} · {task.taskDate}
-                                  </p>
-                                  {task.isPostponed ? (
-                                    <p className="body-copy mt-1">
-                                      延期记录：{task.postponedFromDate ?? "未记录"} → {task.postponedToDate ?? "未记录"}
-                                    </p>
-                                  ) : null}
-                                </div>
-                                <div className="task-actions">
-                                  <Link className="quiet-button" href={`/records/task/${task.id}`}>
-                                    详情
-                                  </Link>
-                                  <TaskStatusAction task={task} status="in_progress" label="进行中" />
-                                  <TaskStatusAction task={task} status="completed" label="完成" />
-                                  <PostponeTaskAction task={task} defaultPostponedDate={defaultPostponedDate} />
-                                  <DeleteTaskAction taskId={task.id} />
-                                </div>
-                                <TaskEditDisclosure task={task} />
-                              </article>
-                            ))}
-                          </div>
-                        </section>
-                      ) : null,
-                    )}
+                        </div>
+                        <div className="compact-actions">
+                          <span className={`status-pill ${getTaskStatusTone(task.status)}`}>
+                            {getTaskStatusLabel(task.status)}
+                          </span>
+                        </div>
+                      </article>
+                    ))}
                   </div>
                 ) : (
                   <div className="empty-state">
@@ -1633,26 +1258,24 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                       };
 
                       return (
-                        <article key={habit.id} className="task-list-item">
-                          <div className="min-w-0">
-                            <p className="list-label">{habit.name}</p>
-                            <p className="body-copy mt-1">
-                              {getTaskCategoryLabel(habit.category)} · {habit.startDate ?? "未设置开始日期"}
-                            </p>
-                            {habit.description ? (
-                              <p className="body-copy mt-2">{getRecordPreview(habit.description)}</p>
-                            ) : null}
-                            <div className="habit-stat-row mt-3">
-                              <span className="status-pill">
-                                {stats.isCheckedToday ? "今日已完成" : "今日未完成"}
-                              </span>
-                              <span className="status-pill">累计 {stats.totalCount} 次</span>
-                              <span className="status-pill">连续 {stats.streakCount} 天</span>
+                        <article key={habit.id} className={`task-list-item compact-list-item ${stats.isCheckedToday ? "task-status-completed" : "task-status-todo"}`}>
+                          <div className="compact-main-row">
+                            <HabitCheckinAction habit={habit} isCheckedToday={stats.isCheckedToday} />
+                            <div className="min-w-0">
+                              <p className="list-label">{habit.name}</p>
+                              <p className="list-meta mt-1">
+                                {getTaskCategoryLabel(habit.category)} · {habit.startDate ?? "未设置开始日期"} ·
+                                累计 {stats.totalCount} 次 · 连续 {stats.streakCount} 天
+                              </p>
+                              {habit.description ? (
+                                <p className="list-meta mt-1">{getRecordPreview(habit.description)}</p>
+                              ) : null}
                             </div>
                           </div>
-                          <div className="task-actions">
-                            <HabitCheckinAction habit={habit} isCheckedToday={stats.isCheckedToday} />
-                            <HabitEditDisclosure habit={habit} />
+                          <div className="compact-actions">
+                            <span className={`status-pill ${stats.isCheckedToday ? "task-status-completed" : "task-status-todo"}`}>
+                              {stats.isCheckedToday ? "今日已完成" : "今日未完成"}
+                            </span>
                             <DeactivateHabitAction habitId={habit.id} />
                           </div>
                         </article>
@@ -1732,21 +1355,23 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                 {todayScheduleItems.length > 0 ? (
                   <div className="task-list">
                     {todayScheduleItems.map((item) => (
-                      <article key={item.id} className="task-list-item">
-                        <div className="min-w-0">
-                          <p className="list-label">{item.title}</p>
-                          <p className="body-copy mt-1">
-                            {formatScheduleTimeRange(item.startTime, item.endTime)} · {getTaskCategoryLabel(item.category)}
-                          </p>
+                      <article key={item.id} className="task-list-item compact-list-item">
+                        <div className="compact-main-row">
+                          <span className="schedule-time-chip">
+                            {formatScheduleTimeRange(item.startTime, item.endTime)}
+                          </span>
+                          <div className="min-w-0">
+                            <Link className="list-label list-title-link" href={`/records/schedule/${item.id}`}>
+                              {item.title}
+                            </Link>
+                            <p className="list-meta mt-1">
+                              {getTaskCategoryLabel(item.category)} · {item.scheduleDate}
+                            </p>
+                          </div>
                         </div>
-                        <div className="task-actions">
-                          <span className="status-pill">{item.scheduleDate}</span>
-                          <Link className="quiet-button" href={`/records/schedule/${item.id}`}>
-                            详情
-                          </Link>
+                        <div className="compact-actions">
                           <DeleteScheduleAction scheduleId={item.id} />
                         </div>
-                        <ScheduleEditDisclosure item={item} />
                       </article>
                     ))}
                   </div>
@@ -1845,53 +1470,55 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
 
                 {todayLifeEvents.length > 0 || todayIdeas.length > 0 ? (
                   <div className="task-list">
-                    {todayLifeEvents.map((event) => (
-                      <article key={event.id} className="task-list-item">
-                        <div className="min-w-0">
-                          <p className="list-label">事件 · {event.eventDate}</p>
-                          <p className="body-copy mt-1">{getRecordPreview(event.content)}</p>
-                          <div className="habit-stat-row mt-3">
-                            <span className="status-pill">
-                              {getAiAnalysisPermissionLabel(event.aiAnalysisPermission)}
-                            </span>
-                            {event.emotionTags.map((emotion) => (
-                              <span key={emotion} className="status-pill">
-                                {emotion}
-                              </span>
-                            ))}
-                            {event.tags.map((tag) => (
-                              <span key={tag} className="status-pill">
-                                {tag}
-                              </span>
-                            ))}
+                    {todayLifeEvents.map((event) => {
+                      const emotionTags = normalizeStringList(event.emotionTags);
+                      const tags = normalizeStringList(event.tags);
+
+                      return (
+                        <article key={event.id} className="task-list-item compact-list-item">
+                          <div className="min-w-0">
+                            <Link className="list-label list-title-link" href={`/records/event/${event.id}`}>
+                              {getRecordPreview(event.content)}
+                            </Link>
+                            <p className="list-meta mt-1">
+                              事件 · {event.eventDate} · {getAiAnalysisPermissionLabel(event.aiAnalysisPermission)}
+                            </p>
+                            {emotionTags.length || tags.length ? (
+                              <div className="compact-tag-row mt-2">
+                                {emotionTags.map((emotion) => (
+                                  <span key={emotion} className="status-pill task-status-postponed">
+                                    {emotion}
+                                  </span>
+                                ))}
+                                {tags.map((tag) => (
+                                  <span key={tag} className="status-pill">
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
                           </div>
-                        </div>
-                        <div className="task-actions">
-                          <Link className="quiet-button" href={`/records/event/${event.id}`}>
-                            详情
-                          </Link>
-                          <DeleteLifeEventAction eventId={event.id} />
-                        </div>
-                        <LifeEventEditDisclosure event={event} />
-                      </article>
-                    ))}
+                          <div className="compact-actions">
+                            <DeleteLifeEventAction eventId={event.id} />
+                          </div>
+                        </article>
+                      );
+                    })}
                     {todayIdeas.map((idea) => (
-                      <article key={idea.id} className="task-list-item">
+                      <article key={idea.id} className="task-list-item compact-list-item">
                         <div className="min-w-0">
-                          <p className="list-label">灵感 · {idea.ideaDate}</p>
-                          <p className="body-copy mt-1">{getRecordPreview(idea.content)}</p>
+                          <Link className="list-label list-title-link" href={`/records/idea/${idea.id}`}>
+                            {getRecordPreview(idea.content)}
+                          </Link>
+                          <p className="list-meta mt-1">灵感 · {idea.ideaDate}</p>
                           {idea.solutionNote ? (
-                            <p className="body-copy mt-1">处理说明：{getRecordPreview(idea.solutionNote)}</p>
+                            <p className="list-meta mt-1">处理说明：{getRecordPreview(idea.solutionNote)}</p>
                           ) : null}
                         </div>
-                        <div className="task-actions">
+                        <div className="compact-actions">
                           <span className="status-pill">{getIdeaStatusLabel(idea.status)}</span>
-                          <Link className="quiet-button" href={`/records/idea/${idea.id}`}>
-                            详情
-                          </Link>
                           <DeleteIdeaAction ideaId={idea.id} />
                         </div>
-                        <IdeaEditDisclosure idea={idea} />
                       </article>
                     ))}
                   </div>

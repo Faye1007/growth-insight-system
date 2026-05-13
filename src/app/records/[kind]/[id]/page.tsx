@@ -171,6 +171,37 @@ function TagRow({ items }: { items: string[] }) {
   );
 }
 
+function normalizeStringList(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed) as unknown;
+
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+      }
+    } catch {
+      return trimmed
+        .split(/[,，、]/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    return [trimmed];
+  }
+
+  return [];
+}
+
 function NotFoundState() {
   return (
     <section className="panel-card">
@@ -376,6 +407,9 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
       return <NotFoundDetail kindLabel={kindLabels[kind]} />;
     }
 
+    const emotionTags = normalizeStringList(event.emotionTags);
+    const tags = normalizeStringList(event.tags);
+
     return (
       <DetailLayout kindLabel={kindLabels[kind]} title="事件记录">
         <FeedbackMessage feedback={recordErrorFeedback} />
@@ -395,13 +429,13 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
         <section className="panel-card">
           <h2 className="section-heading">情绪标签</h2>
           <div className="mt-3">
-            <TagRow items={event.emotionTags} />
+            <TagRow items={emotionTags} />
           </div>
         </section>
         <section className="panel-card">
           <h2 className="section-heading">普通标签</h2>
           <div className="mt-3">
-            <TagRow items={event.tags} />
+            <TagRow items={tags} />
           </div>
         </section>
         <section className="panel-card">
@@ -717,6 +751,9 @@ function EventDetailEditSection({
     summary: string | null;
   };
 }) {
+  const emotionTags = normalizeStringList(event.emotionTags);
+  const tags = normalizeStringList(event.tags);
+
   return (
     <section className="panel-card">
       <h2 className="section-heading">编辑事件</h2>
@@ -750,7 +787,7 @@ function EventDetailEditSection({
         <div className="task-form-grid">
           <label className="form-field">
             <span>情绪标签</span>
-            <select name="emotionTags" multiple size={5} defaultValue={event.emotionTags}>
+            <select name="emotionTags" multiple size={5} defaultValue={emotionTags}>
               {emotionOptions.map((emotion) => (
                 <option key={emotion} value={emotion}>
                   {emotion}
@@ -761,7 +798,7 @@ function EventDetailEditSection({
 
           <label className="form-field">
             <span>普通标签</span>
-            <input name="tags" type="text" defaultValue={event.tags.join(", ")} />
+            <input name="tags" type="text" defaultValue={tags.join(", ")} />
           </label>
 
           <label className="form-field">

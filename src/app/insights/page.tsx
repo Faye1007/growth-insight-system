@@ -151,6 +151,37 @@ function incrementCount<K>(counts: Map<K, number>, key: K) {
   counts.set(key, (counts.get(key) ?? 0) + 1);
 }
 
+function normalizeStringList(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed) as unknown;
+
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+      }
+    } catch {
+      return trimmed
+        .split(/[,，、]/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    return [trimmed];
+  }
+
+  return [];
+}
+
 function getSearchParamValues(
   params: Awaited<NonNullable<InsightsPageProps["searchParams"]>> | undefined,
   key: "weeklyOriginalEventId",
@@ -288,7 +319,7 @@ async function getInsightData(userId: string) {
   const emotionCounts = new Map<string, number>();
 
   for (const event of lifeEvents) {
-    for (const emotion of event.emotionTags) {
+    for (const emotion of normalizeStringList(event.emotionTags)) {
       emotionCounts.set(emotion, (emotionCounts.get(emotion) ?? 0) + 1);
     }
   }
@@ -394,7 +425,7 @@ async function getMonthlyInsightData(userId: string) {
   }
 
   for (const event of lifeEvents) {
-    for (const emotion of event.emotionTags) {
+    for (const emotion of normalizeStringList(event.emotionTags)) {
       incrementCount(emotionCounts, emotion);
     }
   }
@@ -572,7 +603,7 @@ function WeeklyReviewPreview({
   ];
 
   return (
-    <section id="weekly-review-preview" aria-labelledby="weekly-review-preview-title" className="panel-card review-preview-panel">
+    <section id="weekly-review-preview" aria-labelledby="weekly-review-preview-title" className="panel-card review-preview-panel insight-order-weekly-detail">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="page-kicker">周复盘发送预览</p>
@@ -748,7 +779,7 @@ function MonthlyReviewPreview({
   ];
 
   return (
-    <section id="monthly-review-preview" aria-labelledby="monthly-review-preview-title" className="panel-card review-preview-panel">
+    <section id="monthly-review-preview" aria-labelledby="monthly-review-preview-title" className="panel-card review-preview-panel insight-order-monthly-detail">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="page-kicker">月复盘发送预览</p>
@@ -901,7 +932,7 @@ function WeeklyReviewReportCard({
   weekDatesText: string;
 }) {
   return (
-    <section id="weekly-review-report" aria-labelledby="weekly-review-report-title" className="panel-card review-report-card">
+    <section id="weekly-review-report" aria-labelledby="weekly-review-report-title" className="panel-card review-report-card insight-order-weekly-detail">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="page-kicker">周复盘报告</p>
@@ -937,7 +968,7 @@ function MonthlyReviewReportCard({
   monthDatesText: string;
 }) {
   return (
-    <section id="monthly-review-report" aria-labelledby="monthly-review-report-title" className="panel-card review-report-card">
+    <section id="monthly-review-report" aria-labelledby="monthly-review-report-title" className="panel-card review-report-card insight-order-monthly-detail">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="page-kicker">月复盘报告</p>
@@ -1118,7 +1149,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
         </section>
       ) : null}
 
-      <section aria-labelledby="monthly-program-review" className="panel-card">
+      <section aria-labelledby="monthly-program-review" className="panel-card insight-order-monthly">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="page-kicker">月复盘</p>
@@ -1247,7 +1278,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
         />
       ) : null}
 
-      <section aria-labelledby="weekly-program-review" className="panel-card">
+      <section aria-labelledby="weekly-program-review" className="panel-card insight-order-weekly">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="page-kicker">周复盘</p>
@@ -1348,7 +1379,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
         <WeeklyReviewReportCard report={weeklyReviewReport} weekDatesText={weekDatesText} />
       ) : null}
 
-      <section aria-labelledby="today-insights" className="panel-card">
+      <section aria-labelledby="today-insights" className="panel-card insight-order-today">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="page-kicker">今日概览</p>
@@ -1403,7 +1434,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
         </div>
       </section>
 
-      <section aria-labelledby="week-trend" className="panel-card">
+      <section aria-labelledby="week-trend" className="panel-card insight-order-weekly-detail">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="page-kicker">本周趋势</p>
@@ -1480,7 +1511,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
         )}
       </section>
 
-      <section aria-labelledby="record-trend" className="panel-card">
+      <section aria-labelledby="record-trend" className="panel-card insight-order-weekly-detail">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="page-kicker">记录数量趋势</p>
@@ -1519,7 +1550,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
         )}
       </section>
 
-      <section className="insight-section-grid">
+      <section className="insight-section-grid insight-order-weekly-detail">
         <article aria-labelledby="habit-status" className="panel-card">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -1622,7 +1653,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
         </article>
       </section>
 
-      <section className="panel-card">
+      <section className="panel-card insight-order-monthly-detail">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="page-kicker">后续复盘</p>
