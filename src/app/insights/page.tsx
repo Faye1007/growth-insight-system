@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   BarChart3,
+  BookOpenText,
   CalendarDays,
   CheckCircle2,
   Download,
@@ -1080,6 +1081,32 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           monthlyReviewMonthEnd,
         )
       : null;
+  const growthOverviewCards = [
+    {
+      label: "今日行动进度",
+      value: `${todayTaskRate}%`,
+      detail: insightData
+        ? `${insightData.todayCompletedTaskCount}/${insightData.todayTaskCount} 项任务已完成`
+        : "登录后读取今日任务",
+      tone: "tone-lavender",
+    },
+    {
+      label: "本周关键指标",
+      value: `${weeklyRecordCount}`,
+      detail: `随手记录：事件 ${weeklyEventCount} · 灵感 ${weeklyIdeaCount}`,
+      tone: "tone-sage",
+    },
+    {
+      label: "最近复盘",
+      value: weeklyReviewReport || monthlyReviewReport ? "已生成" : "未生成",
+      detail: monthlyReviewReport
+        ? "本月复盘已缓存"
+        : weeklyReviewReport
+          ? "本周复盘已缓存"
+          : "可从上方入口生成周/月复盘",
+      tone: "tone-mist",
+    },
+  ];
   const weeklyPreviewOpen = params?.weeklyPreview === "1";
   const weeklyReviewContext =
     user && insightData && weeklyPreviewOpen
@@ -1176,6 +1203,10 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
               <Sparkles aria-hidden="true" className="h-4 w-4" />
               问题拆解
             </Link>
+            <Link className="quiet-button" href="/manual">
+              <BookOpenText aria-hidden="true" className="h-4 w-4" />
+              个人说明书
+            </Link>
             <Link className="soft-button" href="/insights?weeklyPreview=1#weekly-review-preview">
               周复盘
             </Link>
@@ -1183,6 +1214,27 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
               月复盘
             </Link>
           </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="growth-overview-title" className="panel-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="page-kicker">成长概览</p>
+            <h2 id="growth-overview-title" className="section-heading mt-1">
+              从成长主页收回的关键状态
+            </h2>
+          </div>
+          <span className="status-pill w-fit">程序统计</span>
+        </div>
+        <div className="card-grid mt-5 md:grid-cols-3">
+          {growthOverviewCards.map((card) => (
+            <article key={card.label} className={`metric-card ${card.tone}`}>
+              <p className="metric-label">{card.label}</p>
+              <p className="metric-value">{card.value}</p>
+              <p className="body-copy mt-2">{card.detail}</p>
+            </article>
+          ))}
         </div>
       </section>
 

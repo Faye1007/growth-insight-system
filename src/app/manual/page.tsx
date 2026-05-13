@@ -41,7 +41,7 @@ export default async function ManualPage({ searchParams }: ManualPageProps) {
         <p className="page-kicker">个人说明书</p>
         <h1 className="page-title">面向自己的长期说明书</h1>
         <p className="page-description">
-          第一版先支持手动维护，后续再由复盘结果提出更新建议。
+          这是洞察报告里 AI 复盘可参考的长期背景资料。第一版先支持手动维护，后续再由复盘结果提出更新建议。
         </p>
       </header>
 
@@ -80,10 +80,12 @@ export default async function ManualPage({ searchParams }: ManualPageProps) {
               <div>
                 <h2 className="section-heading">说明书条目</h2>
                 <p className="body-copy mt-2">
-                  这些字段会保存到当前账号，后续复盘可基于它们提出更新建议。
+                  这些字段会保存到当前账号；是否进入 AI 输入仍以复盘发送预览为准。
                 </p>
               </div>
-              <span className="status-pill">手动维护</span>
+              <Link className="quiet-button w-full sm:w-auto" href="/insights">
+                回到洞察报告
+              </Link>
             </div>
 
             <FeedbackMessage feedback={errorFeedback} className="mt-4" />

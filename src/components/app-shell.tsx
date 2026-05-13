@@ -4,7 +4,6 @@ import {
   CalendarCheck,
   ClipboardList,
   Gift,
-  Home,
   LogIn,
   LogOut,
   Menu,
@@ -17,7 +16,6 @@ import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 
 const navigationItems = [
-  { href: "/", label: "成长主页", icon: Home },
   { href: "/daily", label: "每日工作台", icon: CalendarCheck },
   { href: "/records", label: "成长记录", icon: ClipboardList },
   { href: "/insights", label: "洞察报告", icon: BarChart3 },
