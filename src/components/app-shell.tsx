@@ -4,6 +4,7 @@ import {
   BookOpenText,
   CalendarCheck,
   ClipboardList,
+  Download,
   Gift,
   Home,
   LogIn,
@@ -25,6 +26,7 @@ const navigationItems = [
   { href: "/manual", label: "个人说明书", icon: BookOpenText },
   { href: "/life", label: "生活扩展", icon: Gift },
   { href: "/toolbox", label: "场景工具箱", icon: Sparkles },
+  { href: "/export", label: "Markdown 导出", icon: Download },
   { href: "/settings", label: "设置", icon: Settings },
 ];
 

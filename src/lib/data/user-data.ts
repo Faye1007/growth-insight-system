@@ -271,6 +271,13 @@ export type DailyReviewReport = {
 
 export type ReviewReport = DailyReviewReport;
 
+export type ExportReviewReport = ReviewReport & {
+  reportType: ReportType;
+  periodStart: string;
+  periodEnd: string;
+  createdAt: Date;
+};
+
 export type PersonalManual = {
   lifeStage: string | null;
   currentGoals: string[];
@@ -1855,6 +1862,35 @@ export async function getMonthlyReviewReportForUser(
         generatedAt: toDate(row.generated_at),
       }
     : null;
+}
+
+export async function getRecentReviewReportsForUser(userId: string, limit = 20) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("insight_reports")
+    .select("id,report_type,period_start,period_end,title,summary,patterns,suggestions,next_actions,model_provider,model_name,generated_at,created_at")
+    .eq("user_id", userId)
+    .eq("generation_status", "completed")
+    .order("period_end", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit)
+    .returns<InsightReportRow[]>();
+
+  return assertArray(data, error).map<ExportReviewReport>((row) => ({
+    id: row.id,
+    reportType: row.report_type,
+    periodStart: row.period_start,
+    periodEnd: row.period_end,
+    title: row.title,
+    summary: row.summary,
+    patterns: row.patterns,
+    suggestions: row.suggestions,
+    nextActions: row.next_actions,
+    modelProvider: row.model_provider,
+    modelName: row.model_name,
+    generatedAt: toDate(row.generated_at),
+    createdAt: new Date(row.created_at),
+  }));
 }
 
 export async function getHabitCheckinsForUser(
