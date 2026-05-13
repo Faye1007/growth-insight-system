@@ -153,6 +153,33 @@ type PersonalManualRow = {
   updated_at: string;
 };
 
+type AnniversaryRow = {
+  id: string;
+  user_id: string;
+  title: string;
+  person_name: string;
+  anniversary_date: string;
+  reminder_date: string | null;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+type GiftRecordRow = {
+  id: string;
+  user_id: string;
+  anniversary_id: string | null;
+  gift_name: string;
+  recipient_name: string;
+  gift_date: string;
+  purpose: string;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
 export type TodayTask = {
   id: string;
   title: string;
@@ -240,6 +267,29 @@ export type PersonalManual = {
   recurringProblems: string[];
   preferredActionStyle: string | null;
   notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type AnniversaryRecord = {
+  id: string;
+  title: string;
+  personName: string;
+  anniversaryDate: string;
+  reminderDate: string | null;
+  note: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type GiftRecord = {
+  id: string;
+  anniversaryId: string | null;
+  giftName: string;
+  recipientName: string;
+  giftDate: string;
+  purpose: string;
+  note: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -520,6 +570,55 @@ function mapHabitCheckin(row: HabitCheckinRow): HabitCheckin {
     checkinDate: row.checkin_date,
     status: row.status,
   };
+}
+
+function mapAnniversary(row: AnniversaryRow): AnniversaryRecord {
+  return {
+    id: row.id,
+    title: row.title,
+    personName: row.person_name,
+    anniversaryDate: row.anniversary_date,
+    reminderDate: row.reminder_date,
+    note: row.note,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+function mapGiftRecord(row: GiftRecordRow): GiftRecord {
+  return {
+    id: row.id,
+    anniversaryId: row.anniversary_id,
+    giftName: row.gift_name,
+    recipientName: row.recipient_name,
+    giftDate: row.gift_date,
+    purpose: row.purpose,
+    note: row.note,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+async function assertAnniversaryBelongsToUser(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  anniversaryId: string | null,
+) {
+  if (!anniversaryId) {
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("anniversaries")
+    .select("id")
+    .eq("id", anniversaryId)
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error || !data) {
+    throw error ?? new Error("Anniversary does not belong to the current user.");
+  }
 }
 
 export async function createTaskForUser(input: {
@@ -1270,6 +1369,206 @@ export async function upsertPersonalManualForUser(input: {
   if (error) {
     throw error;
   }
+}
+
+export async function createAnniversaryForUser(input: {
+  userId: string;
+  title: string;
+  personName: string;
+  anniversaryDate: string;
+  reminderDate: string | null;
+  note: string | null;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("anniversaries").insert({
+    user_id: input.userId,
+    title: input.title,
+    person_name: input.personName,
+    anniversary_date: input.anniversaryDate,
+    reminder_date: input.reminderDate,
+    note: input.note,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updateAnniversaryForUser(input: {
+  userId: string;
+  anniversaryId: string;
+  title: string;
+  personName: string;
+  anniversaryDate: string;
+  reminderDate: string | null;
+  note: string | null;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("anniversaries")
+    .update({
+      title: input.title,
+      person_name: input.personName,
+      anniversary_date: input.anniversaryDate,
+      reminder_date: input.reminderDate,
+      note: input.note,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.anniversaryId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function softDeleteAnniversaryForUser(input: {
+  userId: string;
+  anniversaryId: string;
+  deletedAt: Date;
+}) {
+  const deletedAtIso = input.deletedAt.toISOString();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("anniversaries")
+    .update({
+      deleted_at: deletedAtIso,
+      updated_at: deletedAtIso,
+    })
+    .eq("id", input.anniversaryId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function getAnniversariesForUser(userId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("anniversaries")
+    .select("id,title,person_name,anniversary_date,reminder_date,note,created_at,updated_at")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .order("anniversary_date", { ascending: true })
+    .order("created_at", { ascending: true })
+    .returns<AnniversaryRow[]>();
+
+  return assertArray(data, error).map(mapAnniversary);
+}
+
+export async function createGiftRecordForUser(input: {
+  userId: string;
+  anniversaryId: string | null;
+  giftName: string;
+  recipientName: string;
+  giftDate: string;
+  purpose: string;
+  note: string | null;
+}) {
+  const supabase = await createClient();
+  await assertAnniversaryBelongsToUser(supabase, input.userId, input.anniversaryId);
+
+  const { error } = await supabase.from("gift_records").insert({
+    user_id: input.userId,
+    anniversary_id: input.anniversaryId,
+    gift_name: input.giftName,
+    recipient_name: input.recipientName,
+    gift_date: input.giftDate,
+    purpose: input.purpose,
+    note: input.note,
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updateGiftRecordForUser(input: {
+  userId: string;
+  giftRecordId: string;
+  anniversaryId: string | null;
+  giftName: string;
+  recipientName: string;
+  giftDate: string;
+  purpose: string;
+  note: string | null;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  await assertAnniversaryBelongsToUser(supabase, input.userId, input.anniversaryId);
+
+  const { error } = await supabase
+    .from("gift_records")
+    .update({
+      anniversary_id: input.anniversaryId,
+      gift_name: input.giftName,
+      recipient_name: input.recipientName,
+      gift_date: input.giftDate,
+      purpose: input.purpose,
+      note: input.note,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.giftRecordId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function softDeleteGiftRecordForUser(input: {
+  userId: string;
+  giftRecordId: string;
+  deletedAt: Date;
+}) {
+  const deletedAtIso = input.deletedAt.toISOString();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("gift_records")
+    .update({
+      deleted_at: deletedAtIso,
+      updated_at: deletedAtIso,
+    })
+    .eq("id", input.giftRecordId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function getGiftRecordsForUser(input: {
+  userId: string;
+  recipientName?: string;
+  anniversaryId?: string;
+}) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("gift_records")
+    .select("id,anniversary_id,gift_name,recipient_name,gift_date,purpose,note,created_at,updated_at")
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (input.recipientName) {
+    query = query.eq("recipient_name", input.recipientName);
+  }
+
+  if (input.anniversaryId) {
+    query = query.eq("anniversary_id", input.anniversaryId);
+  }
+
+  const { data, error } = await query
+    .order("gift_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .returns<GiftRecordRow[]>();
+
+  return assertArray(data, error).map(mapGiftRecord);
 }
 
 export async function getTodayTasksForUser(userId: string, todayDate: string) {

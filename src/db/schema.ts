@@ -247,3 +247,45 @@ export const personalManuals = pgTable(
   },
   (table) => [uniqueIndex("personal_manuals_user_unique").on(table.userId)],
 );
+
+export const anniversaries = pgTable(
+  "anniversaries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    title: text("title").notNull(),
+    personName: text("person_name").notNull(),
+    anniversaryDate: date("anniversary_date").notNull(),
+    reminderDate: date("reminder_date"),
+    note: text("note"),
+    ...timestamps,
+    ...softDeleteTimestamp,
+  },
+  (table) => [
+    index("anniversaries_user_date_idx").on(table.userId, table.anniversaryDate),
+    index("anniversaries_user_reminder_idx").on(table.userId, table.reminderDate),
+  ],
+);
+
+export const giftRecords = pgTable(
+  "gift_records",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    anniversaryId: uuid("anniversary_id").references(() => anniversaries.id, {
+      onDelete: "set null",
+    }),
+    giftName: text("gift_name").notNull(),
+    recipientName: text("recipient_name").notNull(),
+    giftDate: date("gift_date").notNull(),
+    purpose: text("purpose").notNull(),
+    note: text("note"),
+    ...timestamps,
+    ...softDeleteTimestamp,
+  },
+  (table) => [
+    index("gift_records_user_date_idx").on(table.userId, table.giftDate),
+    index("gift_records_user_recipient_idx").on(table.userId, table.recipientName),
+    index("gift_records_user_anniversary_idx").on(table.userId, table.anniversaryId),
+  ],
+);

@@ -1,0 +1,208 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+import { requireCurrentUser } from "@/lib/auth/session";
+import {
+  createAnniversaryForUser,
+  createGiftRecordForUser,
+  softDeleteAnniversaryForUser,
+  softDeleteGiftRecordForUser,
+  updateAnniversaryForUser,
+  updateGiftRecordForUser,
+} from "@/lib/data/user-data";
+
+function getStringValue(formData: FormData, key: string) {
+  const value = formData.get(key);
+
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function getNullableString(value: string) {
+  return value || null;
+}
+
+function isValidDateValue(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function getAnniversaryInput(formData: FormData) {
+  const title = getStringValue(formData, "title");
+  const personName = getStringValue(formData, "personName");
+  const anniversaryDate = getStringValue(formData, "anniversaryDate");
+  const reminderDate = getStringValue(formData, "reminderDate");
+  const note = getStringValue(formData, "note");
+
+  if (!title || !personName || !isValidDateValue(anniversaryDate)) {
+    return null;
+  }
+
+  if (reminderDate && !isValidDateValue(reminderDate)) {
+    return null;
+  }
+
+  return {
+    title,
+    personName,
+    anniversaryDate,
+    reminderDate: getNullableString(reminderDate),
+    note: getNullableString(note),
+  };
+}
+
+function getGiftRecordInput(formData: FormData) {
+  const giftName = getStringValue(formData, "giftName");
+  const recipientName = getStringValue(formData, "recipientName");
+  const giftDate = getStringValue(formData, "giftDate");
+  const purpose = getStringValue(formData, "purpose");
+  const anniversaryId = getStringValue(formData, "anniversaryId");
+  const note = getStringValue(formData, "note");
+
+  if (!giftName || !recipientName || !isValidDateValue(giftDate) || !purpose) {
+    return null;
+  }
+
+  return {
+    giftName,
+    recipientName,
+    giftDate,
+    purpose,
+    anniversaryId: getNullableString(anniversaryId),
+    note: getNullableString(note),
+  };
+}
+
+export async function createAnniversaryAction(formData: FormData) {
+  const user = await requireCurrentUser("/life");
+  const input = getAnniversaryInput(formData);
+
+  if (!input) {
+    redirect("/life?anniversaryError=invalid_input#anniversaries");
+  }
+
+  try {
+    await createAnniversaryForUser({
+      userId: user.id,
+      ...input,
+    });
+  } catch {
+    redirect("/life?anniversaryError=save_failed#anniversaries");
+  }
+
+  revalidatePath("/life");
+  redirect("/life?anniversarySaved=created#anniversaries");
+}
+
+export async function updateAnniversaryAction(formData: FormData) {
+  const user = await requireCurrentUser("/life");
+  const anniversaryId = getStringValue(formData, "anniversaryId");
+  const input = getAnniversaryInput(formData);
+
+  if (!anniversaryId || !input) {
+    redirect("/life?anniversaryError=invalid_input#anniversaries");
+  }
+
+  try {
+    await updateAnniversaryForUser({
+      userId: user.id,
+      anniversaryId,
+      updatedAt: new Date(),
+      ...input,
+    });
+  } catch {
+    redirect("/life?anniversaryError=save_failed#anniversaries");
+  }
+
+  revalidatePath("/life");
+  redirect("/life?anniversarySaved=updated#anniversaries");
+}
+
+export async function softDeleteAnniversaryAction(formData: FormData) {
+  const user = await requireCurrentUser("/life");
+  const anniversaryId = getStringValue(formData, "anniversaryId");
+
+  if (!anniversaryId) {
+    redirect("/life?anniversaryError=missing_anniversary#anniversaries");
+  }
+
+  try {
+    await softDeleteAnniversaryForUser({
+      userId: user.id,
+      anniversaryId,
+      deletedAt: new Date(),
+    });
+  } catch {
+    redirect("/life?anniversaryError=save_failed#anniversaries");
+  }
+
+  revalidatePath("/life");
+  redirect("/life?anniversarySaved=deleted#anniversaries");
+}
+
+export async function createGiftRecordAction(formData: FormData) {
+  const user = await requireCurrentUser("/life");
+  const input = getGiftRecordInput(formData);
+
+  if (!input) {
+    redirect("/life?giftError=invalid_input#gifts");
+  }
+
+  try {
+    await createGiftRecordForUser({
+      userId: user.id,
+      ...input,
+    });
+  } catch {
+    redirect("/life?giftError=save_failed#gifts");
+  }
+
+  revalidatePath("/life");
+  redirect("/life?giftSaved=created#gifts");
+}
+
+export async function updateGiftRecordAction(formData: FormData) {
+  const user = await requireCurrentUser("/life");
+  const giftRecordId = getStringValue(formData, "giftRecordId");
+  const input = getGiftRecordInput(formData);
+
+  if (!giftRecordId || !input) {
+    redirect("/life?giftError=invalid_input#gifts");
+  }
+
+  try {
+    await updateGiftRecordForUser({
+      userId: user.id,
+      giftRecordId,
+      updatedAt: new Date(),
+      ...input,
+    });
+  } catch {
+    redirect("/life?giftError=save_failed#gifts");
+  }
+
+  revalidatePath("/life");
+  redirect("/life?giftSaved=updated#gifts");
+}
+
+export async function softDeleteGiftRecordAction(formData: FormData) {
+  const user = await requireCurrentUser("/life");
+  const giftRecordId = getStringValue(formData, "giftRecordId");
+
+  if (!giftRecordId) {
+    redirect("/life?giftError=missing_gift#gifts");
+  }
+
+  try {
+    await softDeleteGiftRecordForUser({
+      userId: user.id,
+      giftRecordId,
+      deletedAt: new Date(),
+    });
+  } catch {
+    redirect("/life?giftError=save_failed#gifts");
+  }
+
+  revalidatePath("/life");
+  redirect("/life?giftSaved=deleted#gifts");
+}

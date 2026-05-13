@@ -15,6 +15,20 @@
       "when": 1777958700000,
       "tag": "0001_rls_user_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778080255523,
+      "tag": "0002_cold_wendell_rand",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1778661904610,
+      "tag": "0003_massive_expediter",
+      "breakpoints": true
     }
   ]
 }
