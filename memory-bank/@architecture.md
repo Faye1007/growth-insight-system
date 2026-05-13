@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成基础闭环、Step 8.1 架构文档更新、Step 8.2 进度文档更新、Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录和 Step 15.2 礼物记录，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、四类写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、生活扩展页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和按对象/纪念日筛选、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日程序复盘摘要、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界验证、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础信息展示、统一错误提示规范、基础闭环手工验收记录、RLS 接入验证记录、线上基础路由可用性验证记录和部署前核心闭环测试记录。
+当前项目已完成基础闭环、Step 8.1 架构文档更新、Step 8.2 进度文档更新、Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录和 Step 15.3 场景工具箱基础版，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台页面结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、四类写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、今日概览程序统计、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、生活扩展页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和按对象/纪念日筛选、场景工具箱页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日程序复盘摘要、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界验证、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础信息展示、统一错误提示规范、基础闭环手工验收记录、RLS 接入验证记录、线上基础路由可用性验证记录和部署前核心闭环测试记录。
 
 当前已存在：
 
@@ -115,6 +115,9 @@
 - `anniversaries` 数据表、迁移文件和 RLS 策略；纪念日按当前 `user_id` 和 `auth.uid()` 双层隔离。
 - 礼物记录能力，支持登录用户创建、编辑和软删除自己的礼物记录；字段包括礼物名称、对象、日期、用途、备注和可选关联纪念日。
 - `gift_records` 数据表、本地迁移文件和 RLS 策略；礼物记录按当前 `user_id` 和 `auth.uid()` 双层隔离，写入时会校验关联纪念日属于当前用户。
+- 场景工具箱页面 `/toolbox` 和导航入口。
+- 工具箱基础版，支持情绪复盘、压力整理和明日计划三类工具；当前保存用户输入和程序化输出，不调用 AI。
+- `tool_sessions` 数据表、本地迁移文件和 RLS 策略；工具记录按当前 `user_id` 和 `auth.uid()` 双层隔离。
 - 统一错误提示文案层和提示组件。
 - 每日工作台写入失败兜底提示。
 - 每日复盘生成失败分类提示。
@@ -125,7 +128,7 @@
 
 尚未开始：
 
-- 场景工具箱。
+- Obsidian 导入导出。
 
 目标技术方向：
 
@@ -143,7 +146,7 @@ AI Provider Adapter for scheduled/manual reviews
 
 ### 1.1 Current Skeleton File Roles
 
-当前 Step 1.1-Step 15.2 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台结构、今日任务创建、任务状态更新与维护、习惯创建、习惯打卡与维护、今日日程记录与维护、随手记录与维护、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、今日概览程序统计、成长记录统一时间线、基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、生活扩展页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界验证、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础信息展示、统一错误提示规范、基础闭环手工验收记录、RLS 接入验证记录、线上基础路由可用性验证记录、部署前最终测试记录和任务/习惯/日程/事件/灵感维护能力。各文件职责如下：
+当前 Step 1.1-Step 15.3 建立应用骨架、目录、页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、数据库迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台结构、今日任务创建、任务状态更新与维护、习惯创建、习惯打卡与维护、今日日程记录与维护、随手记录与维护、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、今日概览程序统计、成长记录统一时间线、基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、生活扩展页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、场景工具箱页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日复盘能力、AI 成本控制边界验证、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础信息展示、统一错误提示规范、基础闭环手工验收记录、RLS 接入验证记录、线上基础路由可用性验证记录、部署前最终测试记录和任务/习惯/日程/事件/灵感维护能力。各文件职责如下：
 
 - `package.json`: 定义项目名称、运行脚本和基础依赖。当前脚本包括 `dev`、`build`、`start`、`lint`、`db:generate`、`db:migrate` 和 `db:studio`；依赖包括 Supabase SSR/client 包、Drizzle ORM、Postgres client 和 Recharts。
 - `tsconfig.json`: TypeScript 配置，启用严格模式，并设置 `@/*` 指向 `src/*`。
@@ -167,6 +170,8 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/app/manual/actions.ts`: 个人说明书 Server Action，当前提供 `savePersonalManualAction()`；保存前必须通过 `requireCurrentUser()` 获取当前登录用户，并按当前 `user_id` upsert 完整手动编辑字段到 `personal_manuals`。
 - `src/app/life/page.tsx`: 生活扩展页面，当前包含纪念日记录和礼物记录；登录用户读取自己的纪念日列表和礼物列表，展示纪念日数量、已设置提醒日期数量和礼物记录数量，并提供纪念日创建/编辑/软删除、礼物创建/编辑/软删除，以及按对象或关联纪念日筛选礼物；未登录用户只看到页面结构和登录提示。
 - `src/app/life/actions.ts`: 生活扩展 Server Actions，当前提供 `createAnniversaryAction()`、`updateAnniversaryAction()`、`softDeleteAnniversaryAction()`、`createGiftRecordAction()`、`updateGiftRecordAction()` 和 `softDeleteGiftRecordAction()`；写入前必须通过 `requireCurrentUser()` 获取当前用户，并按当前 `user_id` 限定创建、更新和软删除范围。
+- `src/app/toolbox/page.tsx`: 场景工具箱页面，当前支持情绪复盘、压力整理和明日计划三类基础工具；登录用户可以保存一次工具输入和程序化输出，并查看最近 20 条工具记录；未登录用户只看到页面结构和登录提示。
+- `src/app/toolbox/actions.ts`: 场景工具箱 Server Action，当前提供 `createToolSessionAction()`；写入前必须通过 `requireCurrentUser()` 获取当前用户，当前只生成程序化输出并保存到 `tool_sessions`，不调用 AI。
 - `src/lib/ai/personal-manual-context.ts`: 复盘侧个人说明书上下文预留接口，当前支持按用户 ID 和复盘类型读取个人说明书，返回已填写字段和边界标记；当前不把个人说明书放入 `GenerateReviewInput`，后续如加入 AI 输入必须先在预览中明示。
 - `src/lib/ai/weekly-review-context.ts`: 周复盘发送预览上下文服务，按最近 7 天整理任务、习惯、日程、事件、灵感、情绪标签、事件原文候选和敏感降级结果；当前只生成预览用 `GenerateReviewInput`，不调用 AI provider。
 - `src/lib/ai/monthly-review-context.ts`: 月复盘发送预览上下文服务，按本月整理任务、习惯、日程、事件、灵感、情绪标签、已有周复盘摘要和敏感降级结果；当前只生成摘要-only 预览用 `GenerateReviewInput`，不调用 AI provider，不展示事件原文候选。
@@ -176,7 +181,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/app/auth/actions.ts`: Supabase Auth Server Actions，负责登录、注册和退出。
 - `src/app/auth/confirm/route.ts`: Supabase 邮箱确认回调路由，成功后跳转到安全的 `next` 路径，失败时回到登录页。
 - `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮、导航样式、每日概览卡、今日概览卡快捷入口、今日概览进度条、洞察报告统计网格、洞察报告趋势卡、任务完成率图表容器、习惯打卡图表容器和点阵、记录数量趋势图表容器、情绪基础统计图表容器、成长记录时间线、记录概览统计、成长记录筛选控件、记录详情字段、工作台面板、空状态、创建区收起面板、任务表单、任务编辑表单、删除危险区、任务列表、任务状态分组、状态操作按钮、延期日期输入、习惯统计标签行、每日复盘预览区、每日复盘报告区、文本域、表单提示和每日工作台移动端适配样式。
-- `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区、当前阶段提示、账号状态和退出入口，并把页面内容包裹在统一布局中；当前导航包含生活扩展入口 `/life`。
+- `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区、当前阶段提示、账号状态和退出入口，并把页面内容包裹在统一布局中；当前导航包含生活扩展入口 `/life` 和场景工具箱入口 `/toolbox`。
 - `src/components/feedback-message.tsx`: 统一提示组件，接收 `FeedbackMessage` 数据后按成功、错误或信息提示渲染标题和详情；错误提示使用 `alert` 语义，普通提示使用 `status` 语义。
 - `src/components/insights/task-completion-chart.tsx`: 任务完成率图表客户端组件，使用 Recharts 渲染最近 7 天每日任务完成率；只接收服务端页面整理后的图表数据，不读取数据库，不接触密钥。
 - `src/components/insights/habit-checkin-chart.tsx`: 习惯打卡图表客户端组件，使用 Recharts 渲染启用习惯最近 7 天完成数，并用点阵展示每日是否打卡；只接收服务端页面整理后的图表数据，不读取数据库，不接触密钥。
@@ -204,10 +209,11 @@ AI Provider Adapter for scheduled/manual reviews
 - `drizzle/0001_rls_user_policies.sql`: RLS 策略迁移 SQL，已在真实 Supabase 数据库为 8 张业务表启用 RLS，并创建按 `auth.uid() = user_id` 隔离的基础策略。
 - `drizzle/0002_cold_wendell_rand.sql`: 纪念日记录迁移 SQL，创建 `anniversaries` 表、用户日期索引、用户提醒日期索引，并为该表启用按 `auth.uid() = user_id` 隔离的 RLS 策略。
 - `drizzle/0003_massive_expediter.sql`: 礼物记录迁移 SQL，创建 `gift_records` 表、用户日期索引、用户对象索引、用户纪念日索引、可选纪念日外键，并为该表启用按 `auth.uid() = user_id` 隔离的 RLS 策略。
+- `drizzle/0004_lonely_silver_samurai.sql`: 场景工具箱迁移 SQL，创建 `tool_type` 枚举、`tool_sessions` 表、用户工具类型索引、用户创建时间索引，并为该表启用按 `auth.uid() = user_id` 隔离的 RLS 策略。
 - `drizzle/meta/`: Drizzle 迁移快照和迁移日志元数据，用于后续增量迁移。
-- `src/db/schema.ts`: Drizzle schema，定义 `tasks`、`habits`、`habit_checkins`、`schedule_items`、`life_events`、`ideas`、`insight_reports`、`personal_manuals`、`anniversaries` 和 `gift_records`。
+- `src/db/schema.ts`: Drizzle schema，定义 `tasks`、`habits`、`habit_checkins`、`schedule_items`、`life_events`、`ideas`、`insight_reports`、`personal_manuals`、`anniversaries`、`gift_records` 和 `tool_sessions`。
 - `src/db/index.ts`: 服务端数据库入口，使用 `DATABASE_URL` 创建 Drizzle client；当前保留给 Drizzle schema、迁移、设置页数据库健康检查和必要的服务端内部维护用途，不作为普通登录用户请求的主读写通道。
-- `src/lib/data/user-data.ts`: 服务端用户态数据访问入口，使用 Supabase SSR client 执行每日工作台、成长记录、详情页、洞察报告、每日复盘、周复盘、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、个人说明书、纪念日和礼物记录相关读写；当前包含任务创建、状态更新、编辑、软删除，习惯创建、编辑、停用、打卡，日程创建、编辑、软删除，事件创建、编辑、软删除，灵感创建、编辑和软删除，周复盘最近 7 天只读上下文查询，月复盘当月只读统计查询，月复盘预览当月只读上下文查询，周复盘/月复盘缓存读取和保存，个人说明书读取和 upsert 保存，纪念日创建、编辑、软删除和列表读取，以及礼物记录创建、编辑、软删除、列表读取和关联纪念日归属校验能力；所有查询和写入仍显式限定当前 `user_id`，不只依赖 RLS。
+- `src/lib/data/user-data.ts`: 服务端用户态数据访问入口，使用 Supabase SSR client 执行每日工作台、成长记录、详情页、洞察报告、每日复盘、周复盘、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、个人说明书、纪念日、礼物记录和工具箱相关读写；当前包含任务创建、状态更新、编辑、软删除，习惯创建、编辑、停用、打卡，日程创建、编辑、软删除，事件创建、编辑、软删除，灵感创建、编辑和软删除，周复盘最近 7 天只读上下文查询，月复盘当月只读统计查询，月复盘预览当月只读上下文查询，周复盘/月复盘缓存读取和保存，个人说明书读取和 upsert 保存，纪念日创建、编辑、软删除和列表读取，礼物记录创建、编辑、软删除、列表读取和关联纪念日归属校验，以及工具记录创建和最近记录读取能力；所有查询和写入仍显式限定当前 `user_id`，不只依赖 RLS。
 - `src/lib/utils.ts`: 通用工具函数入口，当前提供 `cn()` 用于合并 Tailwind className。
 
 ### 1.2.1 Production Deployment Snapshot
@@ -280,6 +286,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `/insights`: 洞察报告。
 - `/manual`: 个人说明书，已支持登录用户读取、首次保存和完整字段手动编辑。
 - `/life`: 生活扩展，已支持纪念日和礼物记录。
+- `/toolbox`: 场景工具箱，已支持情绪复盘、压力整理和明日计划基础版。
 - `/settings`: 设置。
 - `/login`: 登录/注册。
 - `/auth/confirm`: Supabase 邮箱确认回调。
@@ -321,6 +328,7 @@ Step 7.3 后，当前基础闭环的实际用户流程是：
 - 月复盘生成与缓存：确认生成时调用 AI，保存 `monthly` 报告，同一自然月默认读取缓存。
 - 生活扩展页面和纪念日记录：登录用户可以创建、编辑、软删除自己的纪念日；未登录用户只可浏览页面结构；当前不做推送提醒，不调用 AI。
 - 礼物记录：登录用户可以创建、编辑、软删除自己的礼物记录，可以按对象或关联纪念日筛选；礼物可选关联自己的纪念日，当前不调用 AI。
+- 场景工具箱：登录用户可以保存情绪复盘、压力整理和明日计划的输入与程序化输出；未配置 AI 时仍可使用，当前不调用 AI。
 - 每日复盘上下文生成、发送预览、用户确认、报告保存和缓存展示。
 - 个人说明书读取、首次保存和完整字段手动编辑。
 - 个人说明书与复盘上下文预留关联；当前只读取状态和已填写字段，不默认发送给 AI。
@@ -329,7 +337,7 @@ Step 7.3 后，当前基础闭环的实际用户流程是：
 
 当前仍未完成：
 
-- 场景工具箱和 Obsidian 导入导出暂缓。
+- Obsidian 导入导出暂缓。
 
 ## 2. Recommended Tech Stack
 
@@ -444,6 +452,7 @@ Step 2.4A 已接入 Supabase Auth 基线，Step 2.4B 已补充安全跳转和写
 - `personal_manuals`: 当前用户只能读取和维护自己的个人说明书，基础条件为 `auth.uid() = user_id`。
 - `anniversaries`: 当前用户只能读取和维护自己的纪念日，基础条件为 `auth.uid() = user_id`。
 - `gift_records`: 当前用户只能读取和维护自己的礼物记录，基础条件为 `auth.uid() = user_id`；应用层写入时额外校验可选关联的 `anniversary_id` 属于当前用户。
+- `tool_sessions`: 当前用户只能读取和保存自己的工具箱记录，基础条件为 `auth.uid() = user_id`。
 
 真实启用后的验证记录：
 
@@ -484,6 +493,7 @@ Step 2.3 已安装并接入：
 - `personal_manuals`
 - `anniversaries`
 - `gift_records`
+- `tool_sessions`
 
 迁移状态：
 
@@ -641,7 +651,7 @@ Responsibilities:
 
 ## 6. Current Data Model
 
-Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 Drizzle schema 和迁移文件落地到真实 Supabase Postgres；Step 15.1 新增生活扩展的纪念日表，Step 15.2 新增礼物记录表。当前本地 schema 和迁移结构以 `src/db/schema.ts`、`drizzle/0000_true_silver_sable.sql`、`drizzle/0001_rls_user_policies.sql`、`drizzle/0002_cold_wendell_rand.sql` 和 `drizzle/0003_massive_expediter.sql` 为准。
+Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 Drizzle schema 和迁移文件落地到真实 Supabase Postgres；Step 15.1 新增生活扩展的纪念日表，Step 15.2 新增礼物记录表，Step 15.3 新增场景工具箱记录表。当前本地 schema 和迁移结构以 `src/db/schema.ts`、`drizzle/0000_true_silver_sable.sql`、`drizzle/0001_rls_user_policies.sql`、`drizzle/0002_cold_wendell_rand.sql`、`drizzle/0003_massive_expediter.sql` 和 `drizzle/0004_lonely_silver_samurai.sql` 为准。
 
 第一批基础表：
 
@@ -660,14 +670,16 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 
 - `anniversaries`
 - `gift_records`
+- `tool_sessions`
 
 当前 `anniversaries` 已建立 schema、迁移 SQL、RLS 策略和用户态读写入口；纪念日支持创建、编辑、软删除和列表读取，当前只做记录，不做推送提醒，不调用 AI。
 
 当前 `gift_records` 已建立 schema、本地迁移 SQL、RLS 策略和用户态读写入口；礼物记录支持创建、编辑、软删除、按对象筛选、按纪念日筛选和可选关联纪念日，当前只做记录和列表，不调用 AI。真实数据库执行 `0003` 迁移前必须单独确认。
 
+当前 `tool_sessions` 已建立 schema、本地迁移 SQL、RLS 策略和用户态写入/读取入口；场景工具箱支持情绪复盘、压力整理和明日计划三类基础工具，保存用户输入和程序化输出，当前不调用 AI。真实数据库执行 `0004` 迁移前必须单独确认。
+
 暂缓表：
 
-- `tool_sessions`: 场景工具箱会话，等工具箱进入开发时再做。
 - 成长知识库相关表：第一版不做，Obsidian 继续作为学习笔记主阵地。
 - 飞书任务 ID、飞书日历事件 ID 等外部平台同步字段：第一版不保留，避免基础模型被外部工具绑定。
 
@@ -1023,7 +1035,39 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 - 删除采用软删除，写入 `deleted_at`，不物理删除。
 - 当前不调用 AI，不做礼物推荐；后续如要做建议，需要先在页面明确 AI 输入边界。
 
-### 6.11 Time Rules
+### 6.11 `tool_sessions`
+
+用途：
+
+- 保存场景工具箱的一次使用记录，包括工具类型、用户输入和工具输出。
+
+用户关系：
+
+- 每条工具记录必须属于一个 `user_id`。
+- 登录用户只能读取和保存自己的工具记录。
+- 未登录用户只能浏览工具箱页面结构，不能保存工具记录。
+
+最小字段：
+
+- `id`: 工具记录 ID。
+- `user_id`: 所属用户 ID。
+- `tool_type`: 工具类型，固定为 `emotion_review`、`stress_sorting`、`tomorrow_plan`。
+- `title`: 工具标题。
+- `input_content`: 用户输入内容。
+- `output_content`: 工具输出内容。
+- `ai_used`: 是否调用 AI，当前固定为 `false`。
+- `created_at`: 创建时间。
+- `updated_at`: 更新时间。
+- `deleted_at`: 软删除时间。
+
+规则：
+
+- 页面入口为 `/toolbox`。
+- 当前第一批工具为情绪复盘、压力整理和明日计划。
+- 当前输出由程序化模板生成，不调用 AI；后续若接入 AI，必须继续保持用户主动触发和服务端调用。
+- 最近工具记录按 `created_at` 倒序展示，当前页面最多显示 20 条。
+
+### 6.12 Time Rules
 
 - 所有“今天”“最近 7 天”“最近 30 天”“本周”都按北京时间计算。
 - 时区统一为 `Asia/Shanghai`。
@@ -1134,6 +1178,6 @@ AI_MODEL_MONTHLY=
 Step 8.1 文档更新验证：
 
 - 对照 `src/app` 检查页面结构是否一致。
-- 对照 `src/db/schema.ts` 检查 8 张基础表、纪念日表、礼物记录表和字段说明是否一致。
+- 对照 `src/db/schema.ts` 检查 8 张基础表、纪念日表、礼物记录表、工具记录表和字段说明是否一致。
 - 对照 `src/lib/ai` 和 `src/app/daily/actions.ts` 检查 AI 调用边界是否一致。
 - 运行 `git diff --check -- memory-bank/@architecture.md`。

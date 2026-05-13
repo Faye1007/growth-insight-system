@@ -9,6 +9,7 @@ import {
   LogIn,
   LogOut,
   Settings,
+  Sparkles,
   UserRound,
 } from "lucide-react";
 
@@ -23,6 +24,7 @@ const navigationItems = [
   { href: "/insights", label: "洞察报告", icon: BarChart3 },
   { href: "/manual", label: "个人说明书", icon: BookOpenText },
   { href: "/life", label: "生活扩展", icon: Gift },
+  { href: "/toolbox", label: "场景工具箱", icon: Sparkles },
   { href: "/settings", label: "设置", icon: Settings },
 ];
 

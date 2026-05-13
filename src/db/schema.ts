@@ -59,6 +59,12 @@ export const generationStatusEnum = pgEnum("generation_status", [
   "failed",
 ]);
 
+export const toolTypeEnum = pgEnum("tool_type", [
+  "emotion_review",
+  "stress_sorting",
+  "tomorrow_plan",
+]);
+
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -287,5 +293,24 @@ export const giftRecords = pgTable(
     index("gift_records_user_date_idx").on(table.userId, table.giftDate),
     index("gift_records_user_recipient_idx").on(table.userId, table.recipientName),
     index("gift_records_user_anniversary_idx").on(table.userId, table.anniversaryId),
+  ],
+);
+
+export const toolSessions = pgTable(
+  "tool_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    toolType: toolTypeEnum("tool_type").notNull(),
+    title: text("title").notNull(),
+    inputContent: text("input_content").notNull(),
+    outputContent: text("output_content").notNull(),
+    aiUsed: boolean("ai_used").default(false).notNull(),
+    ...timestamps,
+    ...softDeleteTimestamp,
+  },
+  (table) => [
+    index("tool_sessions_user_type_idx").on(table.userId, table.toolType),
+    index("tool_sessions_user_created_idx").on(table.userId, table.createdAt),
   ],
 );

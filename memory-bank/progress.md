@@ -2,11 +2,11 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录和 Step 15.2 礼物记录。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录和 Step 15.3 场景工具箱基础版。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、生活扩展页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、今日概览程序统计、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、洞察报告页面壳、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、生活扩展页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、场景工具箱页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
 - 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
@@ -16,7 +16,7 @@
 - 第一版用户：Faye 自用
 - 第一版核心：每日工作台
 - 基础功能第一轮：先做每日工作台、基础记录、基础图表和每日 AI 复盘
-- 后续阶段：场景工具箱暂缓；周复盘、月度复盘、纪念日记录和礼物记录已进入基础闭环
+- 后续阶段：Obsidian 导入导出暂缓；周复盘、月度复盘、纪念日记录、礼物记录和场景工具箱基础版已进入基础闭环
 - 数据方向：Supabase Postgres 作为主数据库
 - 认证方向：支持注册登录；未登录用户可浏览界面，写入时提示注册/登录
 - 访问方向：未登录用户可浏览基础界面和展示数据
@@ -2057,6 +2057,44 @@ Supabase Auth Redirect URL 需要配置：
 - `npm run lint` 通过。
 - `npm run build` 通过，构建路由包含 `/life`。
 
+### Step 15.3：场景工具箱基础版
+
+已完成内容：
+
+- 新增 `tool_type` 枚举，当前包括 `emotion_review`、`stress_sorting` 和 `tomorrow_plan`。
+- 新增 `tool_sessions` 数据表 schema，用于保存工具类型、标题、用户输入、工具输出、是否调用 AI、创建/更新时间和软删除时间。
+- 新增本地迁移文件 `drizzle/0004_lonely_silver_samurai.sql`，创建 `tool_type` 枚举、`tool_sessions` 表、用户工具类型索引、用户创建时间索引，并为该表启用 RLS 和当前用户隔离策略。
+- 更新 Drizzle 迁移元数据，记录 `0004_lonely_silver_samurai`。
+- 新增场景工具箱页面 `/toolbox`。
+- 在主导航新增“场景工具箱”入口。
+- 第一批工具包括情绪复盘、压力整理和明日计划。
+- 登录用户可以选择工具类型并保存一次工具记录；工具记录包含用户输入和程序化输出。
+- 未配置 AI 时工具箱仍可使用；当前输出由程序化模板生成，不调用 AI。
+- 登录用户可以查看最近 20 条工具记录，并按工具类型筛选。
+- 未登录用户可以浏览页面结构，但只能看到登录提示，不能保存工具记录。
+- 工具记录读写通过 Supabase SSR client 执行，并在应用层显式限定当前 `user_id`；数据库层同时通过 RLS 按 `auth.uid() = user_id` 隔离。
+- 本 Step 只生成本地迁移文件，没有执行真实数据库迁移。
+
+本次新增或更新的文件：
+
+- `src/app/toolbox/page.tsx`
+- `src/app/toolbox/actions.ts`
+- `src/components/app-shell.tsx`
+- `src/db/schema.ts`
+- `src/lib/data/user-data.ts`
+- `drizzle/0004_lonely_silver_samurai.sql`
+- `drizzle/meta/_journal.json`
+- `drizzle/meta/0004_snapshot.json`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run db:generate` 通过，生成 `drizzle/0004_lonely_silver_samurai.sql`。
+- 人工检查迁移 SQL：包含 `tool_type` 枚举、`tool_sessions` 建表、索引、RLS 启用和 `select`、`insert`、`update`、`delete` 基础策略。
+- `npm run lint` 通过。
+- `npm run build` 通过，构建路由包含 `/toolbox`。
+
 ## Not Started
 
 - 自定义正式域名绑定
@@ -2064,6 +2102,6 @@ Supabase Auth Redirect URL 需要配置：
 
 ## Next Step Candidate
 
-Step 15.3：场景工具箱基础版。
+Step 15.4：Obsidian Markdown 导出。
 
-下一步建议进入场景工具箱基础版，先设计工具箱页面入口和第一批工具的最小交互；如需新增数据库表，必须先生成迁移并单独确认真实数据库执行。
+下一步建议进入 Obsidian Markdown 导出，先支持复盘报告或成长记录导出为 Markdown；不直接读取本地 Obsidian 仓库，不做双向同步。
