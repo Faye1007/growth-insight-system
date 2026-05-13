@@ -171,133 +171,46 @@ function getBeijingDateAfter(days: number, date = new Date()) {
   return getBeijingDateValue(targetDate);
 }
 
-function buildOverviewCards(
-  taskCount: number,
-  completedTaskCount: number,
-  inProgressTaskCount: number,
-  postponedTaskCount: number,
-  activeHabitCount: number,
-  checkedHabitCount: number,
-  scheduleCount: number,
-  eventCount: number,
-  ideaCount: number,
-) {
-  const completionRate = taskCount > 0 ? Math.round((completedTaskCount / taskCount) * 100) : 0;
-  const recordCount = eventCount + ideaCount;
-
-  return [
-    {
-      label: "今日任务",
-      value: `${completionRate}%`,
-      progress: completionRate,
-      note:
-        taskCount > 0
-          ? `${completedTaskCount}/${taskCount} 项已完成。`
-          : "暂无待办，可以先创建今天的第一项任务。",
-      details:
-        taskCount > 0
-          ? [
-              `总数 ${taskCount}`,
-              `进行中 ${inProgressTaskCount}`,
-              `延期 ${postponedTaskCount}`,
-            ]
-          : ["总数 0", "完成率 0%"],
-      tone: "tone-lavender",
-      sectionId: "tasks",
-      createKey: "task",
-      actionLabel: "新建",
-    },
-    {
-      label: "习惯打卡",
-      value: `${checkedHabitCount}/${activeHabitCount}`,
-      progress: activeHabitCount > 0 ? Math.round((checkedHabitCount / activeHabitCount) * 100) : 0,
-      note: activeHabitCount > 0 ? "今日已完成的习惯打卡数。" : "暂无启用习惯，可以先添加一个长期习惯。",
-      details:
-        activeHabitCount > 0
-          ? [`启用 ${activeHabitCount}`, `已打卡 ${checkedHabitCount}`]
-          : ["启用 0", "已打卡 0"],
-      tone: "tone-sage",
-      sectionId: "habits",
-      createKey: "habit",
-      actionLabel: "添加",
-    },
-    {
-      label: "今日日程",
-      value: `${scheduleCount}`,
-      progress: scheduleCount > 0 ? 100 : 0,
-      note: scheduleCount > 0 ? "今日已记录的固定事项数量。" : "暂无固定事项，可以先记录今天的第一个日程。",
-      details: [`日程 ${scheduleCount}`],
-      tone: "tone-mist",
-      sectionId: "schedule",
-      createKey: "schedule",
-      actionLabel: "记录",
-    },
-    {
-      label: "随手记录",
-      value: `${recordCount}`,
-      progress: recordCount > 0 ? 100 : 0,
-      note: recordCount > 0 ? "今日已保存的事件和灵感数量。" : "暂无事件或灵感，可以先写一条记录。",
-      details: [`事件 ${eventCount}`, `灵感 ${ideaCount}`],
-      tone: "tone-clay",
-      sectionId: "notes",
-      createKey: "record",
-      actionLabel: "写入",
-    },
-  ];
-}
-
 const dailySections = [
   {
     id: "tasks",
     title: "今日任务",
-    eyebrow: "行动",
-    description: "用于安排今天要推进的学习、工作、生活、健康和关系任务。",
     emptyTitle: "暂无今日任务",
-    emptyDescription: "创建任务功能会在 Step 3.2 接入，默认日期会落在今天。",
+    emptyDescription: "可以先创建今天要推进的第一项任务。",
     actionLabel: "新建任务",
     Icon: ClipboardList,
     EmptyIcon: Plus,
     tone: "tone-lavender",
-    previewItems: ["未开始", "进行中", "已完成", "延期"],
   },
   {
     id: "habits",
     title: "习惯打卡",
-    eyebrow: "稳定性",
-    description: "用于记录今天是否完成长期习惯，并为连续天数和累计次数提供数据。",
     emptyTitle: "暂无启用习惯",
-    emptyDescription: "添加习惯后，会先出现在今日习惯列表；打卡功能在 Step 3.5 接入。",
+    emptyDescription: "添加习惯后，会出现在今日习惯列表。",
     actionLabel: "添加习惯",
     Icon: Repeat2,
     EmptyIcon: CheckCircle2,
     tone: "tone-sage",
-    previewItems: ["今日完成", "今日跳过", "连续天数", "复盘原因"],
   },
   {
     id: "schedule",
     title: "今日日程",
-    eyebrow: "时间",
-    description: "用于记录今天的固定事项、开始时间和分类，先做单日记录。",
     emptyTitle: "暂无今日日程",
     emptyDescription: "记录日程后，会按开始时间从早到晚显示。",
     actionLabel: "记录日程",
     Icon: CalendarDays,
     EmptyIcon: CalendarDays,
     tone: "tone-clay",
-    previewItems: ["开始时间", "结束时间", "分类", "说明"],
   },
   {
     id: "notes",
     title: "随手记录",
-    eyebrow: "沉淀",
-    description: "用于记录已经发生的事件、灵感、情绪标签和下次行动。",
     emptyTitle: "暂无随手记录",
     emptyDescription: "事件会保存到人生笔记，灵感会保存为未来行动候选。",
     actionLabel: "写一条记录",
     Icon: NotebookPen,
     EmptyIcon: Lightbulb,
     tone: "tone-mist",
-    previewItems: ["事件", "灵感", "情绪标签", "下次行动"],
   },
 ];
 
@@ -530,6 +443,10 @@ function normalizeStringList(value: unknown) {
 
 function getRecordPreview(content: string) {
   return content.length > 96 ? `${content.slice(0, 96)}...` : content;
+}
+
+function EmptyOverviewLine({ text }: { text: string }) {
+  return <p className="list-meta">{text}</p>;
 }
 
 function getSearchParamValues(
@@ -845,23 +762,6 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const habitStatsById = new Map(
     activeHabits.map((habit) => [habit.id, getHabitStats(habit, habitCheckins, todayDate)]),
   );
-  const completedTaskCount = todayTasks.filter((task) => task.status === "completed").length;
-  const inProgressTaskCount = todayTasks.filter((task) => task.status === "in_progress").length;
-  const postponedTaskCount = todayTasks.filter((task) => task.status === "postponed").length;
-  const checkedHabitCount = activeHabits.filter(
-    (habit) => habitStatsById.get(habit.id)?.isCheckedToday,
-  ).length;
-  const overviewCards = buildOverviewCards(
-    todayTasks.length,
-    completedTaskCount,
-    inProgressTaskCount,
-    postponedTaskCount,
-    activeHabits.length,
-    checkedHabitCount,
-    todayScheduleItems.length,
-    todayLifeEvents.length,
-    todayIdeas.length,
-  );
   const taskCreated = params?.taskCreated === "1";
   const taskCreatedFeedback: FeedbackMessageData | null = taskCreated
     ? {
@@ -1006,46 +906,119 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
           <div>
             <p className="page-kicker">今日概览</p>
             <h2 id="daily-overview" className="section-heading mt-1">
-              今日基础状态
+              今天要看的清单
             </h2>
           </div>
-          <span className="status-pill w-fit">程序统计，不调用 AI</span>
+          <span className="status-pill w-fit">简洁列表</span>
         </div>
         <div className="daily-summary-grid mt-5">
-          {overviewCards.map((card) => {
-            const createHref = `/daily?create=${card.createKey}#${card.sectionId}`;
-            const actionHref = isLoggedIn
-              ? createHref
-              : buildLoginPath({ next: createHref, message: loginRequiredMessage });
+          <article className="daily-summary-card tone-lavender">
+            <div className="overview-card-header">
+              <p className="metric-label">今日任务</p>
+              <Link className="overview-card-action" href={isLoggedIn ? "/daily?create=task#tasks" : loginPath}>
+                <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                <span>新建</span>
+              </Link>
+            </div>
+            <div className="task-list mt-4">
+              {todayTasks.length ? (
+                todayTasks.slice(0, 5).map((task) => (
+                  <div key={task.id} className="compact-main-row">
+                    <TaskCompletionToggle task={task} />
+                    <Link className="list-label list-title-link" href={`/records/task/${task.id}`}>
+                      {task.title}
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <EmptyOverviewLine text="暂无今日任务" />
+              )}
+            </div>
+          </article>
 
-            return (
-              <article key={card.label} className={`daily-summary-card ${card.tone}`}>
-                <div className="overview-card-header">
-                  <p className="metric-label">{card.label}</p>
-                  <Link
-                    aria-label={`${card.actionLabel}${card.label}`}
-                    className="overview-card-action"
-                    href={actionHref}
-                  >
-                    <Plus aria-hidden="true" className="h-3.5 w-3.5" />
-                    <span>{card.actionLabel}</span>
-                  </Link>
-                </div>
-                <p className="metric-value">{card.value}</p>
-                <p className="body-copy mt-2">{card.note}</p>
-                <div aria-hidden="true" className="overview-progress mt-4">
-                  <span style={{ width: `${card.progress}%` }} />
-                </div>
-                <div className="overview-detail-row mt-3">
-                  {card.details.map((detail) => (
-                    <span key={detail} className="status-pill">
-                      {detail}
+          <article className="daily-summary-card tone-sage">
+            <div className="overview-card-header">
+              <p className="metric-label">今日习惯</p>
+              <Link className="overview-card-action" href={isLoggedIn ? "/daily?create=habit#habits" : loginPath}>
+                <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                <span>添加</span>
+              </Link>
+            </div>
+            <div className="task-list mt-4">
+              {activeHabits.length ? (
+                activeHabits.slice(0, 5).map((habit) => {
+                  const stats = habitStatsById.get(habit.id) ?? {
+                    isCheckedToday: false,
+                    totalCount: 0,
+                    streakCount: 0,
+                  };
+
+                  return (
+                    <div key={habit.id} className="compact-main-row">
+                      <HabitCheckinAction habit={habit} isCheckedToday={stats.isCheckedToday} />
+                      <span className="list-label">{habit.name}</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <EmptyOverviewLine text="暂无启用习惯" />
+              )}
+            </div>
+          </article>
+
+          <article className="daily-summary-card tone-clay">
+            <div className="overview-card-header">
+              <p className="metric-label">今日日程</p>
+              <Link className="overview-card-action" href={isLoggedIn ? "/daily?create=schedule#schedule" : loginPath}>
+                <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                <span>记录</span>
+              </Link>
+            </div>
+            <div className="task-list mt-4">
+              {todayScheduleItems.length ? (
+                todayScheduleItems.slice(0, 5).map((item) => (
+                  <div key={item.id} className="compact-main-row">
+                    <span className="schedule-time-chip">
+                      {formatScheduleTimeRange(item.startTime, item.endTime)}
                     </span>
+                    <Link className="list-label list-title-link" href={`/records/schedule/${item.id}`}>
+                      {item.title}
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <EmptyOverviewLine text="暂无今日日程" />
+              )}
+            </div>
+          </article>
+
+          <article className="daily-summary-card tone-mist">
+            <div className="overview-card-header">
+              <p className="metric-label">随手记录</p>
+              <Link className="overview-card-action" href={isLoggedIn ? "/daily?create=record#notes" : loginPath}>
+                <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+                <span>写入</span>
+              </Link>
+            </div>
+            <div className="task-list mt-4">
+              {todayLifeEvents.length || todayIdeas.length ? (
+                <>
+                  {todayLifeEvents.slice(0, 3).map((event) => (
+                    <Link key={event.id} className="list-label list-title-link" href={`/records/event/${event.id}`}>
+                      {getRecordPreview(event.content)}
+                    </Link>
                   ))}
-                </div>
-              </article>
-            );
-          })}
+                  {todayIdeas.slice(0, Math.max(0, 5 - todayLifeEvents.slice(0, 3).length)).map((idea) => (
+                    <Link key={idea.id} className="list-label list-title-link" href={`/records/idea/${idea.id}`}>
+                      {getRecordPreview(idea.content)}
+                    </Link>
+                  ))}
+                </>
+              ) : (
+                <EmptyOverviewLine text="暂无随手记录" />
+              )}
+            </div>
+          </article>
         </div>
       </section>
 
@@ -1110,9 +1083,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                   <Icon aria-hidden="true" className="h-4 w-4" />
                 </span>
                 <div>
-                  <p className="page-kicker">{section.eyebrow}</p>
                   <h2 className="section-heading mt-1">{section.title}</h2>
-                  <p className="body-copy mt-2">{section.description}</p>
                 </div>
               </div>
               {(isTaskSection || isHabitSection || isScheduleSection || isNotesSection) && isLoggedIn ? null : (
@@ -1589,13 +1560,6 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
               </div>
             )}
 
-            <div className="preview-row mt-4">
-              {section.previewItems.map((item) => (
-                <span key={item} className="status-pill">
-                  {item}
-                </span>
-              ))}
-            </div>
           </article>
           );
         })}
