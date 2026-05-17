@@ -1431,24 +1431,24 @@ Supabase Auth Redirect URL 需要配置：
 - 生产构建本地服务 `http://localhost:3004/settings` 返回 `200`。
 - `/settings` 页面扫描未发现数据库连接串、AI key、service role key、Bearer token 等明文泄露。
 
-### ✅ Step 9.2：Vercel 正式部署与基础验收
+### ✅ Step 9.2：Render 正式部署与基础验收
 
 已完成内容：
 
-- Faye 已在 Vercel 成功新建项目并完成 GitHub 部署。
-- 正式访问域名为 `https://growth-insight-system.vercel.app/`。
-- Vercel 首版部署采用无 AI 配置路线，只要求 Supabase public client 配置和 `DATABASE_URL`。
+- Faye 已在 Render 成功新建项目并完成 GitHub 部署。
+- 正式访问域名为 `https://growth-insight-system.onrender.com`。
+- Render 首版部署采用无 AI 配置路线，只要求 Supabase public client 配置和 `DATABASE_URL`。
 - Faye 已在 Supabase Auth 中完成正式域名 Redirect URL 配置。
 - 外部访问检查确认首页、每日工作台、登录页、洞察报告和设置页均可打开。
 - Faye 已完成线上基础测试。
 
 验证记录：
 
-- `curl -I https://growth-insight-system.vercel.app/` 返回 `HTTP/2 200`。
-- `curl -I https://growth-insight-system.vercel.app/daily` 返回 `HTTP/2 200`。
-- `curl -I https://growth-insight-system.vercel.app/login` 返回 `HTTP/2 200`。
-- `curl -I https://growth-insight-system.vercel.app/insights` 返回 `HTTP/2 200`。
-- `curl -I https://growth-insight-system.vercel.app/settings` 返回 `HTTP/2 200`。
+- `curl -I https://growth-insight-system.onrender.com/` 返回 `HTTP/2 200`。
+- `curl -I https://growth-insight-system.onrender.com/daily` 返回 `HTTP/2 200`。
+- `curl -I https://growth-insight-system.onrender.com/login` 返回 `HTTP/2 200`。
+- `curl -I https://growth-insight-system.onrender.com/insights` 返回 `HTTP/2 200`。
+- `curl -I https://growth-insight-system.onrender.com/settings` 返回 `HTTP/2 200`。
 - Faye 已确认 Supabase 侧设置完成，并已完成线上测试。
 - 本 Step 未配置 AI 环境变量，AI 待配置属于预期状态。
 

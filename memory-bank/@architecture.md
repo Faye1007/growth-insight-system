@@ -285,9 +285,9 @@ AI Provider Adapter for scheduled/manual reviews
 
 当前正式部署状态：
 
-- Vercel 正式域名为 `https://growth-insight-system.vercel.app/`。
+- Render 正式域名为 `https://growth-insight-system.onrender.com`。
 - Supabase Auth 已配置正式域名 Redirect URL。
-- Vercel 首版部署只要求 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 和 `DATABASE_URL`。
+- Render 首版部署只要求 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 和 `DATABASE_URL`。
 - AI 环境变量当前为可选项；未配置 AI 时，每日复盘显示程序摘要，普通记录、统计和图表可继续使用。
 - 外部路由检查确认 `/`、`/daily`、`/login`、`/insights` 和 `/settings` 返回 `HTTP 200`。
 - 部署前最终测试已完成；测试重点覆盖任务、习惯、打卡、日程、事件、灵感、程序复盘、成长记录和洞察报告核心闭环。
