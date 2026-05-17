@@ -9,12 +9,14 @@ import {
   updateAnniversaryAction,
   updateGiftRecordAction,
 } from "@/app/life/actions";
+import { LifeClient } from "@/components/life/life-client";
 import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import {
   getAnniversariesForUser,
   getGiftRecordsForUser,
+  getLifeEventsForUser,
   type AnniversaryRecord,
   type GiftRecord,
 } from "@/lib/data/user-data";
@@ -22,6 +24,7 @@ import type { FeedbackMessage as FeedbackMessageType } from "@/lib/feedback";
 
 type LifePageProps = {
   searchParams?: Promise<{
+    tab?: string;
     anniversaryError?: string;
     anniversarySaved?: string;
     giftError?: string;
@@ -369,7 +372,7 @@ function GiftRecordCard({
   const anniversaryTitle = getAnniversaryTitle(anniversaries, giftRecord.anniversaryId);
 
   return (
-    <article className="record-timeline-item tone-mint">
+    <article className="record-timeline-item tone-lavender">
       <div className="nav-icon">
         <Gift aria-hidden="true" className="h-4 w-4" />
       </div>
@@ -423,6 +426,7 @@ export default async function LifePage({ searchParams }: LifePageProps) {
   const user = await getCurrentUser();
   const isLoggedIn = Boolean(user);
   const loginPath = buildLoginPath({ next: "/life", message: loginRequiredMessage });
+
   const anniversaries = user ? await getAnniversariesForUser(user.id) : [];
   const giftRecipientFilter = params?.giftRecipient?.trim() ?? "";
   const giftAnniversaryFilter = params?.giftAnniversaryId?.trim() ?? "";
@@ -433,13 +437,16 @@ export default async function LifePage({ searchParams }: LifePageProps) {
         anniversaryId: giftAnniversaryFilter || undefined,
       })
     : [];
-  const recipientOptions = Array.from(
-    new Set(
-      (user ? await getGiftRecordsForUser({ userId: user.id }) : []).map(
-        (giftRecord) => giftRecord.recipientName,
-      ),
-    ),
-  ).sort((a, b) => a.localeCompare(b, "zh-CN"));
+
+  const todayValue = getBeijingDateValue();
+  const events = user ? await getLifeEventsForUser(user.id, "2020-01-01", todayValue) : [];
+
+  const tab = params?.tab;
+  const initialTab =
+    tab === "events" || tab === "anniversaries" || tab === "gifts"
+      ? tab
+      : "events";
+
   const anniversaryFeedback =
     anniversaryErrorFeedback[params?.anniversaryError ?? ""] ??
     anniversarySavedFeedback[params?.anniversarySaved ?? ""] ??
@@ -451,18 +458,12 @@ export default async function LifePage({ searchParams }: LifePageProps) {
 
   return (
     <div className="page-stack">
-      <header className="page-header">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="page-kicker">纪念日</p>
-            <h1 className="page-title">纪念日与礼物记录</h1>
-          </div>
-          <span className="status-pill w-fit">当前：纪念日</span>
-        </div>
-        <p className="page-description">
-          记录重要日期、关系对象和历史礼物。当前只做列表和维护，不做推送提醒，也不调用 AI。
-        </p>
-      </header>
+      <LifeClient
+        initialTab={initialTab as "events" | "anniversaries" | "gifts"}
+        events={events}
+        anniversaries={anniversaries}
+        giftRecords={giftRecords}
+      />
 
       <FeedbackMessage feedback={anniversaryFeedback} />
       <FeedbackMessage feedback={giftFeedback} />
@@ -471,9 +472,9 @@ export default async function LifePage({ searchParams }: LifePageProps) {
         <section className="panel-card">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="section-heading">登录后维护纪念日记录</h2>
+              <h2 className="section-heading">登录后维护人生记录</h2>
               <p className="body-copy mt-2">
-                未登录时可以浏览页面结构；登录后可以保存自己的纪念日和礼物记录。
+                未登录时可以浏览页面结构；登录后可以保存自己的事件、纪念日和礼物记录。
               </p>
             </div>
             <Link className="soft-button w-full sm:w-auto" href={loginPath}>
@@ -483,44 +484,18 @@ export default async function LifePage({ searchParams }: LifePageProps) {
         </section>
       ) : null}
 
-      <section aria-labelledby="life-overview" className="panel-card">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="page-kicker">概览</p>
-            <h2 id="life-overview" className="section-heading mt-1">
-              已记录 {anniversaries.length} 个纪念日、{giftRecords.length} 条礼物
-            </h2>
+      {/* Anniversary CRUD section */}
+      {isLoggedIn && (
+        <section id="anniversaries" aria-labelledby="anniversaries-title" className="panel-card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="page-kicker">纪念日</p>
+              <h2 id="anniversaries-title" className="section-heading mt-1">
+                纪念日维护
+              </h2>
+            </div>
           </div>
-          <span className="status-pill w-fit">程序记录，不调用 AI</span>
-        </div>
-        <div className="record-summary-grid mt-5">
-          <article className="field-tile">
-            <span>纪念日</span>
-            <strong>{anniversaries.length}</strong>
-          </article>
-          <article className="field-tile">
-            <span>已设提醒日期</span>
-            <strong>{anniversaries.filter((item) => item.reminderDate).length}</strong>
-          </article>
-          <article className="field-tile">
-            <span>礼物记录</span>
-            <strong>{giftRecords.length}</strong>
-          </article>
-        </div>
-      </section>
 
-      <section id="anniversaries" aria-labelledby="anniversaries-title" className="panel-card">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="page-kicker">纪念日</p>
-            <h2 id="anniversaries-title" className="section-heading mt-1">
-              重要日期列表
-            </h2>
-          </div>
-          <span className="status-pill w-fit">支持创建、编辑、软删除</span>
-        </div>
-
-        {isLoggedIn ? (
           <details className="create-disclosure mt-5">
             <summary className="create-summary soft-button w-fit">
               <PlusCircle aria-hidden="true" className="h-4 w-4" />
@@ -530,117 +505,119 @@ export default async function LifePage({ searchParams }: LifePageProps) {
               <AnniversaryForm action={createAnniversaryAction} submitLabel="保存纪念日" />
             </div>
           </details>
-        ) : null}
 
-        {anniversaries.length ? (
-          <div className="record-timeline mt-5">
-            {anniversaries.map((anniversary) => (
-              <AnniversaryCard key={anniversary.id} anniversary={anniversary} />
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state mt-5">
-            <span className="empty-icon">
-              <Gift aria-hidden="true" className="h-5 w-5" />
-            </span>
+          {anniversaries.length ? (
+            <div className="record-timeline mt-5">
+              {anniversaries.map((anniversary) => (
+                <AnniversaryCard key={anniversary.id} anniversary={anniversary} />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state mt-5">
+              <span className="empty-icon">
+                <CalendarHeart aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="list-label">暂无纪念日记录</p>
+                <p className="body-copy mt-1">
+                  登录后可以保存生日、纪念日或其他需要提前准备的重要日期。
+                </p>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Gift CRUD section */}
+      {isLoggedIn && (
+        <section id="gifts" aria-labelledby="gifts-title" className="panel-card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="list-label">暂无纪念日记录</p>
-              <p className="body-copy mt-1">
-                登录后可以保存生日、纪念日或其他需要提前准备的重要日期。
-              </p>
+              <p className="page-kicker">礼物</p>
+              <h2 id="gifts-title" className="section-heading mt-1">
+                礼物维护
+              </h2>
             </div>
           </div>
-        )}
-      </section>
 
-      <section id="gifts" aria-labelledby="gifts-title" className="panel-card">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="page-kicker">礼物</p>
-            <h2 id="gifts-title" className="section-heading mt-1">
-              历史礼物记录
-            </h2>
-          </div>
-          <span className="status-pill w-fit">支持对象和纪念日筛选</span>
-        </div>
+          <details className="create-disclosure mt-5">
+            <summary className="create-summary soft-button w-fit">
+              <PlusCircle aria-hidden="true" className="h-4 w-4" />
+              新增礼物记录
+            </summary>
+            <div className="mt-3">
+              <GiftRecordForm
+                action={createGiftRecordAction}
+                anniversaries={anniversaries}
+                submitLabel="保存礼物"
+              />
+            </div>
+          </details>
 
-        {isLoggedIn ? (
-          <>
-            <details className="create-disclosure mt-5">
-              <summary className="create-summary soft-button w-fit">
-                <PlusCircle aria-hidden="true" className="h-4 w-4" />
-                新增礼物记录
-              </summary>
-              <div className="mt-3">
-                <GiftRecordForm
-                  action={createGiftRecordAction}
-                  anniversaries={anniversaries}
-                  submitLabel="保存礼物"
-                />
-              </div>
-            </details>
-
-            <form action="/life#gifts" className="task-form mt-5">
-              <div className="task-form-grid">
-                <label className="form-field">
-                  按对象筛选
-                  <select name="giftRecipient" defaultValue={giftRecipientFilter}>
-                    <option value="">全部对象</option>
-                    {recipientOptions.map((recipientName) => (
+          <form action="/life#gifts" className="task-form mt-5">
+            <div className="task-form-grid">
+              <label className="form-field">
+                按对象筛选
+                <select name="giftRecipient" defaultValue={giftRecipientFilter}>
+                  <option value="">全部对象</option>
+                  {Array.from(
+                    new Set(giftRecords.map((g) => g.recipientName)),
+                  )
+                    .sort((a, b) => a.localeCompare(b, "zh-CN"))
+                    .map((recipientName) => (
                       <option key={recipientName} value={recipientName}>
                         {recipientName}
                       </option>
                     ))}
-                  </select>
-                </label>
-                <label className="form-field">
-                  按纪念日筛选
-                  <select name="giftAnniversaryId" defaultValue={giftAnniversaryFilter}>
-                    <option value="">全部纪念日</option>
-                    {anniversaries.map((anniversary) => (
-                      <option key={anniversary.id} value={anniversary.id}>
-                        {anniversary.title} · {anniversary.personName}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <div className="task-edit-actions">
-                <button className="soft-button" type="submit">
-                  应用筛选
-                </button>
-                <Link className="quiet-button" href="/life#gifts">
-                  清除筛选
-                </Link>
-              </div>
-            </form>
-          </>
-        ) : null}
-
-        {giftRecords.length ? (
-          <div className="record-timeline mt-5">
-            {giftRecords.map((giftRecord) => (
-              <GiftRecordCard
-                key={giftRecord.id}
-                anniversaries={anniversaries}
-                giftRecord={giftRecord}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state mt-5">
-            <span className="empty-icon">
-              <Gift aria-hidden="true" className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="list-label">暂无礼物记录</p>
-              <p className="body-copy mt-1">
-                登录后可以记录送出或收到的礼物，并按对象或纪念日回看。
-              </p>
+                </select>
+              </label>
+              <label className="form-field">
+                按纪念日筛选
+                <select name="giftAnniversaryId" defaultValue={giftAnniversaryFilter}>
+                  <option value="">全部纪念日</option>
+                  {anniversaries.map((anniversary) => (
+                    <option key={anniversary.id} value={anniversary.id}>
+                      {anniversary.title} · {anniversary.personName}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
-          </div>
-        )}
-      </section>
+            <div className="task-edit-actions">
+              <button className="soft-button" type="submit">
+                应用筛选
+              </button>
+              <Link className="quiet-button" href="/life#gifts">
+                清除筛选
+              </Link>
+            </div>
+          </form>
+
+          {giftRecords.length ? (
+            <div className="record-timeline mt-5">
+              {giftRecords.map((giftRecord) => (
+                <GiftRecordCard
+                  key={giftRecord.id}
+                  anniversaries={anniversaries}
+                  giftRecord={giftRecord}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state mt-5">
+              <span className="empty-icon">
+                <Gift aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="list-label">暂无礼物记录</p>
+                <p className="body-copy mt-1">
+                  登录后可以记录送出或收到的礼物，并按对象或纪念日回看。
+                </p>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }

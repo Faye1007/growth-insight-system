@@ -2723,6 +2723,49 @@ function getBeijingDateAfter(days: number, dateStr: string) {
   return getBeijingDateValue(d);
 }
 
+export type LifeEventRecord = {
+  id: string;
+  content: string;
+  eventDate: string;
+  emotionTags: string[];
+  tags: string[];
+  aiAnalysisPermission: AiAnalysisPermission;
+  summary: string | null;
+  isPinned: boolean;
+  createdAt: Date;
+};
+
+export async function getLifeEventsForUser(
+  userId: string,
+  dateFrom: string,
+  dateTo: string,
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("life_events")
+    .select("id,content,event_date,emotion_tags,tags,ai_analysis_permission,summary,is_pinned,created_at")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .gte("event_date", dateFrom)
+    .lte("event_date", dateTo)
+    .order("is_pinned", { ascending: false })
+    .order("event_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .returns<LifeEventRow[]>();
+
+  return assertArray(data, error).map((row) => ({
+    id: row.id,
+    content: row.content,
+    eventDate: row.event_date,
+    emotionTags: row.emotion_tags,
+    tags: row.tags,
+    aiAnalysisPermission: row.ai_analysis_permission,
+    summary: row.summary,
+    isPinned: row.is_pinned,
+    createdAt: new Date(row.created_at),
+  }));
+}
+
 export async function getMonthlyInsightRowsForUser(
   userId: string,
   monthStart: string,
