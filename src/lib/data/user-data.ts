@@ -1882,6 +1882,30 @@ export async function getTodayTasksForUser(userId: string, todayDate: string) {
   return assertArray(data, error).map(mapTodayTask);
 }
 
+export async function getTasksForUser(userId: string, date?: string, status?: string) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("tasks")
+    .select("id,title,description,category,status,task_date,is_postponed,postponed_from_date,postponed_to_date,review_note,is_pinned,created_at")
+    .eq("user_id", userId)
+    .is("deleted_at", null);
+
+  if (date) {
+    query = query.eq("task_date", date);
+  }
+  if (status) {
+    query = query.eq("status", status);
+  }
+
+  const { data, error } = await query
+    .order("is_pinned", { ascending: false })
+    .order("task_date", { ascending: false })
+    .order("created_at", { ascending: true })
+    .returns<TaskRow[]>();
+
+  return assertArray(data, error).map(mapTodayTask);
+}
+
 export async function getActiveHabitsForUser(userId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase

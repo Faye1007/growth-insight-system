@@ -2,7 +2,7 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构、Step 19.5 AI 聊天界面和 Step 19.6 复盘页移动端优化。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构、Step 19.5 AI 聊天界面、Step 19.6 复盘页移动端优化和 Step 19.7 独立 API 层。
 
 当前目标：
 
@@ -2608,6 +2608,43 @@ Supabase Auth Redirect URL 需要配置：
 - 周/月复盘入口可点击。
 - 页面底部内容不被底部导航遮挡。
 
+### ✅ Step 19.7：独立 API 层（为小程序准备）
+
+已完成内容：
+
+- 新增 API Key 认证中间件 `src/lib/api/auth.ts`，支持 `x-api-key` 请求头验证。
+- 新增环境变量 `API_SECRET_KEY` 和 `API_USER_ID`，用于 API 层认证和用户映射。
+- 新增 5 个 Route Handler：
+  - `/api/tasks`：任务列表查询（GET）、创建（POST）、更新/状态修改/软删除（PATCH）。
+  - `/api/habits`：习惯列表查询（GET）、创建/打卡（POST）、更新/停用/软删除（PATCH）。
+  - `/api/schedules`：日程列表查询（GET）、创建（POST）、更新/软删除（PATCH）。
+  - `/api/events`：事件列表查询（GET）、创建（POST）、更新/软删除（PATCH）。
+  - `/api/ideas`：灵感列表查询（GET）、创建（POST）、更新/软删除（PATCH）。
+  - `/api/reviews`：复盘数据查询（GET），支持 daily/weekly/monthly 类型。
+- 所有 API 接口统一返回 `{ success: true, data }` 或 `{ success: false, error }` 格式。
+- 保留现有 Server Actions 供网页端使用，Route Handlers 供外部调用（小程序等）。
+- 更新 `.env.example`，补充 API 环境变量说明。
+- 新增 `getTasksForUser` 函数到 `user-data.ts`，支持按日期和状态过滤任务。
+
+本次新增或更新的文件：
+
+- `src/lib/api/auth.ts`（新增）
+- `src/app/api/tasks/route.ts`（新增）
+- `src/app/api/habits/route.ts`（新增）
+- `src/app/api/schedules/route.ts`（新增）
+- `src/app/api/events/route.ts`（新增）
+- `src/app/api/ideas/route.ts`（新增）
+- `src/app/api/reviews/route.ts`（新增）
+- `src/lib/data/user-data.ts`（新增 `getTasksForUser`）
+- `.env.example`（新增 API 环境变量）
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- 所有 API 路由在构建输出中可见（`/api/tasks`、`/api/habits`、`/api/schedules`、`/api/events`、`/api/ideas`、`/api/reviews`）。
+- API Key 认证逻辑完整，无密钥时返回 503，密钥错误时返回 401。
+
 ## Not Started
 
 - 自定义正式域名绑定
@@ -2619,7 +2656,7 @@ Supabase Auth Redirect URL 需要配置：
   - ~~19.4：人生页重构（事件移入 + 3类切换）~~ ✅ 已完成
   - ~~19.5：AI 聊天界面 + 快捷键 + 规则解析 MVP~~ ✅ 已完成
   - ~~19.6：复盘页移动端优化~~ ✅ 已完成
-  - 19.7：独立 API 层（为小程序准备）
+  - ~~19.7：独立 API 层（为小程序准备）~~ ✅ 已完成
 
 ## Next Step Candidate
 
