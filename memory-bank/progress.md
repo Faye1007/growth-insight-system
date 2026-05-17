@@ -2920,3 +2920,33 @@ Supabase Auth Redirect URL 需要配置：
 - 本地生产服务 `http://localhost:3003/life` 返回 `200`。
 - 本地生产服务 `http://localhost:3003/settings` 返回 `200`。
 - Faye 已确认人生页和设置页本轮修复通过。
+
+### ✅ Modification Step 22.1：人生页列表分组、快捷新增与详情入口
+
+已完成内容：
+
+- 人生页事件 / 纪念日 / 礼物三个 tab 的列表改为按日期分组展示，避免一整条长列表直接铺开。
+- 事件列表每条最多展示两行内容，点击内容进入 `/records/event/[id]` 查看和编辑详情。
+- 纪念日列表标题点击进入 `/life/anniversary/[id]` 查看、编辑和软删除。
+- 礼物列表标题点击进入 `/life/gift/[id]` 查看、编辑和软删除。
+- 人生页三个 tab 右上角新增快捷入口：事件跳转每日工作台记录入口，纪念日和礼物在当前 tab 内展开轻量创建表单。
+- 移动端人生页 tab 排版改为第一行事件，第二行纪念日和礼物。
+- 新增 `/life/[kind]/[id]` 详情路由，当前支持 `anniversary` 和 `gift` 两类。
+- 纪念日详情页直接展示已关联的历史礼物记录列表，礼物标题可继续点击进入礼物详情页查看和编辑。
+- 礼物创建和编辑继续校验关联纪念日归属当前用户。
+
+影响文件：
+
+- `memory-bank/modification-plan.md`
+- `src/components/life/life-client.tsx`
+- `src/app/life/[kind]/[id]/page.tsx`
+- `src/app/life/actions.ts`
+- `src/lib/data/user-data.ts`
+- `src/app/globals.css`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- 本地生产服务 `http://localhost:3006/life` 返回 `200`。
+- Faye 已确认纪念日详情页历史礼物记录改为直接展开显示。

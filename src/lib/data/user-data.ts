@@ -1736,6 +1736,21 @@ export async function getAnniversariesForUser(userId: string) {
   return assertArray(data, error).map(mapAnniversary);
 }
 
+export async function getAnniversaryDetailForUser(userId: string, anniversaryId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("anniversaries")
+    .select("id,title,person_name,anniversary_date,reminder_date,note,created_at,updated_at")
+    .eq("id", anniversaryId)
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .maybeSingle<AnniversaryRow>();
+
+  const row = assertRow(data, error);
+
+  return row ? mapAnniversary(row) : null;
+}
+
 export async function createGiftRecordForUser(input: {
   userId: string;
   anniversaryId: string | null;
@@ -1845,6 +1860,21 @@ export async function getGiftRecordsForUser(input: {
     .returns<GiftRecordRow[]>();
 
   return assertArray(data, error).map(mapGiftRecord);
+}
+
+export async function getGiftRecordDetailForUser(userId: string, giftRecordId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("gift_records")
+    .select("id,anniversary_id,gift_name,recipient_name,gift_date,purpose,note,created_at,updated_at")
+    .eq("id", giftRecordId)
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .maybeSingle<GiftRecordRow>();
+
+  const row = assertRow(data, error);
+
+  return row ? mapGiftRecord(row) : null;
 }
 
 export async function createToolSessionForUser(input: {

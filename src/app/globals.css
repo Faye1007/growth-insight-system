@@ -1252,6 +1252,14 @@ select {
     white-space: nowrap;
   }
 
+  .two-line-preview {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+  }
+
   .list-meta {
     color: var(--muted-foreground);
     font-size: 0.75rem;
@@ -1432,6 +1440,14 @@ select {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.625rem;
+  }
+
+  .life-tab-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .life-tab-list .daily-tab:first-child {
+    grid-column: 1 / -1;
   }
 
   .daily-tab {

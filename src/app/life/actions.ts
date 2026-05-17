@@ -78,7 +78,7 @@ export async function createAnniversaryAction(formData: FormData) {
   const input = getAnniversaryInput(formData);
 
   if (!input) {
-    redirect("/life?anniversaryError=invalid_input#anniversaries");
+    redirect("/life?tab=anniversaries&anniversaryError=invalid_input#anniversaries");
   }
 
   try {
@@ -87,20 +87,26 @@ export async function createAnniversaryAction(formData: FormData) {
       ...input,
     });
   } catch {
-    redirect("/life?anniversaryError=save_failed#anniversaries");
+    redirect("/life?tab=anniversaries&anniversaryError=save_failed#anniversaries");
   }
 
   revalidatePath("/life");
-  redirect("/life?anniversarySaved=created#anniversaries");
+  redirect("/life?tab=anniversaries&anniversarySaved=created#anniversaries");
 }
 
 export async function updateAnniversaryAction(formData: FormData) {
   const user = await requireCurrentUser("/life");
   const anniversaryId = getStringValue(formData, "anniversaryId");
   const input = getAnniversaryInput(formData);
+  const source = getStringValue(formData, "source");
+  const detailPath = anniversaryId ? `/life/anniversary/${anniversaryId}` : "/life";
 
   if (!anniversaryId || !input) {
-    redirect("/life?anniversaryError=invalid_input#anniversaries");
+    redirect(
+      source === "detail"
+        ? `${detailPath}?anniversaryError=invalid_input`
+        : "/life?tab=anniversaries&anniversaryError=invalid_input#anniversaries",
+    );
   }
 
   try {
@@ -111,19 +117,34 @@ export async function updateAnniversaryAction(formData: FormData) {
       ...input,
     });
   } catch {
-    redirect("/life?anniversaryError=save_failed#anniversaries");
+    redirect(
+      source === "detail"
+        ? `${detailPath}?anniversaryError=save_failed`
+        : "/life?tab=anniversaries&anniversaryError=save_failed#anniversaries",
+    );
   }
 
   revalidatePath("/life");
-  redirect("/life?anniversarySaved=updated#anniversaries");
+  revalidatePath(detailPath);
+  redirect(
+    source === "detail"
+      ? `${detailPath}?anniversarySaved=updated`
+      : "/life?tab=anniversaries&anniversarySaved=updated#anniversaries",
+  );
 }
 
 export async function softDeleteAnniversaryAction(formData: FormData) {
   const user = await requireCurrentUser("/life");
   const anniversaryId = getStringValue(formData, "anniversaryId");
+  const source = getStringValue(formData, "source");
+  const detailPath = anniversaryId ? `/life/anniversary/${anniversaryId}` : "/life";
 
   if (!anniversaryId) {
-    redirect("/life?anniversaryError=missing_anniversary#anniversaries");
+    redirect(
+      source === "detail"
+        ? "/life?tab=anniversaries&anniversaryError=missing_anniversary#anniversaries"
+        : "/life?tab=anniversaries&anniversaryError=missing_anniversary#anniversaries",
+    );
   }
 
   try {
@@ -133,11 +154,16 @@ export async function softDeleteAnniversaryAction(formData: FormData) {
       deletedAt: new Date(),
     });
   } catch {
-    redirect("/life?anniversaryError=save_failed#anniversaries");
+    redirect(
+      source === "detail"
+        ? `${detailPath}?anniversaryError=save_failed`
+        : "/life?tab=anniversaries&anniversaryError=save_failed#anniversaries",
+    );
   }
 
   revalidatePath("/life");
-  redirect("/life?anniversarySaved=deleted#anniversaries");
+  revalidatePath(detailPath);
+  redirect("/life?tab=anniversaries&anniversarySaved=deleted#anniversaries");
 }
 
 export async function createGiftRecordAction(formData: FormData) {
@@ -145,7 +171,7 @@ export async function createGiftRecordAction(formData: FormData) {
   const input = getGiftRecordInput(formData);
 
   if (!input) {
-    redirect("/life?giftError=invalid_input#gifts");
+    redirect("/life?tab=gifts&giftError=invalid_input#gifts");
   }
 
   try {
@@ -154,20 +180,26 @@ export async function createGiftRecordAction(formData: FormData) {
       ...input,
     });
   } catch {
-    redirect("/life?giftError=save_failed#gifts");
+    redirect("/life?tab=gifts&giftError=save_failed#gifts");
   }
 
   revalidatePath("/life");
-  redirect("/life?giftSaved=created#gifts");
+  redirect("/life?tab=gifts&giftSaved=created#gifts");
 }
 
 export async function updateGiftRecordAction(formData: FormData) {
   const user = await requireCurrentUser("/life");
   const giftRecordId = getStringValue(formData, "giftRecordId");
   const input = getGiftRecordInput(formData);
+  const source = getStringValue(formData, "source");
+  const detailPath = giftRecordId ? `/life/gift/${giftRecordId}` : "/life";
 
   if (!giftRecordId || !input) {
-    redirect("/life?giftError=invalid_input#gifts");
+    redirect(
+      source === "detail"
+        ? `${detailPath}?giftError=invalid_input`
+        : "/life?tab=gifts&giftError=invalid_input#gifts",
+    );
   }
 
   try {
@@ -178,19 +210,30 @@ export async function updateGiftRecordAction(formData: FormData) {
       ...input,
     });
   } catch {
-    redirect("/life?giftError=save_failed#gifts");
+    redirect(
+      source === "detail"
+        ? `${detailPath}?giftError=save_failed`
+        : "/life?tab=gifts&giftError=save_failed#gifts",
+    );
   }
 
   revalidatePath("/life");
-  redirect("/life?giftSaved=updated#gifts");
+  revalidatePath(detailPath);
+  redirect(
+    source === "detail"
+      ? `${detailPath}?giftSaved=updated`
+      : "/life?tab=gifts&giftSaved=updated#gifts",
+  );
 }
 
 export async function softDeleteGiftRecordAction(formData: FormData) {
   const user = await requireCurrentUser("/life");
   const giftRecordId = getStringValue(formData, "giftRecordId");
+  const source = getStringValue(formData, "source");
+  const detailPath = giftRecordId ? `/life/gift/${giftRecordId}` : "/life";
 
   if (!giftRecordId) {
-    redirect("/life?giftError=missing_gift#gifts");
+    redirect("/life?tab=gifts&giftError=missing_gift#gifts");
   }
 
   try {
@@ -200,9 +243,14 @@ export async function softDeleteGiftRecordAction(formData: FormData) {
       deletedAt: new Date(),
     });
   } catch {
-    redirect("/life?giftError=save_failed#gifts");
+    redirect(
+      source === "detail"
+        ? `${detailPath}?giftError=save_failed`
+        : "/life?tab=gifts&giftError=save_failed#gifts",
+    );
   }
 
   revalidatePath("/life");
-  redirect("/life?giftSaved=deleted#gifts");
+  revalidatePath(detailPath);
+  redirect("/life?tab=gifts&giftSaved=deleted#gifts");
 }
