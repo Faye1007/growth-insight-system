@@ -98,18 +98,18 @@ select {
     margin-top: 0.5rem;
     max-width: 48rem;
     color: var(--foreground);
-    font-size: 1.875rem;
+    font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: 0;
-    line-height: 1.2;
+    line-height: 1.25;
   }
 
   .page-description {
-    margin-top: 0.75rem;
+    margin-top: 0.625rem;
     max-width: 42rem;
     color: var(--muted-foreground);
-    font-size: 1rem;
-    line-height: 1.75;
+    font-size: 0.875rem;
+    line-height: 1.65;
   }
 
   .card-grid {
@@ -1519,6 +1519,96 @@ select {
     align-items: stretch;
   }
 
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-day-grid {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+
+  .insight-day-card {
+    min-width: 14rem;
+    max-width: 14rem;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+
+  .insight-section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-view-switcher {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-view-card {
+    min-height: 4.5rem;
+  }
+
+  .page-stack {
+    padding-bottom: 5rem;
+  }
+
+  .habit-checkin-matrix {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .insight-view-switcher {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-view-card {
+    min-height: 4.5rem;
+    padding: 0.875rem;
+  }
+
+  .insight-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-day-grid {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-snap-type: x mandatory;
+  }
+
+  .insight-day-card {
+    min-width: 14rem;
+    max-width: 14rem;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+
+  .insight-section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-emotion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .habit-checkin-matrix {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .page-stack {
+    padding-bottom: 5rem;
+  }
+
   .review-original-item {
     gap: 0.625rem;
   }
@@ -1528,6 +1618,60 @@ select {
   .record-trend-chart,
   .emotion-stats-chart {
     min-height: 13rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-description {
+    font-size: 0.875rem;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-day-grid {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+
+  .insight-day-card {
+    min-width: 14rem;
+    max-width: 14rem;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+
+  .insight-section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-view-switcher {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-view-card {
+    min-height: 4.5rem;
+    padding: 0.875rem;
+  }
+
+  .page-stack {
+    padding-bottom: 5rem;
+  }
+
+  .habit-checkin-matrix {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

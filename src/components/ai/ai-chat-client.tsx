@@ -53,6 +53,17 @@ const quickActions: Array<{
   { type: "anniversary", label: "创建纪念日", Icon: CalendarDays, placeholder: "输入纪念日标题..." },
 ];
 
+function getBeijingDateValue(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  return formatter.format(date);
+}
+
 function parseIntent(text: string): { type: IntentType; title: string; category: string; date: string; time?: string } | null {
   const trimmed = text.trim();
   if (!trimmed) return null;
