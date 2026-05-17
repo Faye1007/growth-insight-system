@@ -2,7 +2,7 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构和 Step 19.4 人生页重构。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构和 Step 19.5 AI 聊天界面。
 
 当前目标：
 
@@ -2549,6 +2549,35 @@ Supabase Auth Redirect URL 需要配置：
 - 事件显示内容预览、日期和情绪标签。
 - 纪念日和礼物列表正常显示。
 
+### ✅ Step 19.5：AI 聊天界面 + 快捷键 + 规则解析 MVP
+
+已完成内容：
+
+- 新增 `/ai` AI 聊天页面，聊天式 UI，底部输入框。
+- 输入框上方 6 个快捷键：创建任务 / 创建日程 / 创建习惯 / 记录事件 / 记录灵感 / 创建纪念日。
+- 点击快捷键 → 指定类型 → 输入内容 → 显示确认卡片 → 确认后创建（不调用 AI 解析）。
+- 不点快捷键直接输入 → 规则解析 MVP 自动识别意图 → 返回确认卡片 → 确认后创建。
+- 规则解析覆盖常见句式：任务、日程、习惯、事件、灵感。
+- 确认卡片展示识别结果，用户可确认创建。
+- 创建成功后显示成功提示，失败显示错误提示。
+- 新增 `src/components/ai/ai-chat-client.tsx` 客户端组件，处理聊天消息、快捷键、规则解析和确认创建。
+- 复用现有 Server Actions：`createTaskAction`、`createScheduleItemAction`、`createHabitAction`、`createQuickRecordAction`。
+
+本次新增或更新的文件：
+
+- `src/components/ai/ai-chat-client.tsx`
+- `src/app/ai/page.tsx`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
+- `/ai` 路由可正常打开。
+- 聊天界面正常显示，输入框可输入。
+- 快捷键点击后能指定类型并显示确认卡片。
+- 直接输入时规则解析能识别常见句式。
+- 确认卡片显示解析结果，用户可确认创建。
+
 ## Not Started
 
 - 自定义正式域名绑定
@@ -2558,7 +2587,7 @@ Supabase Auth Redirect URL 需要配置：
   - ~~19.2：底部导航重构（5 Tab）~~ ✅ 已完成
   - ~~19.3：清单页重构（4类切换 + 复选框 + 周历）~~ ✅ 已完成
   - ~~19.4：人生页重构（事件移入 + 3类切换）~~ ✅ 已完成
-  - 19.5：AI 聊天界面 + 快捷键 + 规则解析 MVP
+  - ~~19.5：AI 聊天界面 + 快捷键 + 规则解析 MVP~~ ✅ 已完成
   - 19.6：复盘页移动端优化
   - 19.7：独立 API 层（为小程序准备）
 
