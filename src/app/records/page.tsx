@@ -108,6 +108,17 @@ function formatDateValue(value: string) {
   return dateFormatter.format(new Date(`${value}T00:00:00+08:00`));
 }
 
+function formatDateGroupLabel(value: Date) {
+  const formatter = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  });
+
+  return formatter.format(value);
+}
+
 function getBeijingDateValue(date = new Date()) {
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Shanghai",
@@ -303,6 +314,21 @@ function buildTypeCounts(records: TimelineRecord[]) {
   }));
 }
 
+function groupRecordsByDate(records: TimelineRecord[]) {
+  const groups = new Map<string, TimelineRecord[]>();
+
+  for (const record of records) {
+    const date = getBeijingDateValue(record.occurredAt);
+    groups.set(date, [...(groups.get(date) ?? []), record]);
+  }
+
+  return Array.from(groups.entries()).map(([date, items]) => ({
+    date,
+    label: formatDateGroupLabel(items[0].occurredAt),
+    records: items,
+  }));
+}
+
 export default async function RecordsPage({ searchParams }: RecordsPageProps) {
   const params = await searchParams;
   const typeFilter = isRecordTypeFilter(params?.type) ? params.type : "all";
@@ -458,46 +484,61 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
       <section aria-labelledby="records-timeline" className="panel-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="page-kicker">时间线</p>
+            <p className="page-kicker">按天记录</p>
             <h2 id="records-timeline" className="section-heading mt-1">
               近期记录
             </h2>
           </div>
-          <span className="status-pill w-fit">按创建时间倒序</span>
+          <span className="status-pill w-fit">按日期分组</span>
         </div>
 
         {records.length > 0 ? (
-          <div className="record-timeline mt-5">
-            {records.map((record) => {
-              const Icon = record.Icon;
+          <div className="task-list mt-5">
+            {groupRecordsByDate(records).map((group) => (
+              <div key={group.date}>
+                <h3 className="date-group-header">{group.label}</h3>
+                <div className="task-group-list">
+                  {group.records.map((record) => {
+                    const Icon = record.Icon;
 
-              return (
-                <Link key={record.id} className={`record-timeline-item ${record.tone}`} href={record.href}>
-                  <div className="nav-icon">
-                    <Icon aria-hidden="true" className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="record-item-heading">
-                      <span className="status-pill">{record.label}</span>
-                      <time className="body-copy" dateTime={record.occurredAt.toISOString()}>
-                        {record.dateText}
-                      </time>
-                    </div>
-                    <h3 className="list-label mt-3">{record.title}</h3>
-                    <p className="body-copy mt-1">{record.description}</p>
-                    {record.meta.length > 0 ? (
-                      <div className="overview-detail-row mt-3">
-                        {record.meta.map((item) => (
-                          <span key={item} className="status-pill">
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                </Link>
-              );
-            })}
+                    return (
+                      <Link
+                        key={record.id}
+                        className={`record-timeline-item compact-list-item ${record.tone}`}
+                        href={record.href}
+                      >
+                        <div className="nav-icon">
+                          <Icon aria-hidden="true" className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="record-item-heading">
+                            <span className="status-pill">{record.label}</span>
+                            <time className="list-meta" dateTime={record.occurredAt.toISOString()}>
+                              {record.dateText}
+                            </time>
+                          </div>
+                          <h3
+                            className={`list-label mt-3${record.kind === "event" ? " two-line-preview" : ""}`}
+                          >
+                            {record.title}
+                          </h3>
+                          <p className="body-copy mt-1">{record.description}</p>
+                          {record.meta.length > 0 ? (
+                            <div className="compact-tag-row mt-3">
+                              {record.meta.map((item) => (
+                                <span key={item} className="status-pill">
+                                  {item}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="empty-state mt-5">

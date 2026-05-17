@@ -1455,6 +1455,25 @@ select {
     padding: 0.75rem;
   }
 
+  .record-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .record-summary-grid .field-tile {
+    min-height: 3.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.625rem;
+    font-size: 0.75rem;
+  }
+
+  .record-summary-grid strong {
+    font-size: 1.125rem;
+  }
+
   .task-form,
   .task-edit-form {
     padding: 0.875rem;
