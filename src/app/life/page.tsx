@@ -1,5 +1,3 @@
-import { CalendarHeart, Gift } from "lucide-react";
-
 import { LifeClient } from "@/components/life/life-client";
 import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
@@ -10,6 +8,7 @@ import {
   getLifeEventsForUser,
 } from "@/lib/data/user-data";
 import type { FeedbackMessage as FeedbackMessageType } from "@/lib/feedback";
+import type { AnniversaryRecord, GiftRecord, LifeEventRecord } from "@/lib/data/user-data";
 
 type LifePageProps = {
   searchParams?: Promise<{
@@ -93,14 +92,21 @@ const giftSavedFeedback: Record<string, FeedbackMessageType> = {
   },
 };
 
+const dataLoadFeedback: FeedbackMessageType = {
+  tone: "error",
+  title: "人生数据暂时没有加载完整",
+  detail: "事件、纪念日或礼物记录中有一部分读取失败。可以先刷新页面；如果仍然失败，其他功能不会受影响。",
+};
+
+function settledValue<T>(result: PromiseSettledResult<T>, fallback: T) {
+  return result.status === "fulfilled" ? result.value : fallback;
+}
+
 export default async function LifePage({ searchParams }: LifePageProps) {
   const params = searchParams ? await searchParams : undefined;
   const user = await getCurrentUser();
   const isLoggedIn = Boolean(user);
   const loginPath = buildLoginPath({ next: "/life", message: loginRequiredMessage });
-
-  const anniversaries = user ? await getAnniversariesForUser(user.id) : [];
-  const giftRecords = user ? await getGiftRecordsForUser({ userId: user.id }) : [];
 
   const todayFormatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Shanghai",
@@ -109,7 +115,25 @@ export default async function LifePage({ searchParams }: LifePageProps) {
     day: "2-digit",
   });
   const todayValue = todayFormatter.format(new Date());
-  const events = user ? await getLifeEventsForUser(user.id, "2020-01-01", todayValue) : [];
+  let events: LifeEventRecord[] = [];
+  let anniversaries: AnniversaryRecord[] = [];
+  let giftRecords: GiftRecord[] = [];
+  let hasDataLoadError = false;
+
+  if (user) {
+    const [eventsResult, anniversariesResult, giftRecordsResult] = await Promise.allSettled([
+      getLifeEventsForUser(user.id, "2020-01-01", todayValue),
+      getAnniversariesForUser(user.id),
+      getGiftRecordsForUser({ userId: user.id }),
+    ]);
+
+    events = settledValue(eventsResult, []);
+    anniversaries = settledValue(anniversariesResult, []);
+    giftRecords = settledValue(giftRecordsResult, []);
+    hasDataLoadError = [eventsResult, anniversariesResult, giftRecordsResult].some(
+      (result) => result.status === "rejected",
+    );
+  }
 
   const tab = params?.tab;
   const initialTab =
@@ -139,6 +163,7 @@ export default async function LifePage({ searchParams }: LifePageProps) {
 
       <FeedbackMessage feedback={anniversaryFeedback} />
       <FeedbackMessage feedback={giftFeedback} />
+      <FeedbackMessage feedback={hasDataLoadError ? dataLoadFeedback : null} />
     </div>
   );
 }

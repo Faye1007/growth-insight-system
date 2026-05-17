@@ -104,7 +104,7 @@ export async function deleteAccountAction(formData: FormData) {
 
   const userId = user.id;
 
-  const { data: db, error: dbError } = await supabase
+  const { error: dbError } = await supabase
     .from("_direct_db_check")
     .select("*")
     .limit(1);

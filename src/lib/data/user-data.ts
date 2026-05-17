@@ -69,6 +69,32 @@ function assertRow<T>(data: T | null, error: unknown) {
   return data ?? null;
 }
 
+function normalizeStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+    }
+  } catch {
+    // Older imports may store a plain string instead of a JSON array.
+  }
+
+  return [trimmed];
+}
+
 type TaskRow = {
   id: string;
   user_id: string;
@@ -136,8 +162,8 @@ type LifeEventRow = {
   user_id: string;
   event_date: string;
   content: string;
-  emotion_tags: string[];
-  tags: string[];
+  emotion_tags: unknown;
+  tags: unknown;
   specific_event: string | null;
   next_action: string | null;
   ai_analysis_permission: AiAnalysisPermission;
@@ -1974,8 +2000,8 @@ export async function getTodayLifeEventsForUser(
     id: row.id,
     content: row.content,
     eventDate: row.event_date,
-    emotionTags: row.emotion_tags,
-    tags: row.tags,
+    emotionTags: normalizeStringArray(row.emotion_tags),
+    tags: normalizeStringArray(row.tags),
     specificEvent: row.specific_event,
     nextAction: row.next_action,
     aiAnalysisPermission: row.ai_analysis_permission,
@@ -2241,8 +2267,8 @@ export async function getRecentLifeEventsForUser(userId: string, limit: number) 
     id: row.id,
     content: row.content,
     eventDate: row.event_date,
-    emotionTags: row.emotion_tags,
-    tags: row.tags,
+    emotionTags: normalizeStringArray(row.emotion_tags),
+    tags: normalizeStringArray(row.tags),
     createdAt: new Date(row.created_at),
   }));
 }
@@ -2391,8 +2417,8 @@ export async function getEventDetailForUser(userId: string, id: string) {
     ? {
         content: row.content,
         eventDate: row.event_date,
-        emotionTags: row.emotion_tags,
-        tags: row.tags,
+        emotionTags: normalizeStringArray(row.emotion_tags),
+        tags: normalizeStringArray(row.tags),
         specificEvent: row.specific_event,
         nextAction: row.next_action,
         aiAnalysisPermission: row.ai_analysis_permission,
@@ -2510,7 +2536,7 @@ export async function getInsightRowsForUser(
     })),
     lifeEvents: assertArray(lifeEventsResult.data, lifeEventsResult.error).map((row) => ({
       eventDate: row.event_date,
-      emotionTags: row.emotion_tags,
+      emotionTags: normalizeStringArray(row.emotion_tags),
     })),
     ideas: assertArray(ideasResult.data, ideasResult.error).map((row) => ({
       ideaDate: row.idea_date,
@@ -2781,8 +2807,8 @@ export async function getLifeEventsForUser(
     id: row.id,
     content: row.content,
     eventDate: row.event_date,
-    emotionTags: row.emotion_tags,
-    tags: row.tags,
+    emotionTags: normalizeStringArray(row.emotion_tags),
+    tags: normalizeStringArray(row.tags),
     aiAnalysisPermission: row.ai_analysis_permission,
     summary: row.summary,
     isPinned: row.is_pinned,
@@ -2883,7 +2909,7 @@ export async function getMonthlyInsightRowsForUser(
     })),
     lifeEvents: assertArray(lifeEventsResult.data, lifeEventsResult.error).map((row) => ({
       eventDate: row.event_date,
-      emotionTags: row.emotion_tags,
+      emotionTags: normalizeStringArray(row.emotion_tags),
     })),
     ideas: assertArray(ideasResult.data, ideasResult.error).map((row) => ({
       ideaDate: row.idea_date,
@@ -3007,8 +3033,8 @@ export async function getDailyReviewRowsForUser(
     lifeEvents: assertArray(lifeEventsResult.data, lifeEventsResult.error).map((row) => ({
       id: row.id,
       content: row.content,
-      emotionTags: row.emotion_tags,
-      tags: row.tags,
+      emotionTags: normalizeStringArray(row.emotion_tags),
+      tags: normalizeStringArray(row.tags),
       specificEvent: row.specific_event,
       nextAction: row.next_action,
       aiAnalysisPermission: row.ai_analysis_permission,
@@ -3128,8 +3154,8 @@ export async function getWeeklyReviewRowsForUser(
     lifeEvents: assertArray(lifeEventsResult.data, lifeEventsResult.error).map((row) => ({
       id: row.id,
       content: row.content,
-      emotionTags: row.emotion_tags,
-      tags: row.tags,
+      emotionTags: normalizeStringArray(row.emotion_tags),
+      tags: normalizeStringArray(row.tags),
       specificEvent: row.specific_event,
       nextAction: row.next_action,
       aiAnalysisPermission: row.ai_analysis_permission,

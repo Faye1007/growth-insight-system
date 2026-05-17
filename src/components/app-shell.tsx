@@ -3,13 +3,11 @@ import {
   BarChart3,
   ListTodo,
   LogIn,
-  LogOut,
   MessageCircle,
   Settings,
   UserRound,
 } from "lucide-react";
 
-import { signOutAction } from "@/app/auth/actions";
 import { BottomNav } from "@/components/bottom-nav";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -22,9 +20,20 @@ const navigationItems = [
   { href: "/settings", label: "设置", icon: Settings },
 ];
 
+function getDisplayName(user: Awaited<ReturnType<typeof getCurrentUser>>) {
+  const nickname = user?.user_metadata?.nickname;
+
+  if (typeof nickname === "string" && nickname.trim()) {
+    return nickname.trim();
+  }
+
+  return "设置昵称";
+}
+
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
   const loginPath = buildLoginPath({ next: "/checklist", message: loginRequiredMessage });
+  const displayName = getDisplayName(user);
 
   return (
     <body>
@@ -32,18 +41,10 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         {/* Desktop top header with account entry */}
         <div className="hidden border-b border-[var(--border)] bg-[var(--sidebar)] px-6 py-3 lg:flex lg:items-center lg:justify-end">
           {user ? (
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-2 text-sm text-[var(--foreground)]">
-                <UserRound aria-hidden="true" className="h-4 w-4 text-[var(--muted-foreground)]" />
-                <span className="truncate max-w-[12rem]">{user.email}</span>
-              </span>
-              <form action={signOutAction}>
-                <button className="desktop-account-button" type="submit" aria-label="退出登录">
-                  <LogOut aria-hidden="true" className="h-4 w-4" />
-                  <span>退出</span>
-                </button>
-              </form>
-            </div>
+            <Link className="desktop-account-button" href="/settings" aria-label="打开账号与应用设置">
+              <UserRound aria-hidden="true" className="h-4 w-4" />
+              <span className="truncate max-w-[10rem]">{displayName}</span>
+            </Link>
           ) : (
             <Link className="desktop-account-button" href={loginPath}>
               <LogIn aria-hidden="true" className="h-4 w-4" />

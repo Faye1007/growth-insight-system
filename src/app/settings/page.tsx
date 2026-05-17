@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
-import { deleteAccountAction, updateNicknameAction } from "@/app/auth/actions";
+import { deleteAccountAction, signOutAction, updateNicknameAction } from "@/app/auth/actions";
+import { DeleteAccountSubmitButton } from "@/components/settings/delete-account-submit-button";
 
 type SettingsPageProps = {
   searchParams?: Promise<{
@@ -15,6 +16,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const params = searchParams ? await searchParams : undefined;
   const loginPath = buildLoginPath({ next: "/settings", message: loginRequiredMessage });
   const nickname = (user?.user_metadata?.nickname as string) ?? "";
+  const hasNickname = nickname.trim().length > 0;
   const nicknameError = params?.nicknameError;
   const nicknameUpdated = params?.nicknameUpdated === "1";
 
@@ -70,30 +72,46 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         ) : (
           <div className="mt-4 space-y-4">
             <div className="rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-4 py-3">
-              <p className="text-sm text-[var(--muted-foreground)]">
-                当前账号：<span className="font-medium text-[var(--foreground)]">{user.email}</span>
-              </p>
+              <div className="grid gap-2">
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  昵称：<span className="font-medium text-[var(--foreground)]">{hasNickname ? nickname : "未设置"}</span>
+                </p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  当前账号：<span className="font-medium text-[var(--foreground)]">{user.email}</span>
+                </p>
+              </div>
             </div>
 
-            <form action={updateNicknameAction} className="rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-4 py-3">
-              <label className="form-field">
-                昵称
-                <input
-                  name="nickname"
-                  type="text"
-                  defaultValue={nickname}
-                  placeholder="输入你的昵称"
-                  maxLength={50}
-                />
-              </label>
-              <div className="mt-3 flex items-center gap-2">
-                <button className="soft-button text-sm" type="submit">
-                  保存昵称
-                </button>
-                <span className="text-xs text-[var(--muted-foreground)]">
-                  昵称将显示在应用的个人主页
-                </span>
-              </div>
+            <details className="create-disclosure" open={!hasNickname}>
+              <summary className="create-summary quiet-button w-fit">
+                {hasNickname ? "修改昵称" : "设置昵称"}
+              </summary>
+              <form action={updateNicknameAction} className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-4 py-3">
+                <label className="form-field">
+                  昵称
+                  <input
+                    name="nickname"
+                    type="text"
+                    defaultValue={nickname}
+                    placeholder="输入你的昵称"
+                    maxLength={50}
+                  />
+                </label>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <button className="soft-button text-sm" type="submit">
+                    保存昵称
+                  </button>
+                  <span className="text-xs text-[var(--muted-foreground)]">
+                    昵称会显示在右上角账号入口。
+                  </span>
+                </div>
+              </form>
+            </details>
+
+            <form action={signOutAction}>
+              <button className="soft-button text-sm" type="submit">
+                退出登录
+              </button>
             </form>
 
             <details className="create-disclosure">
@@ -110,18 +128,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                 </p>
                 <form action={deleteAccountAction} className="mt-3">
                   <input type="hidden" name="confirmDelete" value="DELETE_MY_ACCOUNT" />
-                  <button
-                    className="quiet-button text-sm"
-                    style={{ color: "var(--clay)", borderColor: "var(--clay)" }}
-                    type="submit"
-                    onClick={(e) => {
-                      if (!confirm("确定要注销账号吗？此操作不可撤销。")) {
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    确认注销账号
-                  </button>
+                  <DeleteAccountSubmitButton />
                 </form>
               </div>
             </details>
