@@ -2,12 +2,13 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构、Step 19.5 AI 聊天界面、Step 19.6 复盘页移动端优化和 Step 19.7 独立 API 层。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构、Step 19.5 AI 聊天界面、Step 19.6 复盘页移动端优化、Step 19.7 独立 API 层、Modification Step 20.1 Excel 历史数据迁移 dry-run、Modification Step 20.2 Excel 真实导入准备和 Modification Step 20.3 Excel 历史数据真实导入。
 
 当前目标：
 
 - 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台默认入口、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、任务置顶、习惯创建、习惯打卡、习惯编辑与停用、习惯置顶与软删除、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、日程置顶、随手记录、事件编辑与软删除、事件置顶、灵感编辑与软删除、灵感置顶、写入区默认收起、今日概览四入口切换、每日工作台移动端样式优化、工作台四类简洁列表、每日工作台当前列表按入口切换显示、移动端 body portal 抽屉导航、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、事件详情情绪标签兜底显示、洞察报告今日优先展示、洞察报告成长概览、洞察报告 AI 复盘与问题拆解/个人说明书快捷入口、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、周复盘 Markdown 导出、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、月复盘 Markdown 导出、纪念日页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、问题拆解页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 下载路由、复盘报告导出和近期成长记录导出、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
 - 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
+- `Faye的成长计划.xlsx` 中从 Coze + 飞书多维表格沉淀的历史数据已导入 `2215128728@qq.com` 账号下，迁移过程未修改数据库 schema，未写入飞书外部 ID。
 
 ## Confirmed Decisions
 
@@ -2645,18 +2646,59 @@ Supabase Auth Redirect URL 需要配置：
 - 所有 API 路由在构建输出中可见（`/api/tasks`、`/api/habits`、`/api/schedules`、`/api/events`、`/api/ideas`、`/api/reviews`）。
 - API Key 认证逻辑完整，无密钥时返回 503，密钥错误时返回 401。
 
+### ✅ Modification Step 20.1：Excel 历史数据迁移 dry-run
+
+已完成内容：
+
+- 新增 `scripts/import_growth_plan_dry_run.py`，只解析 `Faye的成长计划.xlsx`，不连接数据库、不读取 `.env.local`、不写入真实数据。
+- 新增 `scripts/README.md`，记录本地维护脚本规则和真实导入边界。
+- 明确 Excel 工作表到系统表的映射：固定日程、任务、习惯、打卡记录、灵感、人生笔记、纪念日和礼物记录。
+- dry-run 识别计划导入 125 条、跳过 7 条、提示 5 条。
+
+验证记录：
+
+- `python3 scripts/import_growth_plan_dry_run.py` 通过。
+- `python3 scripts/import_growth_plan_dry_run.py --format json` 通过。
+- `git diff --check` 通过。
+
+### ✅ Modification Step 20.2：Excel 历史数据迁移真实导入准备
+
+已完成内容：
+
+- 新增 `scripts/import_growth_plan_apply.mjs`，支持 `plan`、`check`、`probe`、`probe-insert`、`simulate` 和 `apply` 模式。
+- `plan` 不连接数据库；`check` 只读确认目标账号与现有数据量；`apply` 必须额外提供 `--confirm-import IMPORT_FAYE_GROWTH_PLAN`。
+- 确认目标账号为 `2215128728@qq.com`，目标 `user_id` 为 `98779cb3-d200-4a9f-9b84-7ea206f89e0d`。
+- 导入脚本按自然键查重，保留当前账号已有数据，飞书外部 ID 只用于导入期间关联，不写入业务表。
+
+验证记录：
+
+- `node --check scripts/import_growth_plan_apply.mjs` 通过。
+- `node scripts/import_growth_plan_apply.mjs --mode plan` 通过。
+- `node scripts/import_growth_plan_apply.mjs --mode check --email 2215128728@qq.com` 通过。
+- `npm run lint` 通过。
+
+### ✅ Modification Step 20.3：Excel 历史数据真实导入
+
+已完成内容：
+
+- 已将 `Faye的成长计划.xlsx` 中确认可迁移的数据导入 `2215128728@qq.com` 账号。
+- 导入过程中发现 Node 22 + `postgres` 在连续写入时会出现 `CONNECTION_CLOSED`，脚本改为每条记录使用新连接、写完立即关闭的保守模式。
+- 最终导入后只读计数：`tasks` 85、`habits` 8、`habit_checkins` 7、`schedule_items` 9、`ideas` 5、`life_events` 7、`anniversaries` 13、`gift_records` 6。
+- Excel 中 2 条停用固定日程、4 条空灵感和 1 条空人生笔记保持跳过。
+
+验证记录：
+
+- `node scripts/import_growth_plan_apply.mjs --mode apply --email 2215128728@qq.com --confirm-import IMPORT_FAYE_GROWTH_PLAN` 完成。
+- `node scripts/import_growth_plan_apply.mjs --mode check --email 2215128728@qq.com` 通过，只读确认导入后计数。
+- `python3 scripts/import_growth_plan_dry_run.py` 通过。
+- `node --check scripts/import_growth_plan_apply.mjs` 通过。
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+
 ## Not Started
 
 - 自定义正式域名绑定
 - AI 复盘生产环境变量配置
-- Modification Step 19：移动端优先重构与 AI 自然语言输入（执行中）
-  - ~~19.1：灵感表增加转化字段 + 迁移~~ ✅ 已完成
-  - ~~19.2：底部导航重构（5 Tab）~~ ✅ 已完成
-  - ~~19.3：清单页重构（4类切换 + 复选框 + 周历）~~ ✅ 已完成
-  - ~~19.4：人生页重构（事件移入 + 3类切换）~~ ✅ 已完成
-  - ~~19.5：AI 聊天界面 + 快捷键 + 规则解析 MVP~~ ✅ 已完成
-  - ~~19.6：复盘页移动端优化~~ ✅ 已完成
-  - ~~19.7：独立 API 层（为小程序准备）~~ ✅ 已完成
 
 ## Next Step Candidate
 

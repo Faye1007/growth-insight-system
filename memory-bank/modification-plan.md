@@ -309,6 +309,111 @@
 
 ## Planned
 
+### Modification Step 20.1：Excel 历史数据迁移 dry-run
+
+**目标**：
+
+- 将 `Faye的成长计划.xlsx` 中从 Coze + 飞书多维表格沉淀的数据迁移到当前系统前，先做只读预览。
+- 明确 Excel 工作表到系统数据表的字段映射、分类映射、状态映射、日期转换和需要人工确认的边界。
+- 新增 dry-run 脚本，只解析 Excel 并输出计划导入数量、跳过数量、警告和样例，不连接数据库、不写入真实数据。
+
+**预计影响范围**：
+
+- `memory-bank/modification-plan.md`
+- `scripts/README.md`
+- `scripts/import_growth_plan_dry_run.py`
+
+**迁移范围**：
+
+- `固定日程` -> `schedule_items`
+- `任务` -> `tasks`
+- `习惯` -> `habits`
+- `打卡记录` -> `habit_checkins`
+- `灵感` -> `ideas`
+- `人生笔记` -> `life_events`
+- `纪念日` -> `anniversaries`
+- `礼物记录` -> `gift_records`
+
+**边界**：
+
+- 本 Step 不写数据库，不读取或修改 `.env.local`，不执行真实导入。
+- 真实导入必须在 dry-run 结果确认后单独 Step 执行，并再次确认目标账号 `user_id`。
+- Excel 中的飞书任务 ID、飞书日历事件 ID 只作为导入时的临时关联依据，不写入当前业务表。
+
+**dry-run 当前预览结果**：
+
+- Excel 工作表记录数：`固定日程` 6、`任务` 80、`习惯` 8、`打卡记录` 3、`灵感` 9、`人生笔记` 6、`纪念日` 13、`礼物记录` 6。
+- 计划导入总数：125 条；跳过：7 条；提示：5 条。
+- 计划导入：`schedule_items` 5、`tasks` 80、`habits` 8、`habit_checkins` 3、`ideas` 5、`life_events` 5、`anniversaries` 13、`gift_records` 6。
+- 跳过规则：停用固定日程因当前系统无 `is_active` 字段默认跳过；灵感/人生笔记缺少内容或日期默认跳过。
+- 需要确认：`每周三、周日` 固定日程会拆成 2 条 weekly 日程；2 条固定日程 `是否启用` 为空，dry-run 暂按启用；2 条礼物记录缺少礼物内容，dry-run 暂用对方反馈作为礼物名称。
+
+**验证**：
+
+- dry-run 能输出每个工作表的计划导入数量、跳过数量、警告和样例。
+- `git diff --check` 通过。
+
+### Modification Step 20.2：Excel 历史数据迁移真实导入准备
+
+**目标**：
+
+- 在不立即写入数据库的前提下，准备真实导入脚本。
+- 真实导入脚本复用 Step 20.1 的 Excel 解析与字段映射，避免 dry-run 和 apply 规则分叉。
+- 导入前必须先确认目标 Supabase 账号，并能查看该账号当前已有数据量。
+
+**预计影响范围**：
+
+- `scripts/README.md`
+- `scripts/import_growth_plan_dry_run.py`
+- `scripts/import_growth_plan_apply.mjs`
+- `memory-bank/modification-plan.md`
+
+**导入脚本边界**：
+
+- `--mode plan`：不连接数据库，只输出计划数量。
+- `--mode check`：只读数据库，确认目标账号与现有数据量。
+- `--mode apply`：写入数据库，必须额外提供 `--confirm-import IMPORT_FAYE_GROWTH_PLAN`，且执行前需要再次单独确认。
+- 所有业务表写入都带目标账号 `user_id`；飞书外部 ID 只用于导入期间关联灵感、任务和礼物，不写入业务表。
+- 导入脚本做基础去重，优先按当前账号下的日期、标题、内容、对象等自然键判断，避免重复导入同一批历史数据。
+
+**只读账号检查结果**：
+
+- 目标账号：`2215128728@qq.com`
+- 目标 `user_id`：`98779cb3-d200-4a9f-9b84-7ea206f89e0d`
+- 本次计划导入：125 条。
+- 该账号当前已有数据量：`tasks` 8、`habits` 1、`habit_checkins` 4、`schedule_items` 4、`ideas` 0、`life_events` 2、`anniversaries` 0、`gift_records` 0。
+- 本检查只读数据库，没有写入数据。
+
+**验证**：
+
+- `python3 scripts/import_growth_plan_dry_run.py --format json` 能输出完整 JSON 计划。
+- `node --check scripts/import_growth_plan_apply.mjs` 通过。
+- `node scripts/import_growth_plan_apply.mjs --mode plan` 能输出计划数量且不连接数据库。
+- `node scripts/import_growth_plan_apply.mjs --mode check --email 2215128728@qq.com` 能只读确认目标账号和现有数据量。
+- `git diff --check` 通过。
+
+### Modification Step 20.3：Excel 历史数据真实导入
+
+**目标**：
+
+- 将 `Faye的成长计划.xlsx` 中确认可导入的历史数据写入 `2215128728@qq.com` 账号下。
+- 保留当前账号已有数据，导入脚本按自然键查重，避免重复写入同一批历史数据。
+
+**执行结果**：
+
+- 已执行真实导入，目标账号 `2215128728@qq.com`，目标 `user_id` 为 `98779cb3-d200-4a9f-9b84-7ea206f89e0d`。
+- 由于当前 Node 22 + `postgres` 连接在连续写入时会出现 `CONNECTION_CLOSED`，导入脚本改为每条记录使用新连接、写完立即关闭的保守模式；该方式较慢但可恢复，失败后可安全重跑。
+- 导入完成后的只读计数：`tasks` 85、`habits` 8、`habit_checkins` 7、`schedule_items` 9、`ideas` 5、`life_events` 7、`anniversaries` 13、`gift_records` 6。
+- 本次导入没有写入飞书任务 ID 或飞书日历事件 ID；这些外部 ID 只用于导入期间关联灵感、任务、纪念日和礼物。
+- Excel 中被跳过的数据保持为：2 条停用固定日程、4 条空灵感、1 条空人生笔记。
+
+**验证**：
+
+- `node scripts/import_growth_plan_apply.mjs --mode check --email 2215128728@qq.com` 通过，只读确认导入后计数。
+- `python3 scripts/import_growth_plan_dry_run.py` 通过。
+- `node --check scripts/import_growth_plan_apply.mjs` 通过。
+- `git diff --check` 通过。
+
 ### Modification Step 19：移动端优先重构与 AI 自然语言输入
 
 **背景**：
