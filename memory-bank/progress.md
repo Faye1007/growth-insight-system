@@ -2,7 +2,7 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化和 Modification Step 18.4 PC 账号入口右上角与公开版设置页改造。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造和 Step 19.1 灵感表增加转化字段。
 
 当前目标：
 
@@ -2436,10 +2436,42 @@ Supabase Auth Redirect URL 需要配置：
 - 设置页不出现 Supabase、Database URL、service role key、AI API key、AI provider 等内部配置字段。
 - 未登录和已登录状态下设置页都不会泄露密钥、连接字符串或底层错误。
 
+### ✅ Step 19.1：灵感表增加转化字段
+
+已完成内容：
+
+- 为 `ideas` 表新增 `converted_to_type` 字段，枚举类型为 `task` 或 `habit`。
+- 新增 `converted_to_id` 字段（uuid，可选），用于记录转化后的任务或习惯 ID。
+- 新增 `shelved_at` 字段（timestamp，可选），用于记录灵感搁置时间。
+- 保留原有 `convertedTaskId` 字段，避免破坏已有数据。
+- 更新 `src/db/schema.ts`，新增 `convertedToTypeEnum` 枚举定义和三个新字段。
+- 生成迁移文件 `drizzle/0007_curved_stone_men.sql`。
+- 已执行真实 Supabase 数据库迁移。
+
+本次新增或更新的文件：
+
+- `src/db/schema.ts`
+- `drizzle/0007_curved_stone_men.sql`
+
+验证记录：
+
+- `npm run db:generate` 通过，识别到 ideas 表新增 3 个字段。
+- `npm run db:migrate` 通过，真实 Supabase 数据库迁移成功。
+- `npm run lint` 通过。
+- `npm run build` 通过。
+
 ## Not Started
 
 - 自定义正式域名绑定
 - AI 复盘生产环境变量配置
+- Modification Step 19：移动端优先重构与 AI 自然语言输入（执行中）
+  - ~~19.1：灵感表增加转化字段 + 迁移~~ ✅ 已完成
+  - 19.2：底部导航重构（5 Tab）
+  - 19.3：清单页重构（4类切换 + 复选框 + 周历）
+  - 19.4：人生页重构（事件移入 + 3类切换）
+  - 19.5：AI 聊天界面 + 快捷键 + 规则解析 MVP
+  - 19.6：复盘页移动端优化
+  - 19.7：独立 API 层（为小程序准备）
 
 ## Next Step Candidate
 

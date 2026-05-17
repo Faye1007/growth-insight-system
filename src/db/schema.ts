@@ -47,6 +47,8 @@ export const ideaStatusEnum = pgEnum("idea_status", [
   "abandoned",
 ]);
 
+export const convertedToTypeEnum = pgEnum("converted_to_type", ["task", "habit"]);
+
 export const reportTypeEnum = pgEnum("report_type", [
   "daily",
   "weekly",
@@ -207,6 +209,9 @@ export const ideas = pgTable(
     convertedTaskId: uuid("converted_task_id").references(() => tasks.id, {
       onDelete: "set null",
     }),
+    convertedToType: convertedToTypeEnum("converted_to_type"),
+    convertedToId: uuid("converted_to_id"),
+    shelvedAt: timestamp("shelved_at", { withTimezone: true }),
     isPinned: boolean("is_pinned").default(false).notNull(),
     ...timestamps,
     ...softDeleteTimestamp,
