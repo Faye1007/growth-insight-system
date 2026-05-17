@@ -1,0 +1,613 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import {
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Lightbulb,
+  List,
+  Repeat2,
+} from "lucide-react";
+
+import { updateHabitCheckinAction, updateTaskStatusAction } from "@/app/daily/actions";
+import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
+import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
+
+type ChecklistTab = "tasks" | "schedules" | "habits" | "ideas";
+type ChecklistView = "list" | "week";
+
+const tabs: Array<{ id: ChecklistTab; label: string; Icon: typeof ClipboardList }> = [
+  { id: "tasks", label: "任务", Icon: ClipboardList },
+  { id: "schedules", label: "日程", Icon: CalendarDays },
+  { id: "habits", label: "习惯", Icon: Repeat2 },
+  { id: "ideas", label: "灵感", Icon: Lightbulb },
+];
+
+type ChecklistTask = {
+  id: string;
+  title: string;
+  category: TaskCategory;
+  status: TaskStatus;
+  taskDate: string;
+  isPostponed: boolean;
+  isPinned: boolean;
+};
+
+type ChecklistSchedule = {
+  id: string;
+  title: string;
+  category: TaskCategory;
+  scheduleDate: string;
+  startDate: string | null;
+  endDate: string | null;
+  recurrence: string;
+  startTime: string | null;
+  endTime: string | null;
+  isPinned: boolean;
+};
+
+type ChecklistHabit = {
+  id: string;
+  name: string;
+  category: TaskCategory;
+  startDate: string | null;
+  isPinned: boolean;
+  isCheckedOnDate: boolean;
+  totalCount: number;
+  streakCount: number;
+};
+
+type ChecklistIdea = {
+  id: string;
+  content: string;
+  ideaDate: string;
+  status: string;
+  isPinned: boolean;
+};
+
+type WeekDay = {
+  date: string;
+  label: string;
+  dayNum: number;
+  isToday: boolean;
+};
+
+function getBeijingDateValue(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(date);
+}
+
+function getWeekDays(referenceDate: Date): WeekDay[] {
+  const today = new Date();
+  const todayStr = getBeijingDateValue(today);
+  const day = referenceDate.getDay();
+  const monday = new Date(referenceDate);
+  monday.setDate(referenceDate.getDate() - (day === 0 ? 6 : day - 1));
+
+  const shortFormatter = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    weekday: "short",
+  });
+  const numFormatter = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    day: "numeric",
+  });
+
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const dateStr = getBeijingDateValue(d);
+    return {
+      date: dateStr,
+      label: shortFormatter.format(d),
+      dayNum: parseInt(numFormatter.format(d), 10),
+      isToday: dateStr === todayStr,
+    };
+  });
+}
+
+function getTaskStatusTone(status: string) {
+  return `task-status-${status}`;
+}
+
+function getIdeaStatusLabel(value: string) {
+  const map: Record<string, string> = {
+    to_review: "待处理",
+    converted_to_task: "已转任务",
+    shelved: "已搁置",
+    abandoned: "已放弃",
+  };
+  return map[value] ?? value;
+}
+
+export function ChecklistClient({
+  initialTab = "tasks",
+  tasks,
+  schedules,
+  habits,
+  ideas,
+}: {
+  initialTab?: ChecklistTab;
+  tasks: ChecklistTask[];
+  schedules: ChecklistSchedule[];
+  habits: ChecklistHabit[];
+  ideas: ChecklistIdea[];
+}) {
+  const [activeTab, setActiveTab] = useState<ChecklistTab>(initialTab);
+  const [view, setView] = useState<ChecklistView>("list");
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const today = new Date();
+  const weekRefDate = new Date(today);
+  weekRefDate.setDate(today.getDate() + weekOffset * 7);
+  const weekDays = getWeekDays(weekRefDate);
+  const weekStart = weekDays[0].date;
+  const weekEnd = weekDays[6].date;
+
+  const filteredTasks = tasks.filter(
+    (t) => t.taskDate >= weekStart && t.taskDate <= weekEnd,
+  );
+  const filteredSchedules = schedules.filter((s) => {
+    const start = s.startDate ?? s.scheduleDate;
+    const end = s.endDate;
+    if (start > weekEnd) return false;
+    if (end && end < weekStart) return false;
+    if (s.recurrence === "none") {
+      return s.scheduleDate >= weekStart && s.scheduleDate <= weekEnd;
+    }
+    return true;
+  });
+  const filteredHabits = habits;
+  const filteredIdeas = ideas.filter(
+    (i) => i.ideaDate >= weekStart && i.ideaDate <= weekEnd,
+  );
+
+  return (
+    <div className="page-stack">
+      <header className="page-header">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="page-kicker">清单</p>
+            <h1 className="page-title">任务、日程、习惯和灵感</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              className={`quiet-button ${view === "list" ? "bg-[var(--mist-soft)] border-[var(--mist)]" : ""}`}
+              type="button"
+              onClick={() => setView("list")}
+            >
+              <List aria-hidden="true" className="h-4 w-4" />
+              列表
+            </button>
+            <button
+              className={`quiet-button ${view === "week" ? "bg-[var(--mist-soft)] border-[var(--mist)]" : ""}`}
+              type="button"
+              onClick={() => setView("week")}
+            >
+              <CalendarDays aria-hidden="true" className="h-4 w-4" />
+              周历
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Tab switcher */}
+      <div className="daily-tab-list" role="tablist">
+        {tabs.map((tab) => {
+          const Icon = tab.Icon;
+          const isActive = tab.id === activeTab;
+          const counts: Record<ChecklistTab, number> = {
+            tasks: filteredTasks.length,
+            schedules: filteredSchedules.length,
+            habits: filteredHabits.length,
+            ideas: filteredIdeas.length,
+          };
+
+          return (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={isActive}
+              className={`daily-tab ${isActive ? "active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              <span className="nav-icon">
+                <Icon aria-hidden="true" className="h-4 w-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="daily-tab-title">{tab.label}</span>
+                <span className="daily-tab-meta">{counts[tab.id]} 条</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Week navigation (only in week view) */}
+      {view === "week" && (
+        <div className="flex items-center justify-between gap-3">
+          <button
+            className="quiet-button"
+            type="button"
+            onClick={() => setWeekOffset((o) => o - 1)}
+          >
+            <ChevronLeft aria-hidden="true" className="h-4 w-4" />
+            上一周
+          </button>
+          <span className="status-pill">
+            {weekDays[0].date} ~ {weekDays[6].date}
+          </span>
+          <button
+            className="quiet-button"
+            type="button"
+            onClick={() => setWeekOffset((o) => o + 1)}
+          >
+            下一周
+            <ChevronRight aria-hidden="true" className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Tasks */}
+      {activeTab === "tasks" && (
+        <section className="workspace-panel tone-lavender">
+          <h2 className="section-heading">任务</h2>
+          {view === "list" ? (
+            filteredTasks.length > 0 ? (
+              <div className="task-list mt-4">
+                {filteredTasks.map((task) => (
+                  <article
+                    key={task.id}
+                    className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}
+                  >
+                    <div className="compact-main-row">
+                      <form action={updateTaskStatusAction}>
+                        <input type="hidden" name="taskId" value={task.id} />
+                        <input
+                          type="hidden"
+                          name="status"
+                          value={task.status === "completed" ? "todo" : "completed"}
+                        />
+                        <button
+                          aria-label={
+                            task.status === "completed"
+                              ? `取消完成 ${task.title}`
+                              : `完成 ${task.title}`
+                          }
+                          className={`quick-check-button ${task.status === "completed" ? "checked" : ""}`}
+                          type="submit"
+                        >
+                          <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
+                        </button>
+                      </form>
+                      <div className="min-w-0">
+                        <Link
+                          className="list-label list-title-link"
+                          href={`/records/task/${task.id}`}
+                        >
+                          {task.title}
+                        </Link>
+                        <p className="list-meta mt-1">
+                          {getTaskCategoryLabel(task.category)} · {task.taskDate}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="compact-actions">
+                      <span className={`status-pill ${getTaskStatusTone(task.status)}`}>
+                        {getTaskStatusLabel(task.status)}
+                      </span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state mt-4">
+                <span className="empty-icon">
+                  <ClipboardList aria-hidden="true" className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="list-label">本周暂无任务</p>
+                  <p className="body-copy mt-1">可以在每日工作台创建任务。</p>
+                </div>
+              </div>
+            )
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <div className="habit-checkin-matrix">
+                {/* Header row */}
+                <div className="habit-checkin-header">
+                  <span className="habit-checkin-name">任务</span>
+                  {weekDays.map((d) => (
+                    <span
+                      key={d.date}
+                      className={`text-center ${d.isToday ? "text-[var(--lavender)] font-bold" : ""}`}
+                    >
+                      {d.label}
+                      <br />
+                      {d.dayNum}
+                    </span>
+                  ))}
+                </div>
+                {/* Task rows */}
+                {filteredTasks.map((task) => (
+                  <div key={task.id} className="habit-checkin-row">
+                    <span className="habit-checkin-name">{task.title}</span>
+                    {weekDays.map((d) => {
+                      const isOnDay = task.taskDate === d.date;
+                      return (
+                        <span
+                          key={d.date}
+                          className={`habit-checkin-dot ${isOnDay ? "checked" : ""}`}
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+                {filteredTasks.length === 0 && (
+                  <p className="body-copy px-2 py-4">本周暂无任务。</p>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Schedules */}
+      {activeTab === "schedules" && (
+        <section className="workspace-panel tone-clay">
+          <h2 className="section-heading">日程</h2>
+          {view === "list" ? (
+            filteredSchedules.length > 0 ? (
+              <div className="task-list mt-4">
+                {filteredSchedules.map((item) => (
+                  <article
+                    key={item.id}
+                    className="task-list-item compact-list-item task-status-todo"
+                  >
+                    <div className="compact-main-row">
+                      <div className="schedule-time-chip">
+                        {item.startTime ? item.startTime.slice(0, 5) : "--:--"}
+                      </div>
+                      <div className="min-w-0">
+                        <Link
+                          className="list-label list-title-link"
+                          href={`/records/schedule/${item.id}`}
+                        >
+                          {item.title}
+                        </Link>
+                        <p className="list-meta mt-1">
+                          {getTaskCategoryLabel(item.category)} · {item.scheduleDate}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="compact-actions">
+                      <span className="status-pill">
+                        {item.startTime ? item.startTime.slice(0, 5) : "未设置时间"}
+                      </span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state mt-4">
+                <span className="empty-icon">
+                  <CalendarDays aria-hidden="true" className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="list-label">本周暂无日程</p>
+                  <p className="body-copy mt-1">可以在每日工作台记录日程。</p>
+                </div>
+              </div>
+            )
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <div className="habit-checkin-matrix">
+                <div className="habit-checkin-header">
+                  <span className="habit-checkin-name">日程</span>
+                  {weekDays.map((d) => (
+                    <span
+                      key={d.date}
+                      className={`text-center ${d.isToday ? "text-[var(--clay)] font-bold" : ""}`}
+                    >
+                      {d.label}
+                      <br />
+                      {d.dayNum}
+                    </span>
+                  ))}
+                </div>
+                {filteredSchedules.map((item) => (
+                  <div key={item.id} className="habit-checkin-row">
+                    <span className="habit-checkin-name">{item.title}</span>
+                    {weekDays.map((d) => {
+                      const start = item.startDate ?? item.scheduleDate;
+                      const end = item.endDate;
+                      let isOnDay = false;
+                      if (item.recurrence === "none") {
+                        isOnDay = item.scheduleDate === d.date;
+                      } else if (item.recurrence === "daily") {
+                        isOnDay = d.date >= start && (!end || d.date <= end);
+                      } else if (item.recurrence === "weekly") {
+                        const startD = new Date(`${start}T00:00:00+08:00`);
+                        const targetD = new Date(`${d.date}T00:00:00+08:00`);
+                        const diffDays = Math.floor(
+                          (targetD.getTime() - startD.getTime()) / (24 * 60 * 60 * 1000),
+                        );
+                        isOnDay = diffDays >= 0 && diffDays % 7 === 0 && (!end || d.date <= end);
+                      } else if (item.recurrence === "monthly") {
+                        const startD = new Date(`${start}T00:00:00+08:00`);
+                        const targetD = new Date(`${d.date}T00:00:00+08:00`);
+                        isOnDay =
+                          startD.getDate() === targetD.getDate() &&
+                          d.date >= start &&
+                          (!end || d.date <= end);
+                      }
+                      return (
+                        <span
+                          key={d.date}
+                          className={`habit-checkin-dot ${isOnDay ? "checked" : ""}`}
+                          style={isOnDay ? { borderColor: "var(--clay)", background: "var(--clay)" } : {}}
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+                {filteredSchedules.length === 0 && (
+                  <p className="body-copy px-2 py-4">本周暂无日程。</p>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Habits */}
+      {activeTab === "habits" && (
+        <section className="workspace-panel tone-sage">
+          <h2 className="section-heading">习惯</h2>
+          {view === "list" ? (
+            filteredHabits.length > 0 ? (
+              <div className="task-list mt-4">
+                {filteredHabits.map((habit) => (
+                  <article
+                    key={habit.id}
+                    className={`task-list-item compact-list-item ${habit.isCheckedOnDate ? "task-status-completed" : "task-status-todo"}`}
+                  >
+                    <div className="compact-main-row">
+                      <form action={updateHabitCheckinAction}>
+                        <input type="hidden" name="habitId" value={habit.id} />
+                        <input
+                          type="hidden"
+                          name="intent"
+                          value={habit.isCheckedOnDate ? "cancel" : "check"}
+                        />
+                        <button
+                          aria-label={
+                            habit.isCheckedOnDate
+                              ? `取消打卡 ${habit.name}`
+                              : `打卡 ${habit.name}`
+                          }
+                          className={`quick-check-button ${habit.isCheckedOnDate ? "checked" : ""}`}
+                          type="submit"
+                        >
+                          <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
+                        </button>
+                      </form>
+                      <div className="min-w-0">
+                        <p className="list-label">{habit.name}</p>
+                        <p className="list-meta mt-1">
+                          {getTaskCategoryLabel(habit.category)} · 累计 {habit.totalCount} 次 · 连续 {habit.streakCount} 天
+                        </p>
+                      </div>
+                    </div>
+                    <div className="compact-actions">
+                      <span
+                        className={`status-pill ${habit.isCheckedOnDate ? "task-status-completed" : "task-status-todo"}`}
+                      >
+                        {habit.isCheckedOnDate ? "今日已完成" : "今日未完成"}
+                      </span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state mt-4">
+                <span className="empty-icon">
+                  <Repeat2 aria-hidden="true" className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="list-label">暂无启用习惯</p>
+                  <p className="body-copy mt-1">可以在每日工作台添加习惯。</p>
+                </div>
+              </div>
+            )
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <div className="habit-checkin-matrix">
+                <div className="habit-checkin-header">
+                  <span className="habit-checkin-name">习惯</span>
+                  {weekDays.map((d) => (
+                    <span
+                      key={d.date}
+                      className={`text-center ${d.isToday ? "text-[var(--sage)] font-bold" : ""}`}
+                    >
+                      {d.label}
+                      <br />
+                      {d.dayNum}
+                    </span>
+                  ))}
+                </div>
+                {filteredHabits.map((habit) => (
+                  <div key={habit.id} className="habit-checkin-row">
+                    <span className="habit-checkin-name">{habit.name}</span>
+                    {weekDays.map((d) => (
+                      <span
+                        key={d.date}
+                        className={`habit-checkin-dot ${habit.isCheckedOnDate && d.date === getBeijingDateValue() ? "checked" : ""}`}
+                      />
+                    ))}
+                  </div>
+                ))}
+                {filteredHabits.length === 0 && (
+                  <p className="body-copy px-2 py-4">暂无启用习惯。</p>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Ideas */}
+      {activeTab === "ideas" && (
+        <section className="workspace-panel tone-mist">
+          <h2 className="section-heading">灵感</h2>
+          {filteredIdeas.length > 0 ? (
+            <div className="task-list mt-4">
+              {filteredIdeas.map((idea) => (
+                <article
+                  key={idea.id}
+                  className="task-list-item compact-list-item task-status-todo"
+                >
+                  <div className="compact-main-row">
+                    <div className="min-w-0">
+                      <Link
+                        className="list-label list-title-link"
+                        href={`/records/idea/${idea.id}`}
+                      >
+                        {idea.content.length > 96
+                          ? `${idea.content.slice(0, 96)}...`
+                          : idea.content}
+                      </Link>
+                      <p className="list-meta mt-1">{idea.ideaDate}</p>
+                    </div>
+                  </div>
+                  <div className="compact-actions">
+                    <span className="status-pill">{getIdeaStatusLabel(idea.status)}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state mt-4">
+              <span className="empty-icon">
+                <Lightbulb aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="list-label">本周暂无灵感</p>
+                <p className="body-copy mt-1">可以在每日工作台记录灵感。</p>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+    </div>
+  );
+}

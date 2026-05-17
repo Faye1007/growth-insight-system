@@ -2494,6 +2494,235 @@ export async function getInsightRowsForUser(
   };
 }
 
+export type ChecklistTask = {
+  id: string;
+  title: string;
+  category: TaskCategory;
+  status: TaskStatus;
+  taskDate: string;
+  isPostponed: boolean;
+  isPinned: boolean;
+  createdAt: Date;
+};
+
+export type ChecklistSchedule = {
+  id: string;
+  title: string;
+  category: TaskCategory;
+  scheduleDate: string;
+  startDate: string | null;
+  endDate: string | null;
+  recurrence: ScheduleRecurrence;
+  startTime: string | null;
+  endTime: string | null;
+  isPinned: boolean;
+  createdAt: Date;
+};
+
+export type ChecklistHabit = {
+  id: string;
+  name: string;
+  category: TaskCategory;
+  startDate: string | null;
+  isPinned: boolean;
+  isCheckedOnDate: boolean;
+  totalCount: number;
+  streakCount: number;
+  createdAt: Date;
+};
+
+export type ChecklistIdea = {
+  id: string;
+  content: string;
+  ideaDate: string;
+  status: IdeaStatus;
+  isPinned: boolean;
+  createdAt: Date;
+};
+
+export async function getChecklistTasksForUser(
+  userId: string,
+  dateFrom: string,
+  dateTo: string,
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("id,title,category,status,task_date,is_postponed,is_pinned,created_at")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .gte("task_date", dateFrom)
+    .lte("task_date", dateTo)
+    .order("is_pinned", { ascending: false })
+    .order("task_date", { ascending: true })
+    .order("created_at", { ascending: true })
+    .returns<TaskRow[]>();
+
+  return assertArray(data, error).map((row) => ({
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    status: row.status,
+    taskDate: row.task_date,
+    isPostponed: row.is_postponed,
+    isPinned: row.is_pinned,
+    createdAt: new Date(row.created_at),
+  }));
+}
+
+export async function getChecklistSchedulesForUser(
+  userId: string,
+  dateFrom: string,
+  dateTo: string,
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("schedule_items")
+    .select("id,title,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,is_pinned,created_at")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .order("is_pinned", { ascending: false })
+    .order("schedule_date", { ascending: true })
+    .order("start_time", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true })
+    .returns<ScheduleItemRow[]>();
+
+  return assertArray(data, error)
+    .filter((row) => {
+      const startDate = row.start_date ?? row.schedule_date;
+      const endDate = row.end_date;
+      if (getDateTime(startDate) > getDateTime(dateTo)) return false;
+      if (endDate && getDateTime(endDate) < getDateTime(dateFrom)) return false;
+      if (row.recurrence === "none") {
+        return row.schedule_date >= dateFrom && row.schedule_date <= dateTo;
+      }
+      return true;
+    })
+    .map((row) => ({
+      id: row.id,
+      title: row.title,
+      category: row.category,
+      scheduleDate: row.schedule_date,
+      startDate: row.start_date,
+      endDate: row.end_date,
+      recurrence: row.recurrence,
+      startTime: row.start_time,
+      endTime: row.end_time,
+      isPinned: row.is_pinned,
+      createdAt: new Date(row.created_at),
+    }));
+}
+
+export async function getChecklistHabitsForUser(userId: string, dateFrom: string, dateTo: string) {
+  const supabase = await createClient();
+  const { data: habitsData, error: habitsError } = await supabase
+    .from("habits")
+    .select("id,name,category,start_date,is_pinned,created_at")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .is("deleted_at", null)
+    .order("is_pinned", { ascending: false })
+    .order("created_at", { ascending: true })
+    .returns<HabitRow[]>();
+
+  const habits = assertArray(habitsData, habitsError);
+  if (habits.length === 0) return [];
+
+  const { data: checkinsData, error: checkinsError } = await supabase
+    .from("habit_checkins")
+    .select("habit_id,checkin_date,status")
+    .eq("user_id", userId)
+    .in("habit_id", habits.map((h) => h.id))
+    .gte("checkin_date", dateFrom)
+    .lte("checkin_date", dateTo)
+    .returns<HabitCheckinRow[]>();
+
+  const checkins = assertArray(checkinsData, checkinsError);
+
+  const checkedDatesByHabit = new Map<string, Set<string>>();
+  for (const c of checkins) {
+    if (c.status === "checked") {
+      if (!checkedDatesByHabit.has(c.habit_id)) {
+        checkedDatesByHabit.set(c.habit_id, new Set());
+      }
+      checkedDatesByHabit.get(c.habit_id)!.add(c.checkin_date);
+    }
+  }
+
+  function getStreakCount(habitId: string, todayDate: string) {
+    const dates = checkedDatesByHabit.get(habitId);
+    if (!dates || !dates.has(todayDate)) return 0;
+    let count = 0;
+    let cursor = todayDate;
+    while (dates.has(cursor)) {
+      count += 1;
+      cursor = getBeijingDateAfter(-1, cursor);
+    }
+    return count;
+  }
+
+  const todayDate = getBeijingDateValue(new Date());
+
+  return habits.map((habit) => {
+    const dates = checkedDatesByHabit.get(habit.id) ?? new Set();
+    return {
+      id: habit.id,
+      name: habit.name,
+      category: habit.category,
+      startDate: habit.start_date,
+      isPinned: habit.is_pinned,
+      isCheckedOnDate: dates.has(todayDate),
+      totalCount: dates.size,
+      streakCount: getStreakCount(habit.id, todayDate),
+      createdAt: new Date(habit.created_at),
+    };
+  });
+}
+
+export async function getChecklistIdeasForUser(
+  userId: string,
+  dateFrom: string,
+  dateTo: string,
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ideas")
+    .select("id,content,idea_date,status,is_pinned,created_at")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .gte("idea_date", dateFrom)
+    .lte("idea_date", dateTo)
+    .order("is_pinned", { ascending: false })
+    .order("idea_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .returns<IdeaRow[]>();
+
+  return assertArray(data, error).map((row) => ({
+    id: row.id,
+    content: row.content,
+    ideaDate: row.idea_date,
+    status: row.status,
+    isPinned: row.is_pinned,
+    createdAt: new Date(row.created_at),
+  }));
+}
+
+function getBeijingDateValue(date = new Date()) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(date);
+}
+
+function getBeijingDateAfter(days: number, dateStr: string) {
+  const d = new Date(`${dateStr}T00:00:00+08:00`);
+  d.setDate(d.getDate() + days);
+  return getBeijingDateValue(d);
+}
+
 export async function getMonthlyInsightRowsForUser(
   userId: string,
   monthStart: string,
