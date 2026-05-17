@@ -5,6 +5,7 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock,
+  Gift,
   Heart,
   Lightbulb,
   Send,
@@ -17,8 +18,9 @@ import {
   createScheduleItemAction,
   createTaskAction,
 } from "@/app/daily/actions";
+import { createGiftRecordAction } from "@/app/life/actions";
 
-type IntentType = "task" | "schedule" | "habit" | "event" | "idea" | "anniversary" | null;
+type IntentType = "task" | "schedule" | "habit" | "event" | "idea" | "anniversary" | "gift" | null;
 
 type ChatMessage = {
   id: string;
@@ -44,13 +46,15 @@ const quickActions: Array<{
   label: string;
   Icon: typeof CheckCircle2;
   placeholder: string;
+  row: number;
 }> = [
-  { type: "task", label: "创建任务", Icon: CheckCircle2, placeholder: "输入任务标题..." },
-  { type: "schedule", label: "创建日程", Icon: Clock, placeholder: "输入日程标题..." },
-  { type: "habit", label: "创建习惯", Icon: Heart, placeholder: "输入习惯名称..." },
-  { type: "event", label: "记录事件", Icon: Sparkles, placeholder: "记录今天发生的事..." },
-  { type: "idea", label: "记录灵感", Icon: Lightbulb, placeholder: "记录你的想法..." },
-  { type: "anniversary", label: "创建纪念日", Icon: CalendarDays, placeholder: "输入纪念日标题..." },
+  { type: "task", label: "创建任务", Icon: CheckCircle2, placeholder: "输入任务标题...", row: 1 },
+  { type: "schedule", label: "创建日程", Icon: Clock, placeholder: "输入日程标题...", row: 1 },
+  { type: "habit", label: "创建习惯", Icon: Heart, placeholder: "输入习惯名称...", row: 1 },
+  { type: "idea", label: "记录灵感", Icon: Lightbulb, placeholder: "记录你的想法...", row: 1 },
+  { type: "event", label: "记录事件", Icon: Sparkles, placeholder: "记录今天发生的事...", row: 2 },
+  { type: "anniversary", label: "创建纪念日", Icon: CalendarDays, placeholder: "输入纪念日标题...", row: 2 },
+  { type: "gift", label: "礼物记录", Icon: Gift, placeholder: "输入礼物名称...", row: 2 },
 ];
 
 function getBeijingDateValue(date = new Date()) {
@@ -270,6 +274,15 @@ export function AiChatClient() {
           await createQuickRecordAction(formData);
           break;
         }
+        case "gift": {
+          const formData = new FormData();
+          formData.append("giftName", intent.title);
+          formData.append("recipientName", intent.personName ?? "未知");
+          formData.append("giftDate", intent.date);
+          formData.append("purpose", intent.category || "其他");
+          await createGiftRecordAction(formData);
+          break;
+        }
       }
 
       setMessages((prev) => [
@@ -304,6 +317,7 @@ export function AiChatClient() {
       event: "事件",
       idea: "灵感",
       anniversary: "纪念日",
+      gift: "礼物",
     };
     return map[type ?? ""] ?? "未知";
   }
@@ -374,22 +388,28 @@ export function AiChatClient() {
       </div>
 
       {/* Quick actions */}
-      <div className="flex flex-wrap gap-2">
-        {quickActions.map((action) => {
-          const Icon = action.Icon;
-          const isActive = action.type === activeQuickAction;
-          return (
-            <button
-              key={action.type}
-              className={`quiet-button text-sm ${isActive ? "bg-[var(--mist-soft)] border-[var(--mist)]" : ""}`}
-              type="button"
-              onClick={() => setActiveQuickAction(isActive ? null : action.type)}
-            >
-              <Icon aria-hidden="true" className="h-4 w-4" />
-              {action.label}
-            </button>
-          );
-        })}
+      <div className="flex flex-col gap-2">
+        {[1, 2].map((row) => (
+          <div key={row} className="flex flex-wrap gap-2">
+            {quickActions
+              .filter((action) => action.row === row)
+              .map((action) => {
+                const Icon = action.Icon;
+                const isActive = action.type === activeQuickAction;
+                return (
+                  <button
+                    key={action.type}
+                    className={`quiet-button text-sm ${isActive ? "bg-[var(--mist-soft)] border-[var(--mist)]" : ""}`}
+                    type="button"
+                    onClick={() => setActiveQuickAction(isActive ? null : action.type)}
+                  >
+                    <Icon aria-hidden="true" className="h-4 w-4" />
+                    {action.label}
+                  </button>
+                );
+              })}
+          </div>
+        ))}
       </div>
 
       {/* Input form */}
