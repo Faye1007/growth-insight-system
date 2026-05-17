@@ -171,23 +171,31 @@ export default async function ToolboxPage({ searchParams }: ToolboxPageProps) {
           <div>
             <p className="page-kicker">拆解类型</p>
             <h2 id="tool-options-title" className="section-heading mt-1">
-              第一批问题类型
+              选择一个整理方向
             </h2>
+            <p className="body-copy mt-2">选中后会带到下方记录表单，输出仍然是程序化整理。</p>
           </div>
           <span className="status-pill w-fit">不自动调用 AI</span>
         </div>
-        <div className="record-summary-grid mt-5">
+        <div className="tool-option-grid mt-5">
           {toolOptions.map((tool) => {
             const Icon = tool.icon;
+            const isSelected = selectedToolType === tool.type;
 
             return (
-              <article key={tool.type} className="field-tile">
-                <span className="nav-icon mb-3">
+              <Link
+                key={tool.type}
+                className={`tool-option-card ${isSelected ? "is-active" : ""}`}
+                href={`/toolbox?toolType=${tool.type}#new-tool-session`}
+              >
+                <span className="nav-icon">
                   <Icon aria-hidden="true" className="h-4 w-4" />
                 </span>
-                <strong>{tool.title}</strong>
-                <p className="body-copy mt-2">{tool.description}</p>
-              </article>
+                <span className="tool-option-copy">
+                  <strong>{tool.title}</strong>
+                  <small>{tool.description}</small>
+                </span>
+              </Link>
             );
           })}
         </div>

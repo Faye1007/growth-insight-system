@@ -21,14 +21,20 @@ import {
   getCompletedDailyReviewReportIdForUser,
   getTaskDateForUser,
   postponeTaskForUser,
+  softDeleteHabitForUser,
   softDeleteIdeaForUser,
   softDeleteLifeEventForUser,
   softDeleteScheduleItemForUser,
   softDeleteTaskForUser,
+  updateHabitPinnedForUser,
   updateIdeaForUser,
+  updateIdeaPinnedForUser,
   updateHabitForUser,
+  updateLifeEventPinnedForUser,
   updateLifeEventForUser,
+  updateSchedulePinnedForUser,
   updateScheduleItemForUser,
+  updateTaskPinnedForUser,
   updateTaskStatusForUser,
   updateTaskForUser,
   upsertDailyReviewReportForUser,
@@ -96,6 +102,10 @@ function isIdeaStatus(
   value: string,
 ): value is "to_review" | "converted_to_task" | "shelved" | "abandoned" {
   return value === "to_review" || value === "converted_to_task" || value === "shelved" || value === "abandoned";
+}
+
+function getPinnedValue(formData: FormData) {
+  return getStringValue(formData, "isPinned") === "true";
 }
 
 export async function createTaskAction(formData: FormData) {
@@ -281,6 +291,29 @@ export async function softDeleteTaskAction(formData: FormData) {
   redirect("/daily?taskUpdated=deleted#tasks");
 }
 
+export async function updateTaskPinnedAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const taskId = getStringValue(formData, "taskId");
+
+  if (!taskId) {
+    redirect("/daily?taskError=missing_task#tasks");
+  }
+
+  try {
+    await updateTaskPinnedForUser({
+      userId: user.id,
+      taskId,
+      isPinned: getPinnedValue(formData),
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect("/daily?taskError=save_failed#tasks");
+  }
+
+  revalidatePath("/daily");
+  redirect("/daily?view=tasks&taskUpdated=pinned#tasks");
+}
+
 export async function createHabitAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const name = getStringValue(formData, "name");
@@ -405,6 +438,69 @@ export async function deactivateHabitAction(formData: FormData) {
   }
 
   redirect("/daily?habitUpdated=deactivated#habits");
+}
+
+export async function softDeleteHabitAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const habitId = getStringValue(formData, "habitId");
+  const source = getStringValue(formData, "source");
+  const recordId = getStringValue(formData, "recordId");
+
+  if (!habitId) {
+    redirect(
+      source === "detail" && recordId
+        ? `/records/habit/${recordId}?habitError=missing_habit`
+        : "/daily?habitError=missing_habit#habits",
+    );
+  }
+
+  try {
+    await softDeleteHabitForUser({
+      userId: user.id,
+      habitId,
+      deletedAt: new Date(),
+    });
+  } catch {
+    redirect(
+      source === "detail" && recordId
+        ? `/records/habit/${recordId}?habitError=save_failed`
+        : "/daily?habitError=save_failed#habits",
+    );
+  }
+
+  revalidatePath("/daily");
+  revalidatePath("/records");
+  revalidatePath("/insights");
+
+  if (source === "detail" && recordId) {
+    revalidatePath(`/records/habit/${recordId}`);
+    redirect("/records?habitDeleted=1");
+  }
+
+  redirect("/daily?view=habits&habitUpdated=deleted#habits");
+}
+
+export async function updateHabitPinnedAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const habitId = getStringValue(formData, "habitId");
+
+  if (!habitId) {
+    redirect("/daily?habitError=missing_habit#habits");
+  }
+
+  try {
+    await updateHabitPinnedForUser({
+      userId: user.id,
+      habitId,
+      isPinned: getPinnedValue(formData),
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect("/daily?habitError=save_failed#habits");
+  }
+
+  revalidatePath("/daily");
+  redirect("/daily?view=habits&habitUpdated=pinned#habits");
 }
 
 export async function updateHabitCheckinAction(formData: FormData) {
@@ -628,6 +724,29 @@ export async function softDeleteScheduleItemAction(formData: FormData) {
   redirect("/daily?scheduleUpdated=deleted#schedule");
 }
 
+export async function updateSchedulePinnedAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const scheduleId = getStringValue(formData, "scheduleId");
+
+  if (!scheduleId) {
+    redirect("/daily?scheduleError=missing_schedule#schedule");
+  }
+
+  try {
+    await updateSchedulePinnedForUser({
+      userId: user.id,
+      scheduleId,
+      isPinned: getPinnedValue(formData),
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect("/daily?scheduleError=save_failed#schedule");
+  }
+
+  revalidatePath("/daily");
+  redirect("/daily?view=schedule&scheduleUpdated=pinned#schedule");
+}
+
 export async function createQuickRecordAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const recordType = getStringValue(formData, "recordType");
@@ -777,6 +896,29 @@ export async function softDeleteLifeEventAction(formData: FormData) {
   redirect("/daily?recordUpdated=event_deleted#notes");
 }
 
+export async function updateLifeEventPinnedAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const eventId = getStringValue(formData, "eventId");
+
+  if (!eventId) {
+    redirect("/daily?recordError=missing_event#notes");
+  }
+
+  try {
+    await updateLifeEventPinnedForUser({
+      userId: user.id,
+      eventId,
+      isPinned: getPinnedValue(formData),
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect("/daily?recordError=save_failed#notes");
+  }
+
+  revalidatePath("/daily");
+  redirect("/daily?view=notes&recordUpdated=pinned#notes");
+}
+
 export async function updateIdeaAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const ideaId = getStringValue(formData, "ideaId");
@@ -865,6 +1007,29 @@ export async function softDeleteIdeaAction(formData: FormData) {
   }
 
   redirect("/daily?recordUpdated=idea_deleted#notes");
+}
+
+export async function updateIdeaPinnedAction(formData: FormData) {
+  const user = await requireCurrentUser("/daily");
+  const ideaId = getStringValue(formData, "ideaId");
+
+  if (!ideaId) {
+    redirect("/daily?recordError=missing_idea#notes");
+  }
+
+  try {
+    await updateIdeaPinnedForUser({
+      userId: user.id,
+      ideaId,
+      isPinned: getPinnedValue(formData),
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect("/daily?recordError=save_failed#notes");
+  }
+
+  revalidatePath("/daily");
+  redirect("/daily?view=notes&recordUpdated=pinned#notes");
 }
 
 export async function generateDailyReviewAction(formData: FormData) {

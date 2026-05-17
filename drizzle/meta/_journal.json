@@ -43,6 +43,13 @@
       "when": 1778673817989,
       "tag": "0005_remarkable_doctor_strange",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778988230425,
+      "tag": "0006_wandering_slayback",
+      "breakpoints": true
     }
   ]
 }

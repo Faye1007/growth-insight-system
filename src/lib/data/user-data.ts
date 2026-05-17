@@ -82,6 +82,7 @@ type TaskRow = {
   postponed_to_date: string | null;
   review_note: string | null;
   completed_at: string | null;
+  is_pinned: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -95,6 +96,7 @@ type HabitRow = {
   category: TaskCategory;
   is_active: boolean;
   start_date: string | null;
+  is_pinned: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -123,6 +125,7 @@ type ScheduleItemRow = {
   recurrence: ScheduleRecurrence;
   start_time: string | null;
   end_time: string | null;
+  is_pinned: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -139,6 +142,7 @@ type LifeEventRow = {
   next_action: string | null;
   ai_analysis_permission: AiAnalysisPermission;
   summary: string | null;
+  is_pinned: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -152,6 +156,7 @@ type IdeaRow = {
   status: IdeaStatus;
   solution_note: string | null;
   converted_task_id: string | null;
+  is_pinned: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -247,6 +252,7 @@ export type TodayTask = {
   postponedFromDate: string | null;
   postponedToDate: string | null;
   reviewNote: string | null;
+  isPinned: boolean;
   createdAt: Date;
 };
 
@@ -257,6 +263,7 @@ export type ActiveHabit = {
   category: TaskCategory;
   isActive: boolean;
   startDate: string | null;
+  isPinned: boolean;
   createdAt: Date;
 };
 
@@ -277,6 +284,7 @@ export type TodayScheduleItem = {
   recurrence: ScheduleRecurrence;
   startTime: string | null;
   endTime: string | null;
+  isPinned: boolean;
   createdAt: Date;
 };
 
@@ -290,6 +298,7 @@ export type TodayLifeEvent = {
   nextAction: string | null;
   aiAnalysisPermission: AiAnalysisPermission;
   summary: string | null;
+  isPinned: boolean;
   createdAt: Date;
 };
 
@@ -299,6 +308,7 @@ export type TodayIdea = {
   ideaDate: string;
   status: IdeaStatus;
   solutionNote: string | null;
+  isPinned: boolean;
   createdAt: Date;
 };
 
@@ -628,6 +638,7 @@ function mapTodayTask(row: TaskRow): TodayTask {
     postponedFromDate: row.postponed_from_date,
     postponedToDate: row.postponed_to_date,
     reviewNote: row.review_note,
+    isPinned: row.is_pinned,
     createdAt: new Date(row.created_at),
   };
 }
@@ -640,6 +651,7 @@ function mapActiveHabit(row: HabitRow): ActiveHabit {
     category: row.category,
     isActive: row.is_active,
     startDate: row.start_date,
+    isPinned: row.is_pinned,
     createdAt: new Date(row.created_at),
   };
 }
@@ -867,6 +879,28 @@ export async function softDeleteTaskForUser(input: {
   }
 }
 
+export async function updateTaskPinnedForUser(input: {
+  userId: string;
+  taskId: string;
+  isPinned: boolean;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      is_pinned: input.isPinned,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.taskId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function createHabitForUser(input: {
   userId: string;
   name: string;
@@ -925,6 +959,51 @@ export async function deactivateHabitForUser(input: {
     .from("habits")
     .update({
       is_active: false,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.habitId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function softDeleteHabitForUser(input: {
+  userId: string;
+  habitId: string;
+  deletedAt: Date;
+}) {
+  const deletedAtIso = input.deletedAt.toISOString();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("habits")
+    .update({
+      is_active: false,
+      deleted_at: deletedAtIso,
+      updated_at: deletedAtIso,
+    })
+    .eq("id", input.habitId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updateHabitPinnedForUser(input: {
+  userId: string;
+  habitId: string;
+  isPinned: boolean;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("habits")
+    .update({
+      is_pinned: input.isPinned,
       updated_at: input.updatedAt.toISOString(),
     })
     .eq("id", input.habitId)
@@ -1065,6 +1144,28 @@ export async function softDeleteScheduleItemForUser(input: {
   }
 }
 
+export async function updateSchedulePinnedForUser(input: {
+  userId: string;
+  scheduleId: string;
+  isPinned: boolean;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("schedule_items")
+    .update({
+      is_pinned: input.isPinned,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.scheduleId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function createLifeEventForUser(input: {
   userId: string;
   eventDate: string;
@@ -1146,6 +1247,28 @@ export async function softDeleteLifeEventForUser(input: {
   }
 }
 
+export async function updateLifeEventPinnedForUser(input: {
+  userId: string;
+  eventId: string;
+  isPinned: boolean;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("life_events")
+    .update({
+      is_pinned: input.isPinned,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.eventId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function createIdeaForUser(input: {
   userId: string;
   ideaDate: string;
@@ -1204,6 +1327,28 @@ export async function softDeleteIdeaForUser(input: {
     .update({
       deleted_at: deletedAtIso,
       updated_at: deletedAtIso,
+    })
+    .eq("id", input.ideaId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updateIdeaPinnedForUser(input: {
+  userId: string;
+  ideaId: string;
+  isPinned: boolean;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("ideas")
+    .update({
+      is_pinned: input.isPinned,
+      updated_at: input.updatedAt.toISOString(),
     })
     .eq("id", input.ideaId)
     .eq("user_id", input.userId)
@@ -1726,10 +1871,11 @@ export async function getTodayTasksForUser(userId: string, todayDate: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tasks")
-    .select("id,title,description,category,status,task_date,is_postponed,postponed_from_date,postponed_to_date,review_note,created_at")
+    .select("id,title,description,category,status,task_date,is_postponed,postponed_from_date,postponed_to_date,review_note,is_pinned,created_at")
     .eq("user_id", userId)
     .eq("task_date", todayDate)
     .is("deleted_at", null)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: true })
     .returns<TaskRow[]>();
 
@@ -1740,10 +1886,11 @@ export async function getActiveHabitsForUser(userId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("habits")
-    .select("id,name,description,category,is_active,start_date,created_at")
+    .select("id,name,description,category,is_active,start_date,is_pinned,created_at")
     .eq("user_id", userId)
     .eq("is_active", true)
     .is("deleted_at", null)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: true })
     .returns<HabitRow[]>();
 
@@ -1757,27 +1904,31 @@ export async function getTodayScheduleItemsForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("id,title,description,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,created_at")
+    .select("id,title,description,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,is_pinned,created_at")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .or(`schedule_date.eq.${todayDate},start_date.lte.${todayDate}`)
+    .order("is_pinned", { ascending: false })
     .order("start_time", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true })
     .returns<ScheduleItemRow[]>();
 
-  return assertArray(data, error).filter((row) => scheduleOccursOnDate(row, todayDate)).map((row) => ({
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    category: row.category,
-    scheduleDate: row.schedule_date,
-    startDate: row.start_date,
-    endDate: row.end_date,
-    recurrence: row.recurrence,
-    startTime: row.start_time,
-    endTime: row.end_time,
-    createdAt: new Date(row.created_at),
-  }));
+  return assertArray(data, error)
+    .filter((row) => scheduleOccursOnDate(row, todayDate))
+    .map((row) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      category: row.category,
+      scheduleDate: row.schedule_date,
+      startDate: row.start_date,
+      endDate: row.end_date,
+      recurrence: row.recurrence,
+      startTime: row.start_time,
+      endTime: row.end_time,
+      isPinned: row.is_pinned,
+      createdAt: new Date(row.created_at),
+    }));
 }
 
 export async function getTodayLifeEventsForUser(
@@ -1787,10 +1938,11 @@ export async function getTodayLifeEventsForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("life_events")
-    .select("id,content,event_date,emotion_tags,tags,specific_event,next_action,ai_analysis_permission,summary,created_at")
+    .select("id,content,event_date,emotion_tags,tags,specific_event,next_action,ai_analysis_permission,summary,is_pinned,created_at")
     .eq("user_id", userId)
     .eq("event_date", todayDate)
     .is("deleted_at", null)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false })
     .returns<LifeEventRow[]>();
 
@@ -1804,6 +1956,7 @@ export async function getTodayLifeEventsForUser(
     nextAction: row.next_action,
     aiAnalysisPermission: row.ai_analysis_permission,
     summary: row.summary,
+    isPinned: row.is_pinned,
     createdAt: new Date(row.created_at),
   }));
 }
@@ -1812,10 +1965,11 @@ export async function getTodayIdeasForUser(userId: string, todayDate: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("ideas")
-    .select("id,content,idea_date,status,solution_note,created_at")
+    .select("id,content,idea_date,status,solution_note,is_pinned,created_at")
     .eq("user_id", userId)
     .eq("idea_date", todayDate)
     .is("deleted_at", null)
+    .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false })
     .returns<IdeaRow[]>();
 
@@ -1825,6 +1979,7 @@ export async function getTodayIdeasForUser(userId: string, todayDate: string) {
     ideaDate: row.idea_date,
     status: row.status,
     solutionNote: row.solution_note,
+    isPinned: row.is_pinned,
     createdAt: new Date(row.created_at),
   }));
 }

@@ -658,6 +658,7 @@ function WeeklyReviewPreview({
       </div>
 
       <form action="/insights#weekly-review-preview" className="review-preview-section" method="get">
+        <input type="hidden" name="view" value="weekly" />
         <input type="hidden" name="weeklyPreview" value="1" />
         <input type="hidden" name="weeklyOriginalSelection" value="custom" />
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -721,7 +722,7 @@ function WeeklyReviewPreview({
       </div>
 
       <div className="review-preview-actions">
-        <Link href="/insights" className="quiet-button">
+        <Link href="/insights?view=weekly" className="quiet-button">
           取消预览
         </Link>
         {hasCachedReport ? (
@@ -885,7 +886,7 @@ function MonthlyReviewPreview({
       </div>
 
       <div className="review-preview-actions">
-        <Link href="/insights" className="quiet-button">
+        <Link href="/insights?view=monthly" className="quiet-button">
           取消预览
         </Link>
         {hasCachedReport ? (
@@ -1020,12 +1021,6 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
   const todayTaskRate = insightData
     ? getRate(insightData.todayCompletedTaskCount, insightData.todayTaskCount)
     : 0;
-  const todayHabitRate = insightData
-    ? getRate(insightData.todayHabitCheckedCount, insightData.activeHabitCount)
-    : 0;
-  const todayRecordCount = insightData
-    ? insightData.todayEventCount + insightData.todayIdeaCount
-    : 0;
   const weekDatesText = insightData
     ? `${formatDateValue(insightData.weekStart)}-${formatDateValue(insightData.today)}`
     : "最近 7 天";
@@ -1134,6 +1129,20 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
     aiStatus.hasProvider && aiStatus.hasBaseUrl && aiStatus.hasApiKey && aiStatus.hasWeeklyModel;
   const isMonthlyAiReady =
     aiStatus.hasProvider && aiStatus.hasBaseUrl && aiStatus.hasApiKey && aiStatus.hasMonthlyModel;
+  const requestedInsightView =
+    params?.view === "weekly" || params?.view === "monthly" ? params.view : "overview";
+  const hasWeeklyReviewQuery = Boolean(
+    params?.weeklyReviewError || params?.weeklyReviewGenerated || params?.weeklyReviewCached,
+  );
+  const hasMonthlyReviewQuery = Boolean(
+    params?.monthlyReviewError || params?.monthlyReviewGenerated || params?.monthlyReviewCached,
+  );
+  const activeInsightView =
+    monthlyPreviewOpen || hasMonthlyReviewQuery
+      ? "monthly"
+      : weeklyPreviewOpen || hasWeeklyReviewQuery
+        ? "weekly"
+        : requestedInsightView;
   const reviewFeedback =
     getFeedbackByCode(params?.monthlyReviewError as string | undefined, monthlyReviewErrorFeedback) ??
     getFeedbackByCode(
@@ -1165,7 +1174,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           <span className="status-pill w-fit">程序统计，不调用 AI</span>
         </div>
         <p className="page-description">
-          当前页面先展示今日概览、最近 7 天趋势、习惯状态和情绪记录。AI 复盘入口会在后续步骤接入。
+          默认展示必要总览。周复盘和月复盘内容通过上方入口切换查看，发送预览只在确认后才进入 AI 流程。
         </p>
       </header>
 
@@ -1195,28 +1204,52 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
               AI 复盘与问题拆解
             </h2>
             <p className="body-copy mt-2">
-              问题拆解用于临时整理情绪、压力或明日计划，当前默认程序化输出，不自动调用 AI。
+              点击入口后切换到对应视图，周复盘和月复盘的长内容不再默认堆在主界面。
             </p>
           </div>
-          <div className="review-preview-actions">
-            <Link className="quiet-button" href="/toolbox">
+          <Link className="quiet-button w-full sm:w-auto" href="/manual">
+            <BookOpenText aria-hidden="true" className="h-4 w-4" />
+            个人说明书
+          </Link>
+        </div>
+        <div className="insight-view-switcher mt-5">
+          <Link className="insight-view-card" href="/toolbox">
+            <span className="nav-icon">
               <Sparkles aria-hidden="true" className="h-4 w-4" />
-              问题拆解
-            </Link>
-            <Link className="quiet-button" href="/manual">
-              <BookOpenText aria-hidden="true" className="h-4 w-4" />
-              个人说明书
-            </Link>
-            <Link className="soft-button" href="/insights?weeklyPreview=1#weekly-review-preview">
-              周复盘
-            </Link>
-            <Link className="soft-button" href="/insights?monthlyPreview=1#monthly-review-preview">
-              月复盘
-            </Link>
-          </div>
+            </span>
+            <span>
+              <strong>问题拆解</strong>
+              <small>情绪、压力、明日计划</small>
+            </span>
+          </Link>
+          <Link
+            className={`insight-view-card ${activeInsightView === "weekly" ? "is-active" : ""}`}
+            href="/insights?view=weekly"
+          >
+            <span className="nav-icon">
+              <BarChart3 aria-hidden="true" className="h-4 w-4" />
+            </span>
+            <span>
+              <strong>周复盘</strong>
+              <small>最近 7 天统计和预览</small>
+            </span>
+          </Link>
+          <Link
+            className={`insight-view-card ${activeInsightView === "monthly" ? "is-active" : ""}`}
+            href="/insights?view=monthly"
+          >
+            <span className="nav-icon">
+              <CalendarDays aria-hidden="true" className="h-4 w-4" />
+            </span>
+            <span>
+              <strong>月复盘</strong>
+              <small>本月统计和周复盘摘要</small>
+            </span>
+          </Link>
         </div>
       </section>
 
+      {activeInsightView === "overview" ? (
       <section aria-labelledby="growth-overview-title" className="panel-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -1237,7 +1270,10 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           ))}
         </div>
       </section>
+      ) : null}
 
+      {activeInsightView === "monthly" ? (
+      <>
       <section aria-labelledby="monthly-program-review" className="panel-card insight-order-monthly">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -1332,7 +1368,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
                   查看已生成月复盘
                 </Link>
               ) : (
-                <Link className="soft-button" href="/insights?monthlyPreview=1#monthly-review-preview">
+                <Link className="soft-button" href="/insights?view=monthly&monthlyPreview=1#monthly-review-preview">
                   打开月复盘发送预览
                 </Link>
               )}
@@ -1367,7 +1403,11 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           monthDatesText={monthlyReviewDatesText}
         />
       ) : null}
+      </>
+      ) : null}
 
+      {activeInsightView === "weekly" ? (
+      <>
       <section aria-labelledby="weekly-program-review" className="panel-card insight-order-weekly">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -1438,7 +1478,7 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
                   查看已生成周复盘
                 </Link>
               ) : (
-                <Link className="soft-button" href="/insights?weeklyPreview=1#weekly-review-preview">
+                <Link className="soft-button" href="/insights?view=weekly&weeklyPreview=1#weekly-review-preview">
                   打开周复盘发送预览
                 </Link>
               )}
@@ -1469,62 +1509,11 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
       {weeklyReviewReport ? (
         <WeeklyReviewReportCard report={weeklyReviewReport} weekDatesText={weekDatesText} />
       ) : null}
+      </>
+      ) : null}
 
-      <section aria-labelledby="today-insights" className="panel-card insight-order-today">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="page-kicker">今日概览</p>
-            <h2 id="today-insights" className="section-heading mt-1">
-              今天的基础状态
-            </h2>
-          </div>
-          <span className="status-pill w-fit">北京时间</span>
-        </div>
-
-        <div className="insight-kpi-grid mt-5">
-          <article className="daily-summary-card tone-lavender">
-            <div className="metric-label">任务完成率</div>
-            <div className="metric-value">{todayTaskRate}%</div>
-            <p className="body-copy mt-2">
-              {insightData
-                ? `${insightData.todayCompletedTaskCount}/${insightData.todayTaskCount} 项已完成`
-                : "登录后显示今日任务数据"}
-            </p>
-            <div className="overview-progress mt-4">
-              <span style={{ width: `${todayTaskRate}%` }} />
-            </div>
-          </article>
-
-          <article className="daily-summary-card tone-sage">
-            <div className="metric-label">习惯打卡</div>
-            <div className="metric-value">
-              {insightData
-                ? `${insightData.todayHabitCheckedCount}/${insightData.activeHabitCount}`
-                : "0/0"}
-            </div>
-            <p className="body-copy mt-2">今日已完成的启用习惯。</p>
-            <div className="overview-progress mt-4">
-              <span style={{ width: `${todayHabitRate}%` }} />
-            </div>
-          </article>
-
-          <article className="daily-summary-card tone-clay">
-            <div className="metric-label">今日日程</div>
-            <div className="metric-value">{insightData?.todayScheduleCount ?? 0}</div>
-            <p className="body-copy mt-2">今天已记录的固定事项数量。</p>
-          </article>
-
-          <article className="daily-summary-card tone-mist">
-            <div className="metric-label">随手记录</div>
-            <div className="metric-value">{todayRecordCount}</div>
-            <div className="overview-detail-row mt-3">
-              <span className="status-pill">事件 {insightData?.todayEventCount ?? 0}</span>
-              <span className="status-pill">灵感 {insightData?.todayIdeaCount ?? 0}</span>
-            </div>
-          </article>
-        </div>
-      </section>
-
+      {activeInsightView === "weekly" ? (
+      <>
       <section aria-labelledby="week-trend" className="panel-card insight-order-weekly-detail">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -1743,19 +1732,8 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           )}
         </article>
       </section>
-
-      <section className="panel-card insight-order-monthly-detail">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="page-kicker">后续复盘</p>
-            <h2 className="section-heading mt-1">AI 复盘尚未接入</h2>
-            <p className="body-copy mt-2">
-              当前页面只做程序统计。每日 AI 复盘会在 Step 6 进入生成、预览和缓存流程。
-            </p>
-          </div>
-          <CalendarDays aria-hidden="true" className="h-5 w-5 text-[var(--mist)]" />
-        </div>
-      </section>
+      </>
+      ) : null}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import {
   deactivateHabitAction,
+  softDeleteHabitAction,
   softDeleteIdeaAction,
   softDeleteLifeEventAction,
   softDeleteScheduleItemAction,
@@ -658,6 +659,19 @@ function HabitDetailEditSection({
           </button>
         </form>
       ) : null}
+
+      <form action={softDeleteHabitAction} className="danger-zone mt-4">
+        <input type="hidden" name="habitId" value={habit.habitId} />
+        <input type="hidden" name="recordId" value={recordId} />
+        <input type="hidden" name="source" value="detail" />
+        <div>
+          <h3 className="list-label">删除习惯</h3>
+          <p className="body-copy mt-1">删除后，这个习惯不会再出现在今日打卡列表，历史打卡记录仍会保留。</p>
+        </div>
+        <button className="quiet-button danger-button" type="submit">
+          删除习惯
+        </button>
+      </form>
     </section>
   );
 }

@@ -160,6 +160,157 @@
 - `git diff --check` 通过。
 - `npm run build` 通过。
 
+### ✅ Modification Step 18.1：移动端导航修复与每日工作台概览改造
+
+目标：
+
+- 修复移动端点击左上角目录后不弹出目录的问题，让手机端主导航可以稳定打开、关闭和跳转。
+- 将每日工作台的今日概览改为四个快捷切换入口：今日任务、今日习惯、今日日程、随手记录。
+- 点击某个快捷入口后仍停留在每日工作台，只切换下方显示的对应列表。
+- 将晚间复盘放到今日概览和四类列表上方，避免任务、日程或记录列表过长时需要下拉很久才能复盘。
+- 每日工作台里的随手记录列表只显示单行内容预览，超出部分用省略号处理，完整内容仍在详情页查看。
+
+完成内容：
+
+- 移动端主导航改为 `MobileNavDrawer` 客户端组件，通过 portal 挂载到 `document.body`，避免被移动端 header 层级和背景效果遮挡。
+- 点击左上角三横线后弹出左侧长条目录，显示每日工作台、成长记录、洞察报告、纪念日和设置。
+- 今日概览四个入口不再依赖移动端横向滑动；未选择入口时只显示选择提示。
+- 通过 `/daily?view=tasks|habits|schedule|notes` 控制当前列表。
+- 对应列表右上角提供“新增”按钮，点击后展开当前列表的创建表单。
+- 晚间复盘入口放在当前列表上方。
+- 随手记录列表改为单行省略。
+- 本 Step 未修改数据库 schema，未生成迁移，未执行真实数据库迁移，未写入测试业务数据。
+
+影响范围：
+
+- `src/components/mobile-nav-drawer.tsx`
+- `src/components/app-shell.tsx`
+- `src/app/daily/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+- `memory-bank/modification-plan.md`
+
+验证：
+
+- 手机宽度下点击目录按钮能打开左侧目录。
+- 手机宽度下目录遮罩和面板不被页面内容遮挡。
+- 点击目录中的导航链接能正常跳转。
+- 每日工作台四个快捷入口能切换当前显示列表，不离开 `/daily`。
+- 晚间复盘入口在长列表上方可见。
+- 随手记录列表内容单行省略，不把长文本全部铺开。
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+- `npm run build` 通过。
+
+### ✅ Modification Step 18.2：列表置顶、习惯删除与排序规则
+
+目标：
+
+- 今日任务、今日习惯、今日日程和随手记录都支持将某一条置顶。
+- 置顶项优先显示在每日工作台对应列表顶部；未置顶项沿用当前排序规则。
+- 习惯增加删除能力，采用软删除方式写入 `deleted_at`，不物理删除历史数据。
+- 习惯删除后不再出现在今日打卡、洞察报告启用习惯统计和后续选择列表；历史打卡记录仍保留给成长记录和复盘统计使用。
+
+完成内容：
+
+- 为 `tasks`、`habits`、`schedule_items`、`life_events` 和 `ideas` 增加 `is_pinned` 字段，默认 `false`。
+- 生成并执行真实数据库迁移 `drizzle/0006_wandering_slayback.sql`。
+- 每日工作台今日任务、今日习惯、今日日程和随手记录支持置顶与取消置顶。
+- 用户态数据读取层按置顶优先排序，再沿用原有列表排序。
+- 习惯增加软删除 Action 和页面入口，删除时写入 `deleted_at` 并同步 `is_active = false`。
+- 习惯详情页增加删除入口，历史习惯打卡记录仍可保留。
+- 统一补充置顶和习惯删除反馈文案。
+
+验证：
+
+- `npm run db:generate` 通过。
+- 迁移 SQL 检查通过，不包含密钥、连接字符串或无关表结构改动。
+- Faye 单独确认后已执行 `npm run db:migrate`。
+- `npm run db:migrate` 通过，真实 Supabase 数据库迁移成功。
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+- `npm run build` 通过。
+
+### ✅ Modification Step 18.3：洞察报告入口分流与问题拆解排版优化
+
+目标：
+
+- 洞察报告主界面保留横向入口：问题拆解、周复盘、月复盘。
+- 洞察报告主界面不再直接堆叠展示完整周复盘程序统计、周复盘发送预览、本周趋势、记录数量趋势、习惯状态、情绪记录和月复盘细节。
+- 点击周复盘入口后进入周复盘对应视图，再展示最近 7 天程序统计、发送预览、报告缓存、趋势图表、习惯状态和情绪记录。
+- 点击月复盘入口后进入月复盘对应视图，再展示本月程序统计、发送预览、报告缓存和已有周复盘摘要。
+- 问题拆解页面的三类模块重新排版，让情绪复盘、压力整理和明日计划更像可选择的工具入口，而不是普通信息卡片。
+
+完成内容：
+
+- `/insights` 默认只展示复盘入口和成长概览，不再直接展示周/月复盘长内容。
+- `/insights?view=weekly` 展示周复盘程序统计、周复盘发送预览、周复盘报告缓存、本周趋势、记录数量趋势、习惯状态和情绪记录。
+- `/insights?view=monthly` 展示月复盘程序统计、月复盘发送预览、月复盘报告缓存和已有周复盘摘要。
+- 周/月复盘生成、缓存和错误跳转会保留在对应 `view` 视图中。
+- 洞察报告默认页移除原今日概览，今日完成情况合并回每日工作台。
+- 每日工作台今日概览先展示任务完成率、习惯打卡、今日日程和随手记录完成情况，再展示四个列表入口。
+- 问题拆解页面三类模块改成可点击工具入口，点击后定位到新增记录表单。
+
+影响范围：
+
+- `src/app/daily/page.tsx`
+- `src/app/insights/actions.ts`
+- `src/app/insights/page.tsx`
+- `src/app/toolbox/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@architecture.md`（本 Step 验收通过后更新完成态）
+
+验证：
+
+- `/insights` 默认只展示洞察报告入口和必要总览，不再直接堆很长的周/月复盘细节。
+- `/insights?view=weekly` 或等价入口能展示周复盘相关内容。
+- `/insights?view=monthly` 或等价入口能展示月复盘相关内容。
+- 周复盘、月复盘发送预览仍只预览，不自动调用 AI。
+- 每日工作台今日概览先显示完成情况，再显示列表入口。
+- 问题拆解三类工具在 PC 和手机端都清晰、不拥挤、不文字重叠。
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+- `npm run build` 通过。
+- `/daily`、`/insights`、`/insights?view=weekly`、`/insights?view=monthly` 和 `/toolbox` 本地返回 `200`。
+
+## Planned
+
+### Modification Step 18.4：PC 账号入口右上角与公开版设置页改造
+
+目标：
+
+- PC 端账号登录状态从左下角移到页面右上角，和移动端右上角账号入口保持一致。
+- 左侧导航只保留主导航和产品标识，不再展示过时的内部阶段卡片。
+- 设置页改成适合公开版用户看到的“账号与应用设置”，不再对外展示 Supabase URL、Database URL、service role key、AI API key、AI provider 等内部配置状态。
+- 外部用户不适合看到的内部部署、密钥、数据库健康检查和开发阶段说明从公开界面移除。
+- 对于只有基础页面壳、暂不适合公开暴露的入口，优先收敛到主流程或通过登录/空状态解释，避免像内部开发后台。
+
+预计影响范围：
+
+- `src/components/app-shell.tsx`
+- `src/app/settings/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/@product-requirements-document.md`（如公开版访问原则需要补充）
+- `memory-bank/@architecture.md`（本 Step 验收通过后更新完成态）
+
+产品原则：
+
+- 公开版面向外部用户时，只展示用户能理解、能操作的内容。
+- 部署配置、密钥存在性、数据库连接状态和内部工程阶段不作为公开 UI 展示。
+- 写入仍需要登录；未登录用户可以浏览界面结构，但不能保存个人数据。
+- AI 未配置时，用户只看到 AI 复盘暂不可用或程序摘要可用，不看到底层环境变量名称。
+
+验证：
+
+- PC 端右上角能看到账号状态和登录/退出入口。
+- 左侧导航底部不再显示“认证基线接入”等内部阶段说明。
+- 设置页不出现 Supabase、Database URL、service role key、AI API key、AI provider 等内部配置字段。
+- 未登录和已登录状态下设置页都不会泄露密钥、连接字符串或底层错误。
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+- `npm run build` 通过。
+
 ## Candidate Modifications
 
 ### 后续观察

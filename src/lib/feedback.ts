@@ -108,6 +108,11 @@ export const dailyTaskUpdatedFeedback: Record<string, FeedbackMessage> = {
     title: "任务已删除",
     detail: "这条任务已从每日工作台、成长记录和统计中移除。",
   },
+  pinned: {
+    tone: "success",
+    title: "任务置顶状态已更新",
+    detail: "今日任务列表会优先显示置顶任务。",
+  },
 };
 
 export const dailyHabitErrorFeedback: Record<string, FeedbackMessage> = {
@@ -154,6 +159,16 @@ export const dailyHabitUpdatedFeedback: Record<string, FeedbackMessage> = {
     title: "习惯已停用",
     detail: "这个习惯不会再出现在今日打卡列表，历史打卡记录仍会保留。",
   },
+  deleted: {
+    tone: "success",
+    title: "习惯已删除",
+    detail: "这个习惯不会再出现在今日打卡和统计中，历史打卡记录仍会保留。",
+  },
+  pinned: {
+    tone: "success",
+    title: "习惯置顶状态已更新",
+    detail: "今日习惯列表会优先显示置顶习惯。",
+  },
 };
 
 export const dailyScheduleErrorFeedback: Record<string, FeedbackMessage> = {
@@ -199,6 +214,11 @@ export const dailyScheduleUpdatedFeedback: Record<string, FeedbackMessage> = {
     tone: "success",
     title: "日程已删除",
     detail: "这条日程已从每日工作台、成长记录和统计中移除。",
+  },
+  pinned: {
+    tone: "success",
+    title: "日程置顶状态已更新",
+    detail: "今日日程列表会优先显示置顶日程。",
   },
 };
 
@@ -263,6 +283,11 @@ export const dailyRecordUpdatedFeedback: Record<string, FeedbackMessage> = {
     tone: "success",
     title: "灵感已删除",
     detail: "这条灵感已从每日工作台、成长记录和统计中移除。",
+  },
+  pinned: {
+    tone: "success",
+    title: "记录置顶状态已更新",
+    detail: "随手记录列表会优先显示置顶记录。",
   },
 };
 

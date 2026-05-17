@@ -6,12 +6,12 @@ import {
   Gift,
   LogIn,
   LogOut,
-  Menu,
   Settings,
   UserRound,
 } from "lucide-react";
 
 import { signOutAction } from "@/app/auth/actions";
+import { MobileNavDrawer } from "@/components/mobile-nav-drawer";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 
@@ -32,69 +32,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
         <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col lg:flex-row">
           <header className="mobile-shell-header lg:hidden">
-            <details className="mobile-nav-drawer">
-              <summary aria-label="打开主导航" className="mobile-nav-trigger">
-                <Menu aria-hidden="true" className="h-4 w-4" />
-              </summary>
-              <div className="mobile-nav-backdrop" />
-              <div className="mobile-nav-panel">
-                <div className="flex items-center justify-between gap-3">
-                  <Link
-                    href="/"
-                    className="flex items-center gap-3 text-base font-bold text-[var(--foreground)]"
-                  >
-                    <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--lavender-soft)] text-sm font-bold text-[var(--lavender)]">
-                      GI
-                    </span>
-                    <span>Growth Insight</span>
-                  </Link>
-                </div>
-
-                <nav aria-label="移动端主导航" className="mt-5 grid gap-2">
-                  {navigationItems.map((item) => {
-                    const Icon = item.icon;
-
-                    return (
-                      <Link key={item.href} href={item.href} className="nav-link">
-                        <span className="nav-icon">
-                          <Icon aria-hidden="true" className="h-4 w-4" />
-                        </span>
-                        <span>{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
-
-                <div className="mt-5 rounded-lg border border-[var(--border)] bg-[var(--card)] p-4">
-                  <div className="flex items-center gap-2">
-                    <span className="nav-icon">
-                      <UserRound aria-hidden="true" className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-[var(--subtle-foreground)]">
-                        账号状态
-                      </p>
-                      <p className="truncate text-sm font-semibold text-[var(--foreground)]">
-                        {user?.email ?? "未登录"}
-                      </p>
-                    </div>
-                  </div>
-                  {user ? (
-                    <form action={signOutAction} className="mt-3">
-                      <button className="soft-button w-full" type="submit">
-                        <LogOut aria-hidden="true" className="h-4 w-4" />
-                        退出
-                      </button>
-                    </form>
-                  ) : (
-                    <Link className="soft-button mt-3 w-full" href={loginPath}>
-                      <LogIn aria-hidden="true" className="h-4 w-4" />
-                      登录 / 注册
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </details>
+            <MobileNavDrawer loginPath={loginPath} userEmail={user?.email ?? null} />
 
             <Link href="/" className="mobile-shell-brand">
               <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--lavender-soft)] text-xs font-bold text-[var(--lavender)]">

@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Lightbulb,
   NotebookPen,
+  Pin,
   Plus,
   Repeat2,
   Sparkles,
@@ -19,9 +20,15 @@ import {
   createTaskAction,
   deactivateHabitAction,
   generateDailyReviewAction,
+  softDeleteHabitAction,
   softDeleteIdeaAction,
   softDeleteLifeEventAction,
   softDeleteScheduleItemAction,
+  updateHabitPinnedAction,
+  updateIdeaPinnedAction,
+  updateLifeEventPinnedAction,
+  updateSchedulePinnedAction,
+  updateTaskPinnedAction,
   updateHabitCheckinAction,
   updateTaskStatusAction,
 } from "@/app/daily/actions";
@@ -80,6 +87,7 @@ import {
 type DailyPageProps = {
   searchParams?: Promise<{
     create?: string;
+    view?: string;
     taskCreated?: string;
     taskError?: string;
     taskUpdated?: string;
@@ -171,7 +179,18 @@ function getBeijingDateAfter(days: number, date = new Date()) {
   return getBeijingDateValue(targetDate);
 }
 
-const dailySections = [
+type DailySectionId = "tasks" | "habits" | "schedule" | "notes";
+
+const dailySections: Array<{
+  id: DailySectionId;
+  title: string;
+  emptyTitle: string;
+  emptyDescription: string;
+  actionLabel: string;
+  Icon: typeof ClipboardList;
+  EmptyIcon: typeof Plus;
+  tone: string;
+}> = [
   {
     id: "tasks",
     title: "今日任务",
@@ -354,6 +373,55 @@ function DeactivateHabitAction({ habitId }: { habitId: string }) {
   );
 }
 
+function DeleteHabitAction({ habitId }: { habitId: string }) {
+  return (
+    <form action={softDeleteHabitAction}>
+      <input type="hidden" name="habitId" value={habitId} />
+      <input type="hidden" name="source" value="daily" />
+      <button className="quiet-button danger-button" type="submit">
+        <Trash2 aria-hidden="true" className="h-4 w-4" />
+        删除
+      </button>
+    </form>
+  );
+}
+
+function PinAction({
+  id,
+  isPinned,
+  kind,
+}: {
+  id: string;
+  isPinned: boolean;
+  kind: "task" | "habit" | "schedule" | "event" | "idea";
+}) {
+  const actionByKind = {
+    task: updateTaskPinnedAction,
+    habit: updateHabitPinnedAction,
+    schedule: updateSchedulePinnedAction,
+    event: updateLifeEventPinnedAction,
+    idea: updateIdeaPinnedAction,
+  };
+  const fieldByKind = {
+    task: "taskId",
+    habit: "habitId",
+    schedule: "scheduleId",
+    event: "eventId",
+    idea: "ideaId",
+  };
+
+  return (
+    <form action={actionByKind[kind]}>
+      <input type="hidden" name={fieldByKind[kind]} value={id} />
+      <input type="hidden" name="isPinned" value={isPinned ? "false" : "true"} />
+      <button className="quiet-button" type="submit">
+        <Pin aria-hidden="true" className="h-4 w-4" />
+        {isPinned ? "取消置顶" : "置顶"}
+      </button>
+    </form>
+  );
+}
+
 function HabitCheckinAction({
   habit,
   isCheckedToday,
@@ -445,8 +513,41 @@ function getRecordPreview(content: string) {
   return content.length > 96 ? `${content.slice(0, 96)}...` : content;
 }
 
-function EmptyOverviewLine({ text }: { text: string }) {
-  return <p className="list-meta">{text}</p>;
+function getDailySectionId(value: string | undefined): DailySectionId | null {
+  return dailySections.some((section) => section.id === value)
+    ? (value as DailySectionId)
+    : null;
+}
+
+function getCreateSectionId(value: string | undefined): DailySectionId | null {
+  if (value === "task") {
+    return "tasks";
+  }
+
+  if (value === "habit") {
+    return "habits";
+  }
+
+  if (value === "schedule") {
+    return "schedule";
+  }
+
+  if (value === "record") {
+    return "notes";
+  }
+
+  return null;
+}
+
+function getCreateHref(sectionId: DailySectionId) {
+  const createValue: Record<DailySectionId, string> = {
+    tasks: "task",
+    habits: "habit",
+    schedule: "schedule",
+    notes: "record",
+  };
+
+  return `/daily?view=${sectionId}&create=${createValue[sectionId]}#${sectionId}`;
 }
 
 function getSearchParamValues(
@@ -866,6 +967,33 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     params?.recordError === "missing_content" ||
     params?.recordError === "invalid_type" ||
     params?.recordError === "save_failed";
+  const activeSectionId: DailySectionId | null =
+    getDailySectionId(params?.view) ??
+    getCreateSectionId(params?.create) ??
+    (params?.taskCreated || params?.taskError || params?.taskUpdated ? "tasks" : null) ??
+    (params?.habitCreated || params?.habitError || params?.habitUpdated ? "habits" : null) ??
+    (params?.scheduleCreated || params?.scheduleError || params?.scheduleUpdated ? "schedule" : null) ??
+    (params?.recordCreated || params?.recordError || params?.recordUpdated ? "notes" : null);
+  const activeSections = activeSectionId
+    ? dailySections.filter((section) => section.id === activeSectionId)
+    : [];
+  const dailySectionCounts: Record<DailySectionId, number> = {
+    tasks: todayTasks.length,
+    habits: activeHabits.length,
+    schedule: todayScheduleItems.length,
+    notes: todayLifeEvents.length + todayIdeas.length,
+  };
+  const todayCompletedTaskCount = todayTasks.filter((task) => task.status === "completed").length;
+  const todayHabitCheckedCount = activeHabits.filter((habit) =>
+    habitStatsById.get(habit.id)?.isCheckedToday,
+  ).length;
+  const todayTaskRate = todayTasks.length
+    ? Math.round((todayCompletedTaskCount / todayTasks.length) * 100)
+    : 0;
+  const todayHabitRate = activeHabits.length
+    ? Math.round((todayHabitCheckedCount / activeHabits.length) * 100)
+    : 0;
+  const todayRecordCount = todayLifeEvents.length + todayIdeas.length;
 
   return (
     <div className="page-stack">
@@ -906,119 +1034,74 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
           <div>
             <p className="page-kicker">今日概览</p>
             <h2 id="daily-overview" className="section-heading mt-1">
-              今天要看的清单
+              完成情况与列表入口
             </h2>
           </div>
-          <span className="status-pill w-fit">简洁列表</span>
+          <span className="status-pill w-fit">切换列表</span>
         </div>
-        <div className="daily-summary-grid mt-5">
+
+        <div className="insight-kpi-grid mt-5">
           <article className="daily-summary-card tone-lavender">
-            <div className="overview-card-header">
-              <p className="metric-label">今日任务</p>
-              <Link className="overview-card-action" href={isLoggedIn ? "/daily?create=task#tasks" : loginPath}>
-                <Plus aria-hidden="true" className="h-3.5 w-3.5" />
-                <span>新建</span>
-              </Link>
-            </div>
-            <div className="task-list mt-4">
-              {todayTasks.length ? (
-                todayTasks.slice(0, 5).map((task) => (
-                  <div key={task.id} className="compact-main-row">
-                    <TaskCompletionToggle task={task} />
-                    <Link className="list-label list-title-link" href={`/records/task/${task.id}`}>
-                      {task.title}
-                    </Link>
-                  </div>
-                ))
-              ) : (
-                <EmptyOverviewLine text="暂无今日任务" />
-              )}
+            <div className="metric-label">任务完成率</div>
+            <div className="metric-value">{todayTaskRate}%</div>
+            <p className="body-copy mt-2">
+              {todayCompletedTaskCount}/{todayTasks.length} 项已完成
+            </p>
+            <div className="overview-progress mt-4">
+              <span style={{ width: `${todayTaskRate}%` }} />
             </div>
           </article>
 
           <article className="daily-summary-card tone-sage">
-            <div className="overview-card-header">
-              <p className="metric-label">今日习惯</p>
-              <Link className="overview-card-action" href={isLoggedIn ? "/daily?create=habit#habits" : loginPath}>
-                <Plus aria-hidden="true" className="h-3.5 w-3.5" />
-                <span>添加</span>
-              </Link>
+            <div className="metric-label">习惯打卡</div>
+            <div className="metric-value">
+              {todayHabitCheckedCount}/{activeHabits.length}
             </div>
-            <div className="task-list mt-4">
-              {activeHabits.length ? (
-                activeHabits.slice(0, 5).map((habit) => {
-                  const stats = habitStatsById.get(habit.id) ?? {
-                    isCheckedToday: false,
-                    totalCount: 0,
-                    streakCount: 0,
-                  };
-
-                  return (
-                    <div key={habit.id} className="compact-main-row">
-                      <HabitCheckinAction habit={habit} isCheckedToday={stats.isCheckedToday} />
-                      <span className="list-label">{habit.name}</span>
-                    </div>
-                  );
-                })
-              ) : (
-                <EmptyOverviewLine text="暂无启用习惯" />
-              )}
+            <p className="body-copy mt-2">今日已完成的启用习惯。</p>
+            <div className="overview-progress mt-4">
+              <span style={{ width: `${todayHabitRate}%` }} />
             </div>
           </article>
 
           <article className="daily-summary-card tone-clay">
-            <div className="overview-card-header">
-              <p className="metric-label">今日日程</p>
-              <Link className="overview-card-action" href={isLoggedIn ? "/daily?create=schedule#schedule" : loginPath}>
-                <Plus aria-hidden="true" className="h-3.5 w-3.5" />
-                <span>记录</span>
-              </Link>
-            </div>
-            <div className="task-list mt-4">
-              {todayScheduleItems.length ? (
-                todayScheduleItems.slice(0, 5).map((item) => (
-                  <div key={item.id} className="compact-main-row">
-                    <span className="schedule-time-chip">
-                      {formatScheduleTimeRange(item.startTime, item.endTime)}
-                    </span>
-                    <Link className="list-label list-title-link" href={`/records/schedule/${item.id}`}>
-                      {item.title}
-                    </Link>
-                  </div>
-                ))
-              ) : (
-                <EmptyOverviewLine text="暂无今日日程" />
-              )}
-            </div>
+            <div className="metric-label">今日日程</div>
+            <div className="metric-value">{todayScheduleItems.length}</div>
+            <p className="body-copy mt-2">今天已记录的固定事项数量。</p>
           </article>
 
           <article className="daily-summary-card tone-mist">
-            <div className="overview-card-header">
-              <p className="metric-label">随手记录</p>
-              <Link className="overview-card-action" href={isLoggedIn ? "/daily?create=record#notes" : loginPath}>
-                <Plus aria-hidden="true" className="h-3.5 w-3.5" />
-                <span>写入</span>
-              </Link>
-            </div>
-            <div className="task-list mt-4">
-              {todayLifeEvents.length || todayIdeas.length ? (
-                <>
-                  {todayLifeEvents.slice(0, 3).map((event) => (
-                    <Link key={event.id} className="list-label list-title-link" href={`/records/event/${event.id}`}>
-                      {getRecordPreview(event.content)}
-                    </Link>
-                  ))}
-                  {todayIdeas.slice(0, Math.max(0, 5 - todayLifeEvents.slice(0, 3).length)).map((idea) => (
-                    <Link key={idea.id} className="list-label list-title-link" href={`/records/idea/${idea.id}`}>
-                      {getRecordPreview(idea.content)}
-                    </Link>
-                  ))}
-                </>
-              ) : (
-                <EmptyOverviewLine text="暂无随手记录" />
-              )}
+            <div className="metric-label">随手记录</div>
+            <div className="metric-value">{todayRecordCount}</div>
+            <div className="overview-detail-row mt-3">
+              <span className="status-pill">事件 {todayLifeEvents.length}</span>
+              <span className="status-pill">灵感 {todayIdeas.length}</span>
             </div>
           </article>
+        </div>
+
+        <div className="daily-tab-list mt-5" role="list">
+          {dailySections.map((section) => {
+            const Icon = section.Icon;
+            const isActive = section.id === activeSectionId;
+
+            return (
+              <Link
+                key={section.id}
+                aria-current={isActive ? "page" : undefined}
+                className={`daily-tab ${section.tone} ${isActive ? "active" : ""}`}
+                href={`/daily?view=${section.id}#daily-list-section`}
+                role="listitem"
+              >
+                <span className="nav-icon">
+                  <Icon aria-hidden="true" className="h-4 w-4" />
+                </span>
+                <span className="min-w-0">
+                  <span className="daily-tab-title">{section.title}</span>
+                  <span className="daily-tab-meta">{dailySectionCounts[section.id]} 条</span>
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -1062,8 +1145,12 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
         />
       ) : null}
 
-      <section aria-label="每日工作台分区" className="workspace-grid">
-        {dailySections.map((section) => {
+      <section
+        id="daily-list-section"
+        aria-label="每日工作台当前列表"
+        className="workspace-grid active-workspace-grid"
+      >
+        {activeSections.length ? activeSections.map((section) => {
           const Icon = section.Icon;
           const EmptyIcon = section.EmptyIcon;
           const isTaskSection = section.id === "tasks";
@@ -1086,7 +1173,12 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                   <h2 className="section-heading mt-1">{section.title}</h2>
                 </div>
               </div>
-              {(isTaskSection || isHabitSection || isScheduleSection || isNotesSection) && isLoggedIn ? null : (
+              {isLoggedIn ? (
+                <Link className="soft-button w-full sm:w-auto" href={getCreateHref(section.id)}>
+                  <Plus aria-hidden="true" className="h-4 w-4" />
+                  新增
+                </Link>
+              ) : (
                 <WriteAction isLoggedIn={isLoggedIn} label={section.actionLabel} loginPath={loginPath} />
               )}
             </div>
@@ -1169,6 +1261,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                           </div>
                         </div>
                         <div className="compact-actions">
+                          <PinAction id={task.id} isPinned={task.isPinned} kind="task" />
                           <span className={`status-pill ${getTaskStatusTone(task.status)}`}>
                             {getTaskStatusLabel(task.status)}
                           </span>
@@ -1266,10 +1359,12 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                             </div>
                           </div>
                           <div className="compact-actions">
+                            <PinAction id={habit.id} isPinned={habit.isPinned} kind="habit" />
                             <span className={`status-pill ${stats.isCheckedToday ? "task-status-completed" : "task-status-todo"}`}>
                               {stats.isCheckedToday ? "今日已完成" : "今日未完成"}
                             </span>
                             <DeactivateHabitAction habitId={habit.id} />
+                            <DeleteHabitAction habitId={habit.id} />
                           </div>
                         </article>
                       );
@@ -1384,6 +1479,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                           </div>
                         </div>
                         <div className="compact-actions">
+                          <PinAction id={item.id} isPinned={item.isPinned} kind="schedule" />
                           <DeleteScheduleAction scheduleId={item.id} />
                         </div>
                       </article>
@@ -1492,7 +1588,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                         <article key={event.id} className="task-list-item compact-list-item">
                           <div className="min-w-0">
                             <Link className="list-label list-title-link" href={`/records/event/${event.id}`}>
-                              {getRecordPreview(event.content)}
+                              <span className="record-preview-line">{event.content}</span>
                             </Link>
                             <p className="list-meta mt-1">
                               事件 · {event.eventDate} · {getAiAnalysisPermissionLabel(event.aiAnalysisPermission)}
@@ -1513,6 +1609,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                             ) : null}
                           </div>
                           <div className="compact-actions">
+                            <PinAction id={event.id} isPinned={event.isPinned} kind="event" />
                             <DeleteLifeEventAction eventId={event.id} />
                           </div>
                         </article>
@@ -1522,14 +1619,15 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                       <article key={idea.id} className="task-list-item compact-list-item">
                         <div className="min-w-0">
                           <Link className="list-label list-title-link" href={`/records/idea/${idea.id}`}>
-                            {getRecordPreview(idea.content)}
+                              <span className="record-preview-line">{idea.content}</span>
                           </Link>
                           <p className="list-meta mt-1">灵感 · {idea.ideaDate}</p>
                           {idea.solutionNote ? (
-                            <p className="list-meta mt-1">处理说明：{getRecordPreview(idea.solutionNote)}</p>
+                            <p className="list-meta record-preview-line mt-1">处理说明：{idea.solutionNote}</p>
                           ) : null}
                         </div>
                         <div className="compact-actions">
+                          <PinAction id={idea.id} isPinned={idea.isPinned} kind="idea" />
                           <span className="status-pill">{getIdeaStatusLabel(idea.status)}</span>
                           <DeleteIdeaAction ideaId={idea.id} />
                         </div>
@@ -1562,7 +1660,21 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
 
           </article>
           );
-        })}
+        }) : (
+          <section className="panel-card">
+            <div className="empty-state">
+              <span className="empty-icon">
+                <ClipboardList aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="list-label">选择一个今日入口</p>
+                <p className="body-copy mt-1">
+                  点击上方今日任务、今日习惯、今日日程或随手记录后，这里会显示对应列表。
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
       </section>
     </div>
   );

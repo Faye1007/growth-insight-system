@@ -2,11 +2,11 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告和 Modification Step 17.4 个人说明书并入 AI 复盘。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则和 Modification Step 18.3 洞察报告入口分流与问题拆解排版优化。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台默认入口、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、习惯创建、习惯打卡、习惯编辑与停用、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、随手记录、事件编辑与软删除、灵感编辑与软删除、写入区默认收起、今日概览快捷新增入口、每日工作台移动端样式优化、工作台四类简洁列表、每日工作台今日概览简洁清单、移动端抽屉导航、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、事件详情情绪标签兜底显示、洞察报告今日优先展示、洞察报告成长概览、洞察报告 AI 复盘与问题拆解/个人说明书快捷入口、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、周复盘 Markdown 导出、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、月复盘 Markdown 导出、纪念日页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、问题拆解页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 下载路由、复盘报告导出和近期成长记录导出、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台默认入口、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、任务置顶、习惯创建、习惯打卡、习惯编辑与停用、习惯置顶与软删除、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、日程置顶、随手记录、事件编辑与软删除、事件置顶、灵感编辑与软删除、灵感置顶、写入区默认收起、今日概览四入口切换、每日工作台移动端样式优化、工作台四类简洁列表、每日工作台当前列表按入口切换显示、移动端 body portal 抽屉导航、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、事件详情情绪标签兜底显示、洞察报告今日优先展示、洞察报告成长概览、洞察报告 AI 复盘与问题拆解/个人说明书快捷入口、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、周复盘 Markdown 导出、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、月复盘 Markdown 导出、纪念日页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、问题拆解页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 下载路由、复盘报告导出和近期成长记录导出、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
 - 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 
 ## Confirmed Decisions
@@ -2301,6 +2301,109 @@ Supabase Auth Redirect URL 需要配置：
 - `npm run lint` 通过。
 - `git diff --check` 通过。
 - `npm run build` 通过。
+
+### ✅ Modification Step 18.1：移动端导航修复与每日工作台概览改造
+
+已完成内容：
+
+- 移动端左上角三横线菜单改为客户端抽屉组件，并通过 portal 挂载到 `document.body`，避免移动端 `sticky header` 和背景效果影响抽屉显示。
+- 移动端抽屉以左侧长条目录展示主导航，包括每日工作台、成长记录、洞察报告、纪念日和设置。
+- 移动端抽屉打开时锁定页面滚动，点击遮罩、关闭按钮或导航链接可关闭或跳转。
+- 每日工作台今日概览改为四个入口：今日任务、今日习惯、今日日程、随手记录。
+- 今日概览入口使用 URL query `view` 控制当前显示列表；未选择入口时先显示选择提示，不默认展开任务列表。
+- 点击某个入口后仍停留在 `/daily`，只显示对应列表。
+- 对应列表右上角提供“新增”按钮，点击后展开该列表对应的创建表单。
+- 晚间复盘入口放在当前列表上方，避免长列表遮挡复盘入口。
+- 随手记录列表内容改为单行省略，完整内容继续通过详情页查看。
+- 本 Step 未修改数据库 schema，未生成迁移，未执行真实数据库迁移，未写入测试业务数据。
+
+本次新增或更新的文件：
+
+- `src/components/mobile-nav-drawer.tsx`
+- `src/components/app-shell.tsx`
+- `src/app/daily/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/modification-plan.md`
+- `memory-bank/progress.md`
+- `memory-bank/@architecture.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+- `npm run build` 通过。
+- Faye 已确认移动端三横线菜单可正常弹出目录，并确认 Step 18.1 通过。
+
+### ✅ Modification Step 18.2：列表置顶、习惯删除与排序规则
+
+已完成内容：
+
+- 为任务、习惯、日程、人生笔记和灵感增加 `is_pinned` 字段，旧数据默认未置顶。
+- 生成并执行真实数据库迁移 `drizzle/0006_wandering_slayback.sql`。
+- 每日工作台今日任务、今日习惯、今日日程和随手记录列表支持置顶和取消置顶。
+- 置顶项在对应列表顶部展示；未置顶项继续沿用原有业务排序。
+- 习惯增加删除能力，采用软删除方式写入 `deleted_at`，并同步置为不启用，不物理删除历史打卡。
+- 习惯详情页增加删除入口；删除后今日习惯列表和启用习惯统计不再显示该习惯。
+- 统一补充置顶和习惯删除的成功反馈文案。
+
+本次新增或更新的文件：
+
+- `src/db/schema.ts`
+- `drizzle/0006_wandering_slayback.sql`
+- `drizzle/meta/_journal.json`
+- `drizzle/meta/0006_snapshot.json`
+- `src/lib/data/user-data.ts`
+- `src/app/daily/actions.ts`
+- `src/app/daily/page.tsx`
+- `src/app/records/[kind]/[id]/page.tsx`
+- `src/lib/feedback.ts`
+- `memory-bank/modification-plan.md`
+- `memory-bank/progress.md`
+- `memory-bank/@architecture.md`
+
+验证记录：
+
+- `npm run db:generate` 通过。
+- 迁移 SQL 检查通过，只为 `habits`、`ideas`、`life_events`、`schedule_items` 和 `tasks` 增加 `is_pinned` 字段。
+- Faye 已单独确认执行真实数据库迁移。
+- `npm run db:migrate` 通过，真实 Supabase 数据库迁移成功。
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+- `npm run build` 通过。
+- Faye 已确认继续，视为 Step 18.2 通过并进入下一步。
+
+### ✅ Modification Step 18.3：洞察报告入口分流与问题拆解排版优化
+
+已完成内容：
+
+- 洞察报告默认页改为只展示复盘入口和成长概览，不再直接堆叠完整周/月复盘长内容。
+- 洞察报告横向入口保留问题拆解、周复盘和月复盘。
+- `/insights?view=weekly` 展示周复盘程序统计、周复盘发送预览、周复盘报告缓存、本周趋势、记录数量趋势、习惯状态和情绪记录。
+- `/insights?view=monthly` 展示月复盘程序统计、月复盘发送预览、月复盘报告缓存和已有周复盘摘要。
+- 周/月复盘生成、缓存和错误跳转保留在对应视图中，避免回到默认总览后看不到结果。
+- 洞察报告默认页移除今日概览，今日完成情况合并回每日工作台。
+- 每日工作台今日概览先展示任务完成率、习惯打卡、今日日程和随手记录完成情况，再展示今日任务、今日习惯、今日日程和随手记录四个列表入口。
+- 问题拆解页面三类模块改为可点击工具入口，点击后定位到新增记录表单。
+- 本 Step 未修改数据库 schema，未生成迁移，未执行真实数据库迁移，未写入测试业务数据。
+
+本次新增或更新的文件：
+
+- `src/app/daily/page.tsx`
+- `src/app/insights/actions.ts`
+- `src/app/insights/page.tsx`
+- `src/app/toolbox/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/modification-plan.md`
+- `memory-bank/progress.md`
+- `memory-bank/@architecture.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+- `npm run build` 通过。
+- `/daily`、`/insights`、`/insights?view=weekly`、`/insights?view=monthly` 和 `/toolbox` 本地返回 `200`。
+- Faye 已确认继续，视为 Step 18.3 通过并进入下一步。
 
 ## Not Started
 

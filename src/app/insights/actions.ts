@@ -46,7 +46,7 @@ export async function generateWeeklyReviewAction(formData: FormData) {
   const weekEnd = getStringValue(formData, "weekEnd");
 
   if (!isValidDateValue(weekStart) || !isValidDateValue(weekEnd)) {
-    redirect("/insights?weeklyReviewError=context_failed#weekly-review-preview");
+    redirect("/insights?view=weekly&weeklyReviewError=context_failed#weekly-review-preview");
   }
 
   let existingReport: { id: string } | undefined;
@@ -55,11 +55,11 @@ export async function generateWeeklyReviewAction(formData: FormData) {
     existingReport =
       (await getCompletedWeeklyReviewReportIdForUser(user.id, weekStart, weekEnd)) ?? undefined;
   } catch {
-    redirect("/insights?weeklyReviewError=context_failed#weekly-review-preview");
+    redirect("/insights?view=weekly&weeklyReviewError=context_failed#weekly-review-preview");
   }
 
   if (existingReport) {
-    redirect("/insights?weeklyReviewCached=1#weekly-review-report");
+    redirect("/insights?view=weekly&weeklyReviewCached=1#weekly-review-report");
   }
 
   let context: WeeklyReviewContext;
@@ -70,7 +70,7 @@ export async function generateWeeklyReviewAction(formData: FormData) {
       end: weekEnd,
     });
   } catch {
-    redirect("/insights?weeklyReviewError=context_failed#weekly-review-preview");
+    redirect("/insights?view=weekly&weeklyReviewError=context_failed#weekly-review-preview");
   }
 
   const selectedOriginalEventIds = getStringValues(formData, "weeklyOriginalEventId");
@@ -85,10 +85,10 @@ export async function generateWeeklyReviewAction(formData: FormData) {
     output = await generateReview(reviewInput);
   } catch (error) {
     if (error instanceof AiConfigurationError) {
-      redirect("/insights?weeklyReviewError=missing_ai_config#weekly-review-preview");
+      redirect("/insights?view=weekly&weeklyReviewError=missing_ai_config#weekly-review-preview");
     }
 
-    redirect("/insights?weeklyReviewError=provider_failed#weekly-review-preview");
+    redirect("/insights?view=weekly&weeklyReviewError=provider_failed#weekly-review-preview");
   }
 
   const now = new Date();
@@ -111,11 +111,11 @@ export async function generateWeeklyReviewAction(formData: FormData) {
       generatedAt: now,
     });
   } catch {
-    redirect("/insights?weeklyReviewError=save_failed#weekly-review-preview");
+    redirect("/insights?view=weekly&weeklyReviewError=save_failed#weekly-review-preview");
   }
 
   revalidatePath("/insights");
-  redirect("/insights?weeklyReviewGenerated=1#weekly-review-report");
+  redirect("/insights?view=weekly&weeklyReviewGenerated=1#weekly-review-report");
 }
 
 export async function generateMonthlyReviewAction(formData: FormData) {
@@ -124,7 +124,7 @@ export async function generateMonthlyReviewAction(formData: FormData) {
   const monthEnd = getStringValue(formData, "monthEnd");
 
   if (!isValidDateValue(monthStart) || !isValidDateValue(monthEnd)) {
-    redirect("/insights?monthlyReviewError=context_failed#monthly-review-preview");
+    redirect("/insights?view=monthly&monthlyReviewError=context_failed#monthly-review-preview");
   }
 
   let existingReport: { id: string } | undefined;
@@ -133,11 +133,11 @@ export async function generateMonthlyReviewAction(formData: FormData) {
     existingReport =
       (await getCompletedMonthlyReviewReportIdForUser(user.id, monthStart, monthEnd)) ?? undefined;
   } catch {
-    redirect("/insights?monthlyReviewError=context_failed#monthly-review-preview");
+    redirect("/insights?view=monthly&monthlyReviewError=context_failed#monthly-review-preview");
   }
 
   if (existingReport) {
-    redirect("/insights?monthlyReviewCached=1#monthly-review-report");
+    redirect("/insights?view=monthly&monthlyReviewCached=1#monthly-review-report");
   }
 
   let context: MonthlyReviewContext;
@@ -148,7 +148,7 @@ export async function generateMonthlyReviewAction(formData: FormData) {
       end: monthEnd,
     });
   } catch {
-    redirect("/insights?monthlyReviewError=context_failed#monthly-review-preview");
+    redirect("/insights?view=monthly&monthlyReviewError=context_failed#monthly-review-preview");
   }
 
   const reviewInput = context.aiInput;
@@ -158,10 +158,10 @@ export async function generateMonthlyReviewAction(formData: FormData) {
     output = await generateReview(reviewInput);
   } catch (error) {
     if (error instanceof AiConfigurationError) {
-      redirect("/insights?monthlyReviewError=missing_ai_config#monthly-review-preview");
+      redirect("/insights?view=monthly&monthlyReviewError=missing_ai_config#monthly-review-preview");
     }
 
-    redirect("/insights?monthlyReviewError=provider_failed#monthly-review-preview");
+    redirect("/insights?view=monthly&monthlyReviewError=provider_failed#monthly-review-preview");
   }
 
   const now = new Date();
@@ -183,9 +183,9 @@ export async function generateMonthlyReviewAction(formData: FormData) {
       generatedAt: now,
     });
   } catch {
-    redirect("/insights?monthlyReviewError=save_failed#monthly-review-preview");
+    redirect("/insights?view=monthly&monthlyReviewError=save_failed#monthly-review-preview");
   }
 
   revalidatePath("/insights");
-  redirect("/insights?monthlyReviewGenerated=1#monthly-review-report");
+  redirect("/insights?view=monthly&monthlyReviewGenerated=1#monthly-review-report");
 }
