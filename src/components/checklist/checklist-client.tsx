@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { updateHabitCheckinAction, updateTaskStatusAction } from "@/app/daily/actions";
-import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
+import { getTaskCategoryLabel } from "@/lib/tasks/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
 
 type ChecklistTab = "tasks" | "schedules" | "habits" | "ideas";
@@ -129,6 +129,46 @@ function getIdeaStatusLabel(value: string) {
   return map[value] ?? value;
 }
 
+function formatDateLabel(dateStr: string): string {
+  const d = new Date(`${dateStr}T00:00:00+08:00`);
+  const today = new Date();
+  const todayStr = getBeijingDateValue(today);
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const yesterdayStr = getBeijingDateValue(yesterday);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const tomorrowStr = getBeijingDateValue(tomorrow);
+
+  if (dateStr === todayStr) return "今天";
+  if (dateStr === yesterdayStr) return "昨天";
+  if (dateStr === tomorrowStr) return "明天";
+
+  const weekdayFormatter = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    weekday: "short",
+  });
+  const monthDayFormatter = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    month: "numeric",
+    day: "numeric",
+  });
+  return `${monthDayFormatter.format(d)} ${weekdayFormatter.format(d)}`;
+}
+
+function groupByDate<T extends { taskDate?: string; scheduleDate?: string; ideaDate?: string }>(
+  items: T[],
+  dateKey: "taskDate" | "scheduleDate" | "ideaDate",
+): [string, T[]][] {
+  const groups = new Map<string, T[]>();
+  for (const item of items) {
+    const date = item[dateKey] ?? "";
+    if (!groups.has(date)) groups.set(date, []);
+    groups.get(date)!.push(item);
+  }
+  return [...groups.entries()].sort((a, b) => b[0].localeCompare(a[0]));
+}
+
 export function ChecklistClient({
   initialTab = "tasks",
   tasks,
@@ -147,6 +187,7 @@ export function ChecklistClient({
   const [weekOffset, setWeekOffset] = useState(0);
 
   const today = new Date();
+  const todayStr = getBeijingDateValue(today);
   const weekRefDate = new Date(today);
   weekRefDate.setDate(today.getDate() + weekOffset * 7);
   const weekDays = getWeekDays(weekRefDate);
@@ -171,6 +212,18 @@ export function ChecklistClient({
     (i) => i.ideaDate >= weekStart && i.ideaDate <= weekEnd,
   );
 
+  const todayTasks = filteredTasks.filter((t) => t.taskDate === todayStr);
+  const todaySchedules = filteredSchedules.filter((s) => {
+    if (s.recurrence === "none") return s.scheduleDate === todayStr;
+    const start = s.startDate ?? s.scheduleDate;
+    const end = s.endDate;
+    if (start > todayStr) return false;
+    if (end && end < todayStr) return false;
+    return true;
+  });
+  const todayHabits = filteredHabits;
+  const todayIdeas = filteredIdeas.filter((i) => i.ideaDate === todayStr);
+
   return (
     <div className="page-stack">
       <header className="page-header">
@@ -180,6 +233,9 @@ export function ChecklistClient({
             <h1 className="page-title">任务、日程、习惯和灵感</h1>
           </div>
           <div className="flex items-center gap-2">
+            <Link className="quiet-button" href="/records">
+              成长记录 →
+            </Link>
             <button
               className={`quiet-button ${view === "list" ? "bg-[var(--mist-soft)] border-[var(--mist)]" : ""}`}
               type="button"
@@ -205,12 +261,19 @@ export function ChecklistClient({
         {tabs.map((tab) => {
           const Icon = tab.Icon;
           const isActive = tab.id === activeTab;
-          const counts: Record<ChecklistTab, number> = {
+          const weekCounts: Record<ChecklistTab, number> = {
             tasks: filteredTasks.length,
             schedules: filteredSchedules.length,
             habits: filteredHabits.length,
             ideas: filteredIdeas.length,
           };
+          const todayCounts: Record<ChecklistTab, number> = {
+            tasks: todayTasks.length,
+            schedules: todaySchedules.length,
+            habits: todayHabits.length,
+            ideas: todayIdeas.length,
+          };
+          const counts = view === "week" ? weekCounts : todayCounts;
 
           return (
             <button
@@ -225,7 +288,9 @@ export function ChecklistClient({
               </span>
               <span className="min-w-0">
                 <span className="daily-tab-title">{tab.label}</span>
-                <span className="daily-tab-meta">{counts[tab.id]} 条</span>
+                <span className="daily-tab-meta">
+                  {counts[tab.id]} 条{view === "list" ? " · 今日" : ""}
+                </span>
               </span>
             </button>
           );
@@ -264,49 +329,49 @@ export function ChecklistClient({
           {view === "list" ? (
             filteredTasks.length > 0 ? (
               <div className="task-list mt-4">
-                {filteredTasks.map((task) => (
-                  <article
-                    key={task.id}
-                    className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}
-                  >
-                    <div className="compact-main-row">
-                      <form action={updateTaskStatusAction}>
-                        <input type="hidden" name="taskId" value={task.id} />
-                        <input
-                          type="hidden"
-                          name="status"
-                          value={task.status === "completed" ? "todo" : "completed"}
-                        />
-                        <button
-                          aria-label={
-                            task.status === "completed"
-                              ? `取消完成 ${task.title}`
-                              : `完成 ${task.title}`
-                          }
-                          className={`quick-check-button ${task.status === "completed" ? "checked" : ""}`}
-                          type="submit"
-                        >
-                          <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-                        </button>
-                      </form>
-                      <div className="min-w-0">
-                        <Link
-                          className="list-label list-title-link"
-                          href={`/records/task/${task.id}`}
-                        >
-                          {task.title}
-                        </Link>
-                        <p className="list-meta mt-1">
-                          {getTaskCategoryLabel(task.category)} · {task.taskDate}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="compact-actions">
-                      <span className={`status-pill ${getTaskStatusTone(task.status)}`}>
-                        {getTaskStatusLabel(task.status)}
-                      </span>
-                    </div>
-                  </article>
+                {groupByDate(filteredTasks, "taskDate").map(([date, tasks]) => (
+                  <div key={date} className="mb-4">
+                    <h3 className="date-group-header">{formatDateLabel(date)}</h3>
+                    {tasks.map((task) => (
+                      <article
+                        key={task.id}
+                        className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}
+                      >
+                        <div className="compact-main-row">
+                          <form action={updateTaskStatusAction}>
+                            <input type="hidden" name="taskId" value={task.id} />
+                            <input
+                              type="hidden"
+                              name="status"
+                              value={task.status === "completed" ? "todo" : "completed"}
+                            />
+                            <button
+                              aria-label={
+                                task.status === "completed"
+                                  ? `取消完成 ${task.title}`
+                                  : `完成 ${task.title}`
+                              }
+                              className={`quick-check-button ${task.status === "completed" ? "checked" : ""}`}
+                              type="submit"
+                            >
+                              <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
+                            </button>
+                          </form>
+                          <div className="min-w-0">
+                            <Link
+                              className={`list-label list-title-link ${task.status === "completed" ? "line-through" : ""}`}
+                              href={`/records/task/${task.id}`}
+                            >
+                              {task.title}
+                            </Link>
+                            <p className="list-meta mt-1">
+                              {getTaskCategoryLabel(task.category)}
+                            </p>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
                 ))}
               </div>
             ) : (
@@ -368,33 +433,33 @@ export function ChecklistClient({
           {view === "list" ? (
             filteredSchedules.length > 0 ? (
               <div className="task-list mt-4">
-                {filteredSchedules.map((item) => (
-                  <article
-                    key={item.id}
-                    className="task-list-item compact-list-item task-status-todo"
-                  >
-                    <div className="compact-main-row">
-                      <div className="schedule-time-chip">
-                        {item.startTime ? item.startTime.slice(0, 5) : "--:--"}
-                      </div>
-                      <div className="min-w-0">
-                        <Link
-                          className="list-label list-title-link"
-                          href={`/records/schedule/${item.id}`}
-                        >
-                          {item.title}
-                        </Link>
-                        <p className="list-meta mt-1">
-                          {getTaskCategoryLabel(item.category)} · {item.scheduleDate}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="compact-actions">
-                      <span className="status-pill">
-                        {item.startTime ? item.startTime.slice(0, 5) : "未设置时间"}
-                      </span>
-                    </div>
-                  </article>
+                {groupByDate(filteredSchedules, "scheduleDate").map(([date, items]) => (
+                  <div key={date} className="mb-4">
+                    <h3 className="date-group-header">{formatDateLabel(date)}</h3>
+                    {items.map((item) => (
+                      <article
+                        key={item.id}
+                        className="task-list-item compact-list-item task-status-todo"
+                      >
+                        <div className="compact-main-row">
+                          <div className="schedule-time-chip">
+                            {item.startTime ? item.startTime.slice(0, 5) : "--:--"}
+                          </div>
+                          <div className="min-w-0">
+                            <Link
+                              className="list-label list-title-link"
+                              href={`/records/schedule/${item.id}`}
+                            >
+                              {item.title}
+                            </Link>
+                            <p className="list-meta mt-1">
+                              {getTaskCategoryLabel(item.category)}
+                            </p>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
                 ))}
               </div>
             ) : (
@@ -508,13 +573,6 @@ export function ChecklistClient({
                         </p>
                       </div>
                     </div>
-                    <div className="compact-actions">
-                      <span
-                        className={`status-pill ${habit.isCheckedOnDate ? "task-status-completed" : "task-status-todo"}`}
-                      >
-                        {habit.isCheckedOnDate ? "今日已完成" : "今日未完成"}
-                      </span>
-                    </div>
                   </article>
                 ))}
               </div>
@@ -571,28 +629,32 @@ export function ChecklistClient({
           <h2 className="section-heading">灵感</h2>
           {filteredIdeas.length > 0 ? (
             <div className="task-list mt-4">
-              {filteredIdeas.map((idea) => (
-                <article
-                  key={idea.id}
-                  className="task-list-item compact-list-item task-status-todo"
-                >
-                  <div className="compact-main-row">
-                    <div className="min-w-0">
-                      <Link
-                        className="list-label list-title-link"
-                        href={`/records/idea/${idea.id}`}
-                      >
-                        {idea.content.length > 96
-                          ? `${idea.content.slice(0, 96)}...`
-                          : idea.content}
-                      </Link>
-                      <p className="list-meta mt-1">{idea.ideaDate}</p>
-                    </div>
-                  </div>
-                  <div className="compact-actions">
-                    <span className="status-pill">{getIdeaStatusLabel(idea.status)}</span>
-                  </div>
-                </article>
+              {groupByDate(filteredIdeas, "ideaDate").map(([date, items]) => (
+                <div key={date} className="mb-4">
+                  <h3 className="date-group-header">{formatDateLabel(date)}</h3>
+                  {items.map((idea) => (
+                    <article
+                      key={idea.id}
+                      className="task-list-item compact-list-item task-status-todo"
+                    >
+                      <div className="compact-main-row">
+                        <div className="min-w-0">
+                          <Link
+                            className="list-label list-title-link"
+                            href={`/records/idea/${idea.id}`}
+                          >
+                            {idea.content.length > 96
+                              ? `${idea.content.slice(0, 96)}...`
+                              : idea.content}
+                          </Link>
+                        </div>
+                      </div>
+                      <div className="compact-actions">
+                        <span className="status-pill">{getIdeaStatusLabel(idea.status)}</span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
               ))}
             </div>
           ) : (
