@@ -1340,6 +1340,52 @@ select {
   .insight-order-today .body-copy {
     margin-top: 0.375rem;
   }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    border-top: 1px solid var(--border);
+    background: rgb(250 248 242 / 96%);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    backdrop-filter: blur(8px);
+  }
+
+  .bottom-nav-item {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.25rem;
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 160ms ease;
+  }
+
+  .bottom-nav-item:hover {
+    color: var(--foreground);
+  }
+
+  .bottom-nav-item.active {
+    color: var(--lavender);
+  }
+
+  .bottom-nav-item svg {
+    transition: color 160ms ease;
+  }
+
+  .bottom-nav-item.active svg {
+    color: var(--lavender);
+  }
 }
 
 @media (max-width: 639px) {

@@ -1,35 +1,34 @@
 import Link from "next/link";
 import {
   BarChart3,
-  CalendarCheck,
-  ClipboardList,
-  Gift,
+  ListTodo,
   LogIn,
   LogOut,
+  MessageCircle,
   Settings,
   UserRound,
 } from "lucide-react";
 
 import { signOutAction } from "@/app/auth/actions";
-import { MobileNavDrawer } from "@/components/mobile-nav-drawer";
+import { BottomNav } from "@/components/bottom-nav";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 
 const navigationItems = [
-  { href: "/daily", label: "每日工作台", icon: CalendarCheck },
-  { href: "/records", label: "成长记录", icon: ClipboardList },
-  { href: "/insights", label: "洞察报告", icon: BarChart3 },
-  { href: "/life", label: "纪念日", icon: Gift },
+  { href: "/checklist", label: "清单", icon: ListTodo },
+  { href: "/life", label: "人生", icon: UserRound },
+  { href: "/ai", label: "AI", icon: MessageCircle },
+  { href: "/insights", label: "复盘", icon: BarChart3 },
   { href: "/settings", label: "设置", icon: Settings },
 ];
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
-  const loginPath = buildLoginPath({ next: "/daily", message: loginRequiredMessage });
+  const loginPath = buildLoginPath({ next: "/checklist", message: loginRequiredMessage });
 
   return (
     <body>
-      <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-16 lg:pb-0">
         {/* Desktop top header with account entry */}
         <div className="hidden border-b border-[var(--border)] bg-[var(--sidebar)] px-6 py-3 lg:flex lg:items-center lg:justify-end">
           {user ? (
@@ -54,34 +53,9 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="mx-auto flex w-full max-w-7xl flex-col lg:flex-row">
-          <header className="mobile-shell-header lg:hidden">
-            <MobileNavDrawer loginPath={loginPath} userEmail={user?.email ?? null} />
-
-            <Link href="/" className="mobile-shell-brand">
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--lavender-soft)] text-xs font-bold text-[var(--lavender)]">
-                GI
-              </span>
-              <span>Growth Insight</span>
-            </Link>
-
-            {user ? (
-              <form action={signOutAction}>
-                <button className="mobile-account-button" type="submit" aria-label="退出登录">
-                  <UserRound aria-hidden="true" className="h-4 w-4" />
-                  <span>已登录</span>
-                </button>
-              </form>
-            ) : (
-              <Link className="mobile-account-button" href={loginPath}>
-                <LogIn aria-hidden="true" className="h-4 w-4" />
-                <span>登录</span>
-              </Link>
-            )}
-          </header>
-
           <aside className="hidden border-b border-[var(--border)] bg-[var(--sidebar)] px-4 py-4 lg:flex lg:w-[17rem] lg:flex-col lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
             <Link
-              href="/"
+              href="/checklist"
               className="flex items-center gap-3 text-base font-bold text-[var(--foreground)]"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--lavender-soft)] text-sm font-bold text-[var(--lavender)]">
@@ -116,6 +90,11 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           <main className="min-w-0 flex-1 px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
             {children}
           </main>
+        </div>
+
+        {/* Mobile bottom navigation */}
+        <div className="lg:hidden">
+          <BottomNav />
         </div>
       </div>
     </body>

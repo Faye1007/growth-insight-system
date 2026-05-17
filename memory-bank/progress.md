@@ -2,7 +2,7 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造和 Step 19.1 灵感表增加转化字段。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段和 Step 19.2 底部导航重构。
 
 当前目标：
 
@@ -2460,13 +2460,44 @@ Supabase Auth Redirect URL 需要配置：
 - `npm run lint` 通过。
 - `npm run build` 通过。
 
+### ✅ Step 19.2：底部导航重构（5 Tab）
+
+已完成内容：
+
+- 将桌面端侧边栏导航保留，移动端改为底部 5 Tab 导航。
+- 底部 Tab 顺序：清单（/checklist）、人生（/life）、AI（/ai）、复盘（/insights）、设置（/settings）。
+- 新增 `src/components/bottom-nav.tsx` 底部导航组件，支持当前路由高亮。
+- 新增 `/checklist` 清单页占位页面。
+- 新增 `/ai` AI 助手页占位页面。
+- 更新 `src/components/app-shell.tsx`，移除移动端顶部抽屉导航，改为底部导航。
+- 桌面端（lg 及以上）保持侧边栏导航不变。
+- 移动端 body 增加底部 padding（pb-16），避免内容被底部导航遮挡。
+- 更新 `src/app/globals.css`，新增底部导航样式，包括固定定位、毛玻璃背景、安全区域适配和激活状态高亮。
+- 根路径 `/` 默认跳转改为 `/checklist`。
+
+本次新增或更新的文件：
+
+- `src/components/bottom-nav.tsx`
+- `src/app/checklist/page.tsx`
+- `src/app/ai/page.tsx`
+- `src/components/app-shell.tsx`
+- `src/app/globals.css`
+- `src/app/page.tsx`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过，新增 `/checklist` 和 `/ai` 路由。
+- 移动端底部 5 Tab 可见且可点击。
+- 桌面端侧边栏导航不受影响。
+
 ## Not Started
 
 - 自定义正式域名绑定
 - AI 复盘生产环境变量配置
 - Modification Step 19：移动端优先重构与 AI 自然语言输入（执行中）
   - ~~19.1：灵感表增加转化字段 + 迁移~~ ✅ 已完成
-  - 19.2：底部导航重构（5 Tab）
+  - ~~19.2：底部导航重构（5 Tab）~~ ✅ 已完成
   - 19.3：清单页重构（4类切换 + 复选框 + 周历）
   - 19.4：人生页重构（事件移入 + 3类切换）
   - 19.5：AI 聊天界面 + 快捷键 + 规则解析 MVP
