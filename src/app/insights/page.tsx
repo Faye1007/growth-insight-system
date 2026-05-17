@@ -1196,6 +1196,29 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
         </section>
       ) : null}
 
+      {activeInsightView === "overview" ? (
+      <section aria-labelledby="growth-overview-title" className="panel-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="page-kicker">成长概览</p>
+            <h2 id="growth-overview-title" className="section-heading mt-1">
+              从成长主页收回的关键状态
+            </h2>
+          </div>
+          <span className="status-pill w-fit">程序统计</span>
+        </div>
+        <div className="card-grid mt-5 md:grid-cols-3">
+          {growthOverviewCards.map((card) => (
+            <article key={card.label} className={`metric-card ${card.tone}`}>
+              <p className="metric-label">{card.label}</p>
+              <p className="metric-value">{card.value}</p>
+              <p className="body-copy mt-2">{card.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+      ) : null}
+
       <section aria-labelledby="review-entry-title" className="panel-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -1248,29 +1271,6 @@ export default async function InsightsPage({ searchParams }: InsightsPageProps) 
           </Link>
         </div>
       </section>
-
-      {activeInsightView === "overview" ? (
-      <section aria-labelledby="growth-overview-title" className="panel-card">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="page-kicker">成长概览</p>
-            <h2 id="growth-overview-title" className="section-heading mt-1">
-              从成长主页收回的关键状态
-            </h2>
-          </div>
-          <span className="status-pill w-fit">程序统计</span>
-        </div>
-        <div className="card-grid mt-5 md:grid-cols-3">
-          {growthOverviewCards.map((card) => (
-            <article key={card.label} className={`metric-card ${card.tone}`}>
-              <p className="metric-label">{card.label}</p>
-              <p className="metric-value">{card.value}</p>
-              <p className="body-copy mt-2">{card.detail}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-      ) : null}
 
       {activeInsightView === "monthly" ? (
       <>
