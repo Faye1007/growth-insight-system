@@ -77,6 +77,39 @@ cd growth-insight-system && npm run lint
 - AI 供应商使用 OpenAI-compatible adapter 设计，支持低成本模型、国内 API 和 OpenAI 之间切换。
 - 普通统计和可视化由程序完成；AI 只用于复盘、生活模式归纳和行动建议。
 
+## Supabase 安全策略变更（2026年10月30日生效）
+
+Supabase 已通知：2026年10月30日起，所有现有项目的 `public` schema 下新建的表，不再默认对 Data API（supabase-js、PostgREST、GraphQL）开放访问。
+
+**影响范围**：
+- 本项目使用 supabase-js（SSR client），属于 Data API 用户，会受影响。
+- 2026年10月30日之前已创建的表保持当前权限不变。
+- 2026年10月30日之后新建的表需要显式 `GRANT` 才能被 supabase-js 访问。
+
+**后续新建表时必须做的**：
+在迁移文件中为每个新表加上显式授权：
+
+```sql
+-- 授权给 anon（未登录用户，通常只读）
+GRANT SELECT ON public.your_table TO anon;
+
+-- 授权给 authenticated（登录用户，读写）
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.your_table TO authenticated;
+
+-- 授权给 service_role（服务端，完全权限）
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.your_table TO service_role;
+
+-- 启用 RLS
+ALTER TABLE public.your_table ENABLE ROW LEVEL SECURITY;
+
+-- 添加 RLS 策略（示例）
+CREATE POLICY "users can read their own rows"
+  ON public.your_table FOR SELECT TO authenticated
+  USING (auth.uid() = user_id);
+```
+
+**注意**：通过 `DATABASE_URL` 直连的 Drizzle ORM 不受此规则影响，但 supabase-js 客户端读写新表时会返回 `42501` 错误，直到补上 GRANT 语句。
+
 ## Git 上传规则
 
 - 上传 GitHub 时：`memory-bank/@*` 和 `AGENTS.md` 除外。
