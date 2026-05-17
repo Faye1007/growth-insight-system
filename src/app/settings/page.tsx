@@ -1,7 +1,22 @@
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
+import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
+import { deleteAccountAction, updateNicknameAction } from "@/app/auth/actions";
 
-export default async function SettingsPage() {
+type SettingsPageProps = {
+  searchParams?: Promise<{
+    nicknameError?: string;
+    nicknameUpdated?: string;
+  }>;
+};
+
+export default async function SettingsPage({ searchParams }: SettingsPageProps) {
   const user = await getCurrentUser();
+  const params = searchParams ? await searchParams : undefined;
+  const loginPath = buildLoginPath({ next: "/settings", message: loginRequiredMessage });
+  const nickname = (user?.user_metadata?.nickname as string) ?? "";
+  const nicknameError = params?.nicknameError;
+  const nicknameUpdated = params?.nicknameUpdated === "1";
 
   return (
     <div className="page-stack">
@@ -12,6 +27,22 @@ export default async function SettingsPage() {
           管理你的账号信息和应用使用状态。
         </p>
       </header>
+
+      {nicknameError === "empty" && (
+        <div className="panel-card" style={{ background: "var(--clay-soft)", border: "1px solid var(--clay)" }}>
+          <p className="text-sm font-medium" style={{ color: "var(--clay)" }}>昵称不能为空</p>
+        </div>
+      )}
+      {nicknameError === "failed" && (
+        <div className="panel-card" style={{ background: "var(--clay-soft)", border: "1px solid var(--clay)" }}>
+          <p className="text-sm font-medium" style={{ color: "var(--clay)" }}>昵称保存失败，请稍后重试</p>
+        </div>
+      )}
+      {nicknameUpdated && (
+        <div className="panel-card" style={{ background: "var(--sage-soft)", border: "1px solid var(--sage)" }}>
+          <p className="text-sm font-medium" style={{ color: "var(--sage)" }}>昵称已更新</p>
+        </div>
+      )}
 
       <section className="panel-card">
         <h2 className="section-heading">账号信息</h2>
@@ -29,11 +60,71 @@ export default async function SettingsPage() {
             </span>
           </div>
         </div>
-        {user && (
-          <div className="mt-4 rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-4 py-3">
-            <p className="text-sm text-[var(--muted-foreground)]">
-              当前账号：<span className="font-medium text-[var(--foreground)]">{user.email}</span>
-            </p>
+
+        {!user ? (
+          <div className="mt-4">
+            <Link className="soft-button w-full sm:w-auto" href={loginPath}>
+              登录 / 注册
+            </Link>
+          </div>
+        ) : (
+          <div className="mt-4 space-y-4">
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-4 py-3">
+              <p className="text-sm text-[var(--muted-foreground)]">
+                当前账号：<span className="font-medium text-[var(--foreground)]">{user.email}</span>
+              </p>
+            </div>
+
+            <form action={updateNicknameAction} className="rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-4 py-3">
+              <label className="form-field">
+                昵称
+                <input
+                  name="nickname"
+                  type="text"
+                  defaultValue={nickname}
+                  placeholder="输入你的昵称"
+                  maxLength={50}
+                />
+              </label>
+              <div className="mt-3 flex items-center gap-2">
+                <button className="soft-button text-sm" type="submit">
+                  保存昵称
+                </button>
+                <span className="text-xs text-[var(--muted-foreground)]">
+                  昵称将显示在应用的个人主页
+                </span>
+              </div>
+            </form>
+
+            <details className="create-disclosure">
+              <summary className="create-summary quiet-button w-fit" style={{ color: "var(--clay)" }}>
+                注销账号
+              </summary>
+              <div className="mt-3 rounded-lg border border-[var(--clay)] bg-[var(--clay-soft)] px-4 py-3">
+                <p className="text-sm font-medium" style={{ color: "var(--clay)" }}>
+                  注销后无法恢复
+                </p>
+                <p className="body-copy mt-1 text-sm" style={{ color: "var(--clay)" }}>
+                  注销将软删除你所有的任务、习惯、日程、事件、灵感、复盘报告等数据。
+                  此操作不可撤销。
+                </p>
+                <form action={deleteAccountAction} className="mt-3">
+                  <input type="hidden" name="confirmDelete" value="DELETE_MY_ACCOUNT" />
+                  <button
+                    className="quiet-button text-sm"
+                    style={{ color: "var(--clay)", borderColor: "var(--clay)" }}
+                    type="submit"
+                    onClick={(e) => {
+                      if (!confirm("确定要注销账号吗？此操作不可撤销。")) {
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    确认注销账号
+                  </button>
+                </form>
+              </div>
+            </details>
           </div>
         )}
       </section>

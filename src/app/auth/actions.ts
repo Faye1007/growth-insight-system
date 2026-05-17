@@ -68,3 +68,67 @@ export async function signOutAction() {
 
   redirect("/");
 }
+
+export async function updateNicknameAction(formData: FormData) {
+  const nickname = getStringValue(formData, "nickname");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/settings");
+  }
+
+  if (!nickname) {
+    redirect("/settings?nicknameError=empty");
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    data: { nickname },
+  });
+
+  if (error) {
+    redirect("/settings?nicknameError=failed");
+  }
+
+  redirect("/settings?nicknameUpdated=1");
+}
+
+export async function deleteAccountAction(formData: FormData) {
+  const confirmDelete = getStringValue(formData, "confirmDelete");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user || confirmDelete !== "DELETE_MY_ACCOUNT") {
+    redirect("/settings");
+  }
+
+  const userId = user.id;
+
+  const { data: db, error: dbError } = await supabase
+    .from("_direct_db_check")
+    .select("*")
+    .limit(1);
+
+  if (dbError && dbError.code === "42P01") {
+    const { createClient: createDirectClient } = await import("@/lib/supabase/server");
+    const directSupabase = await createDirectClient();
+
+    const tables = [
+      "tasks", "habits", "habit_checkins", "schedule_items",
+      "life_events", "ideas", "insight_reports", "personal_manuals",
+      "anniversaries", "gift_records", "tool_sessions",
+    ];
+
+    for (const table of tables) {
+      await directSupabase
+        .from(table)
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .is("deleted_at", null);
+    }
+  }
+
+  await supabase.auth.signOut();
+
+  redirect("/?accountDeleted=1");
+}
