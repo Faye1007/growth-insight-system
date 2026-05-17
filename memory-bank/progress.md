@@ -2,7 +2,7 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则和 Modification Step 18.3 洞察报告入口分流与问题拆解排版优化。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化和 Modification Step 18.4 PC 账号入口右上角与公开版设置页改造。
 
 当前目标：
 
@@ -2404,6 +2404,37 @@ Supabase Auth Redirect URL 需要配置：
 - `npm run build` 通过。
 - `/daily`、`/insights`、`/insights?view=weekly`、`/insights?view=monthly` 和 `/toolbox` 本地返回 `200`。
 - Faye 已确认继续，视为 Step 18.3 通过并进入下一步。
+
+### ✅ Modification Step 18.4：PC 账号入口右上角与公开版设置页改造
+
+已完成内容：
+
+- PC 端新增顶部横条，账号状态和登录/退出入口统一放在右上角。
+- 移除左侧导航底部的"当前阶段"内部卡片。
+- 移除左侧导航底部的"账号状态"卡片，账号能力统一由顶部横条负责。
+- 设置页改名为"账号与应用设置"，只展示用户可理解的账号信息和功能可用性状态。
+- 设置页移除 Supabase URL、public key、service role key、Database URL、数据库连接检查、AI provider、AI base URL、AI API key、各复盘模型名称等内部配置字段。
+- 设置页新增"功能可用性"区块，按任务管理、习惯打卡、日程记录、随手记录、洞察报告与图表、AI 复盘展示当前可用状态。
+- 设置页新增"关于 AI 复盘"说明，明确 AI 是可选增强，未配置时不影响普通功能。
+- 新增 `.desktop-account-button` 样式，保持与移动端账号按钮一致的视觉风格。
+
+本次新增或更新的文件：
+
+- `src/components/app-shell.tsx`
+- `src/app/settings/page.tsx`
+- `src/app/globals.css`
+- `memory-bank/modification-plan.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `git diff --check` 通过。
+- `npm run build` 通过。
+- PC 端右上角能看到账号状态和登录/退出入口。
+- 左侧导航底部不再显示"认证基线接入"等内部阶段说明。
+- 设置页不出现 Supabase、Database URL、service role key、AI API key、AI provider 等内部配置字段。
+- 未登录和已登录状态下设置页都不会泄露密钥、连接字符串或底层错误。
 
 ## Not Started
 

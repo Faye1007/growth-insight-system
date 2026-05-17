@@ -274,42 +274,40 @@
 - `npm run build` 通过。
 - `/daily`、`/insights`、`/insights?view=weekly`、`/insights?view=monthly` 和 `/toolbox` 本地返回 `200`。
 
-## Planned
+## Completed
 
-### Modification Step 18.4：PC 账号入口右上角与公开版设置页改造
+### ✅ Modification Step 18.4：PC 账号入口右上角与公开版设置页改造
 
 目标：
 
 - PC 端账号登录状态从左下角移到页面右上角，和移动端右上角账号入口保持一致。
 - 左侧导航只保留主导航和产品标识，不再展示过时的内部阶段卡片。
-- 设置页改成适合公开版用户看到的“账号与应用设置”，不再对外展示 Supabase URL、Database URL、service role key、AI API key、AI provider 等内部配置状态。
+- 设置页改成适合公开版用户看到的"账号与应用设置"，不再对外展示 Supabase URL、Database URL、service role key、AI API key、AI provider 等内部配置状态。
 - 外部用户不适合看到的内部部署、密钥、数据库健康检查和开发阶段说明从公开界面移除。
 - 对于只有基础页面壳、暂不适合公开暴露的入口，优先收敛到主流程或通过登录/空状态解释，避免像内部开发后台。
 
-预计影响范围：
+完成内容：
 
-- `src/components/app-shell.tsx`
-- `src/app/settings/page.tsx`
-- `src/app/globals.css`
-- `memory-bank/@product-requirements-document.md`（如公开版访问原则需要补充）
-- `memory-bank/@architecture.md`（本 Step 验收通过后更新完成态）
-
-产品原则：
-
-- 公开版面向外部用户时，只展示用户能理解、能操作的内容。
-- 部署配置、密钥存在性、数据库连接状态和内部工程阶段不作为公开 UI 展示。
-- 写入仍需要登录；未登录用户可以浏览界面结构，但不能保存个人数据。
-- AI 未配置时，用户只看到 AI 复盘暂不可用或程序摘要可用，不看到底层环境变量名称。
+- PC 端新增顶部横条，账号状态和登录/退出入口统一放在右上角。
+- 移除左侧导航底部的"当前阶段"内部卡片。
+- 移除左侧导航底部的"账号状态"卡片，账号能力统一由顶部横条负责。
+- 设置页改名为"账号与应用设置"，只展示用户可理解的账号信息和功能可用性状态。
+- 设置页移除 Supabase URL、public key、service role key、Database URL、数据库连接检查、AI provider、AI base URL、AI API key、各复盘模型名称等内部配置字段。
+- 设置页新增"功能可用性"区块，按任务管理、习惯打卡、日程记录、随手记录、洞察报告与图表、AI 复盘展示当前可用状态。
+- 设置页新增"关于 AI 复盘"说明，明确 AI 是可选增强，未配置时不影响普通功能。
+- 新增 `.desktop-account-button` 样式，保持与移动端账号按钮一致的视觉风格。
 
 验证：
 
-- PC 端右上角能看到账号状态和登录/退出入口。
-- 左侧导航底部不再显示“认证基线接入”等内部阶段说明。
-- 设置页不出现 Supabase、Database URL、service role key、AI API key、AI provider 等内部配置字段。
-- 未登录和已登录状态下设置页都不会泄露密钥、连接字符串或底层错误。
 - `npm run lint` 通过。
 - `git diff --check` 通过。
 - `npm run build` 通过。
+- PC 端右上角能看到账号状态和登录/退出入口。
+- 左侧导航底部不再显示"认证基线接入"等内部阶段说明。
+- 设置页不出现 Supabase、Database URL、service role key、AI API key、AI provider 等内部配置字段。
+- 未登录和已登录状态下设置页都不会泄露密钥、连接字符串或底层错误。
+
+## Planned
 
 ## Candidate Modifications
 

@@ -30,7 +30,30 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <body>
       <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-        <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col lg:flex-row">
+        {/* Desktop top header with account entry */}
+        <div className="hidden border-b border-[var(--border)] bg-[var(--sidebar)] px-6 py-3 lg:flex lg:items-center lg:justify-end">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-2 text-sm text-[var(--foreground)]">
+                <UserRound aria-hidden="true" className="h-4 w-4 text-[var(--muted-foreground)]" />
+                <span className="truncate max-w-[12rem]">{user.email}</span>
+              </span>
+              <form action={signOutAction}>
+                <button className="desktop-account-button" type="submit" aria-label="退出登录">
+                  <LogOut aria-hidden="true" className="h-4 w-4" />
+                  <span>退出</span>
+                </button>
+              </form>
+            </div>
+          ) : (
+            <Link className="desktop-account-button" href={loginPath}>
+              <LogIn aria-hidden="true" className="h-4 w-4" />
+              <span>登录 / 注册</span>
+            </Link>
+          )}
+        </div>
+
+        <div className="mx-auto flex w-full max-w-7xl flex-col lg:flex-row">
           <header className="mobile-shell-header lg:hidden">
             <MobileNavDrawer loginPath={loginPath} userEmail={user?.email ?? null} />
 
@@ -57,24 +80,19 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           </header>
 
           <aside className="hidden border-b border-[var(--border)] bg-[var(--sidebar)] px-4 py-4 lg:flex lg:w-[17rem] lg:flex-col lg:border-b-0 lg:border-r lg:px-5 lg:py-6">
-            <div className="flex items-center justify-between gap-4 lg:block">
-              <Link
-                href="/"
-                className="flex items-center gap-3 text-base font-bold text-[var(--foreground)]"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--lavender-soft)] text-sm font-bold text-[var(--lavender)]">
-                  GI
-                </span>
-                <span>Growth Insight</span>
-              </Link>
-              <p className="hidden text-xs leading-5 text-[var(--muted-foreground)] lg:mt-3 lg:block">
-                个人成长洞察系统
-              </p>
-            </div>
+            <Link
+              href="/"
+              className="flex items-center gap-3 text-base font-bold text-[var(--foreground)]"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[var(--lavender-soft)] text-sm font-bold text-[var(--lavender)]">
+                GI
+              </span>
+              <span>Growth Insight</span>
+            </Link>
 
             <nav
               aria-label="主导航"
-              className="mt-4 flex gap-2 overflow-x-auto lg:mt-8 lg:flex-col lg:overflow-visible"
+              className="mt-6 flex gap-2 overflow-x-auto lg:mt-6 lg:flex-col lg:overflow-visible"
             >
               {navigationItems.map((item) => {
                 const Icon = item.icon;
@@ -93,47 +111,6 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
                 );
               })}
             </nav>
-
-            <div className="mt-auto hidden rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 lg:block">
-              <p className="text-xs font-semibold text-[var(--subtle-foreground)]">
-                当前阶段
-              </p>
-              <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">
-                认证基线接入
-              </p>
-              <p className="mt-2 text-xs leading-5 text-[var(--muted-foreground)]">
-                数据库迁移已完成，正在接入登录和写入拦截。
-              </p>
-            </div>
-
-            <div className="mt-4 hidden rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 lg:block">
-              <div className="flex items-center gap-2">
-                <span className="nav-icon">
-                  <UserRound aria-hidden="true" className="h-4 w-4" />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-[var(--subtle-foreground)]">
-                    账号状态
-                  </p>
-                  <p className="truncate text-sm font-semibold text-[var(--foreground)]">
-                    {user?.email ?? "未登录"}
-                  </p>
-                </div>
-              </div>
-              {user ? (
-                <form action={signOutAction} className="mt-3">
-                  <button className="soft-button w-full" type="submit">
-                    <LogOut aria-hidden="true" className="h-4 w-4" />
-                    退出
-                  </button>
-                </form>
-              ) : (
-                <Link className="soft-button mt-3 w-full" href={loginPath}>
-                  <LogIn aria-hidden="true" className="h-4 w-4" />
-                  登录 / 注册
-                </Link>
-              )}
-            </div>
           </aside>
 
           <main className="min-w-0 flex-1 px-5 py-6 sm:px-8 lg:px-10 lg:py-8">

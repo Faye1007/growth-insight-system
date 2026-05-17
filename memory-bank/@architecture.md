@@ -195,12 +195,12 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/lib/ai/weekly-review-context.ts`: 周复盘发送预览上下文服务，按最近 7 天整理任务、习惯、日程、事件、灵感、情绪标签、事件原文候选和敏感降级结果；当前只生成预览用 `GenerateReviewInput`，不调用 AI provider。
 - `src/lib/ai/monthly-review-context.ts`: 月复盘发送预览上下文服务，按本月整理任务、习惯、日程、事件、灵感、情绪标签、已有周复盘摘要和敏感降级结果；当前只生成摘要-only 预览用 `GenerateReviewInput`，不调用 AI provider，不展示事件原文候选。
 - `.env.example`: 环境变量模板，只列出需要配置的字段，不保存真实密钥；标注首版部署必填 Supabase public 配置和 `DATABASE_URL`，AI 配置为后续可选项。
-- `src/app/settings/page.tsx`: 设置页展示应用运行状态、账号登录状态、Supabase 配置状态、数据库只读健康检查结果和 AI 配置状态；数据库健康检查使用独立短连接执行 `select 1`，成功时显示连接正常，失败时显示连接异常；只显示是否配置和连接状态，不展示密钥、token、API key、连接字符串或底层错误堆栈；明确 AI 是可选增强，未配置 AI 时普通记录、程序摘要、统计和图表仍可正常使用。
+- `src/app/settings/page.tsx`: 公开版设置页，改名为"账号与应用设置"；展示当前账号登录状态和功能可用性（任务管理、习惯打卡、日程记录、随手记录、洞察报告与图表、AI 复盘）；移除 Supabase URL、public key、service role key、Database URL、数据库连接检查、AI provider、AI base URL、AI API key、各复盘模型名称等内部配置字段；新增"关于 AI 复盘"说明，明确 AI 是可选增强，未配置时不影响普通功能；不展示任何密钥、连接字符串或底层错误。
 - `src/app/login/page.tsx`: 邮箱登录和注册页面，支持 `next` 参数把用户带回原页面。
 - `src/app/auth/actions.ts`: Supabase Auth Server Actions，负责登录、注册和退出。
 - `src/app/auth/confirm/route.ts`: Supabase 邮箱确认回调路由，成功后跳转到安全的 `next` 路径，失败时回到登录页。
 - `src/app/globals.css`: 全局样式入口，导入 Tailwind CSS，定义基础视觉 token、字体、页面标题、卡片、列表、状态标签、基础按钮、导航样式、每日概览四入口、当前列表容器、单行记录预览、移动端 body portal 抽屉菜单、洞察报告统计网格、洞察报告趋势卡、任务完成率图表容器、习惯打卡图表容器和点阵、记录数量趋势图表容器、情绪基础统计图表容器、成长记录时间线、记录概览统计、成长记录筛选控件、记录详情字段、工作台面板、空状态、创建区收起面板、任务表单、任务编辑表单、删除危险区、任务列表、任务状态分组、状态操作按钮、延期日期输入、习惯统计标签行、每日复盘预览区、每日复盘报告区、文本域、表单提示和每日工作台移动端适配样式。
-- `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区、当前阶段提示、账号状态和退出入口，并把页面内容包裹在统一布局中；当前主导航保留每日工作台、成长记录、洞察报告、纪念日和设置，不再展示成长主页、个人说明书、问题拆解和 Markdown 导出独立入口；移动端菜单入口由 `MobileNavDrawer` 承接。
+- `src/components/app-shell.tsx`: 共享应用壳，负责左侧或顶部主导航、导航图标、品牌区，并把页面内容包裹在统一布局中；PC 端新增顶部横条，账号状态和登录/退出入口统一放在右上角；左侧导航只保留产品标识和主导航入口，不再展示内部阶段卡片和账号状态卡片；当前主导航保留每日工作台、成长记录、洞察报告、纪念日和设置，不再展示成长主页、个人说明书、问题拆解和 Markdown 导出独立入口；移动端菜单入口由 `MobileNavDrawer` 承接，移动端账号入口保持在右上角。
 - `src/components/mobile-nav-drawer.tsx`: 移动端主导航抽屉客户端组件，点击左上角三横线后通过 React portal 将左侧长条目录挂载到 `document.body`，避免被移动端顶部栏层级遮挡；打开时锁定 body 滚动，点击遮罩、关闭按钮或导航链接后关闭或跳转。
 - `src/components/feedback-message.tsx`: 统一提示组件，接收 `FeedbackMessage` 数据后按成功、错误或信息提示渲染标题和详情；错误提示使用 `alert` 语义，普通提示使用 `status` 语义。
 - `src/components/insights/task-completion-chart.tsx`: 任务完成率图表客户端组件，使用 Recharts 渲染最近 7 天每日任务完成率；只接收服务端页面整理后的图表数据，不读取数据库，不接触密钥。

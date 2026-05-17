@@ -464,6 +464,28 @@ select {
     white-space: nowrap;
   }
 
+  .desktop-account-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
+    background: var(--card);
+    padding: 0.45rem 0.75rem;
+    color: var(--foreground);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.2;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .desktop-account-button:hover {
+    border-color: var(--mist);
+    background: var(--mist-soft);
+  }
+
   .soft-button {
     display: inline-flex;
     min-height: 2.25rem;
