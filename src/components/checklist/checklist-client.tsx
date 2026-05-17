@@ -325,7 +325,12 @@ export function ChecklistClient({
       {/* Tasks */}
       {activeTab === "tasks" && (
         <section className="workspace-panel tone-lavender">
-          <h2 className="section-heading">任务</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="section-heading">任务</h2>
+            <Link className="soft-button text-sm" href="/daily?view=tasks">
+              新增
+            </Link>
+          </div>
           {view === "list" ? (
             filteredTasks.length > 0 ? (
               <div className="task-list mt-4">
@@ -429,7 +434,12 @@ export function ChecklistClient({
       {/* Schedules */}
       {activeTab === "schedules" && (
         <section className="workspace-panel tone-clay">
-          <h2 className="section-heading">日程</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="section-heading">日程</h2>
+            <Link className="soft-button text-sm" href="/daily?view=schedule">
+              新增
+            </Link>
+          </div>
           {view === "list" ? (
             filteredSchedules.length > 0 ? (
               <div className="task-list mt-4">
@@ -537,7 +547,12 @@ export function ChecklistClient({
       {/* Habits */}
       {activeTab === "habits" && (
         <section className="workspace-panel tone-sage">
-          <h2 className="section-heading">习惯</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="section-heading">习惯</h2>
+            <Link className="soft-button text-sm" href="/daily?view=habits">
+              新增
+            </Link>
+          </div>
           {view === "list" ? (
             filteredHabits.length > 0 ? (
               <div className="task-list mt-4">
@@ -626,7 +641,12 @@ export function ChecklistClient({
       {/* Ideas */}
       {activeTab === "ideas" && (
         <section className="workspace-panel tone-mist">
-          <h2 className="section-heading">灵感</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="section-heading">灵感</h2>
+            <Link className="soft-button text-sm" href="/daily?view=notes">
+              新增
+            </Link>
+          </div>
           {filteredIdeas.length > 0 ? (
             <div className="task-list mt-4">
               {groupByDate(filteredIdeas, "ideaDate").map(([date, items]) => (
