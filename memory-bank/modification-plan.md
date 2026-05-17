@@ -477,6 +477,61 @@
 - `memory-bank/@architecture.md` - 更新页面结构和路由
 - `memory-bank/progress.md` - 记录进度
 
+## Completed
+
+### ✅ Modification Step 21：移动端体验优化与功能增强
+
+**目标**：
+- 修复人生页面新旧代码冲突导致的显示异常
+- 优化复盘页、AI界面、清单页的移动端体验
+- 新增设置页登录入口、昵称编辑和账号注销功能
+
+**完成内容**：
+
+1. **人生页面修复（Step 21.0）**
+   - 清理 `src/app/life/page.tsx` 中重复的纪念日/礼物 CRUD 区块（约140行代码）
+   - 删除不再使用的组件和辅助函数
+   - 更新 `LifeClient` 组件，新增 `isLoggedIn` 和 `loginPath` props
+   - 未登录状态在各 tab 显示清晰的登录入口
+
+2. **设置页登录入口与昵称编辑 + 账号注销（Step 21.1）**
+   - 未登录状态显示"登录/注册"按钮
+   - 已登录状态支持修改昵称，存储在 Supabase Auth `user_metadata` 中
+   - 账号注销功能：二次确认 + 软删除所有业务数据 + 退出登录
+   - 新增 `updateNicknameAction` 和 `deleteAccountAction`
+
+3. **清单页各模块新增按钮（Step 21.3）**
+   - 任务/日程/习惯/灵感列表右上角添加"新增"按钮
+   - 点击后跳转到每日工作台对应视图并展开创建表单
+
+4. **复盘页成长概览置顶（Step 21.4）**
+   - 将"成长概览"KPI 卡片移到复盘页面最上方显示
+   - 纯 UI 顺序调整
+
+5. **AI 快捷键顺序调整 + 礼物记录（Step 21.5）**
+   - 快捷键调整为两行：第一行（任务/日程/习惯/灵感），第二行（事件/纪念日/礼物）
+   - 新增"礼物记录"快捷键，支持 AI 对话中直接创建礼物
+
+6. **AI 界面对话框样式改造（Step 21.6）**
+   - 改为微信风格聊天气泡样式
+   - AI 消息左对齐浅色背景，用户消息右对齐深色背景
+   - 输入区域和快捷键包裹在统一背景框内
+
+**影响文件**：
+- `src/app/life/page.tsx`
+- `src/components/life/life-client.tsx`
+- `src/app/settings/page.tsx`
+- `src/app/auth/actions.ts`
+- `src/components/checklist/checklist-client.tsx`
+- `src/app/insights/page.tsx`
+- `src/components/ai/ai-chat-client.tsx`
+- `src/app/globals.css`
+- `memory-bank/progress.md`
+
+**验证**：
+- `npm run build` 通过。
+- 所有路由正常生成（22个路由）。
+
 ## Candidate Modifications
 
 ### 后续观察
