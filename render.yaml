@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: growth-insight-system
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: AI_PROVIDER
+        sync: false
+      - key: AI_BASE_URL
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL_DAILY
+        sync: false
+      - key: AI_MODEL_WEEKLY
+        sync: false
+      - key: AI_MODEL_MONTHLY
+        sync: false
+      - key: API_SECRET_KEY
+        sync: false
+      - key: API_USER_ID
+        sync: false
