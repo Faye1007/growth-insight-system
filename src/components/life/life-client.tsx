@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   CalendarHeart,
   Gift,
@@ -39,11 +40,15 @@ export function LifeClient({
   events,
   anniversaries,
   giftRecords,
+  isLoggedIn = false,
+  loginPath = "/login",
 }: {
   initialTab?: LifeTab;
   events: LifeEventRecord[];
   anniversaries: AnniversaryRecord[];
   giftRecords: GiftRecord[];
+  isLoggedIn?: boolean;
+  loginPath?: string;
 }) {
   const [activeTab, setActiveTab] = useState<LifeTab>(initialTab);
 
@@ -96,7 +101,22 @@ export function LifeClient({
       {activeTab === "events" && (
         <section className="workspace-panel tone-mist">
           <h2 className="section-heading">事件</h2>
-          {events.length > 0 ? (
+          {!isLoggedIn ? (
+            <div className="empty-state mt-4">
+              <span className="empty-icon">
+                <NotebookPen aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="list-label">登录后记录事件</p>
+                <p className="body-copy mt-1">
+                  未登录时可以浏览页面结构；登录后可以保存自己的事件记录。
+                </p>
+                <Link className="soft-button mt-3 inline-block" href={loginPath}>
+                  登录 / 注册
+                </Link>
+              </div>
+            </div>
+          ) : events.length > 0 ? (
             <div className="record-timeline mt-4">
               {events.map((event) => (
                 <article key={event.id} className="record-timeline-item tone-mist">
@@ -151,7 +171,22 @@ export function LifeClient({
       {activeTab === "anniversaries" && (
         <section className="workspace-panel tone-clay">
           <h2 className="section-heading">纪念日</h2>
-          {anniversaries.length > 0 ? (
+          {!isLoggedIn ? (
+            <div className="empty-state mt-4">
+              <span className="empty-icon">
+                <CalendarHeart aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="list-label">登录后维护纪念日</p>
+                <p className="body-copy mt-1">
+                  未登录时可以浏览页面结构；登录后可以保存自己的纪念日记录。
+                </p>
+                <Link className="soft-button mt-3 inline-block" href={loginPath}>
+                  登录 / 注册
+                </Link>
+              </div>
+            </div>
+          ) : anniversaries.length > 0 ? (
             <div className="record-timeline mt-4">
               {anniversaries.map((anniversary) => (
                 <article key={anniversary.id} className="record-timeline-item tone-clay">
@@ -196,7 +231,22 @@ export function LifeClient({
       {activeTab === "gifts" && (
         <section className="workspace-panel tone-lavender">
           <h2 className="section-heading">礼物</h2>
-          {giftRecords.length > 0 ? (
+          {!isLoggedIn ? (
+            <div className="empty-state mt-4">
+              <span className="empty-icon">
+                <Gift aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="list-label">登录后记录礼物</p>
+                <p className="body-copy mt-1">
+                  未登录时可以浏览页面结构；登录后可以保存自己的礼物记录。
+                </p>
+                <Link className="soft-button mt-3 inline-block" href={loginPath}>
+                  登录 / 注册
+                </Link>
+              </div>
+            </div>
+          ) : giftRecords.length > 0 ? (
             <div className="record-timeline mt-4">
               {giftRecords.map((gift) => (
                 <article key={gift.id} className="record-timeline-item tone-lavender">

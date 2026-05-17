@@ -2,7 +2,7 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Render 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构、Step 19.5 AI 聊天界面、Step 19.6 复盘页移动端优化、Step 19.7 独立 API 层、Modification Step 20.1 Excel 历史数据迁移 dry-run、Modification Step 20.2 Excel 真实导入准备和 Modification Step 20.3 Excel 历史数据真实导入。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Render 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构、Step 19.5 AI 聊天界面、Step 19.6 复盘页移动端优化、Step 19.7 独立 API 层、Modification Step 20.1 Excel 历史数据迁移 dry-run、Modification Step 20.2 Excel 真实导入准备、Modification Step 20.3 Excel 历史数据真实导入和 Modification Step 21.0 人生页面修复（清理重复代码）。
 
 当前目标：
 
@@ -2756,5 +2756,27 @@ Supabase Auth Redirect URL 需要配置：
 验证记录：
 
 - 已确认非 bug。
+
+### ✅ Modification Step 21.0：人生页面修复（清理重复代码）
+
+已完成内容：
+
+- 清理 `src/app/life/page.tsx` 中重复的纪念日/礼物 CRUD 区块（约140行代码）。
+- 删除不再使用的组件：`AnniversaryForm`、`GiftRecordForm`、`AnniversaryCard`、`GiftRecordCard`。
+- 删除不再使用的辅助函数：`formatDateValue`、`getBeijingDateValue`、`getDaysUntilNextAnniversary`、`getAnniversaryTitle`。
+- 更新 `LifeClient` 组件，新增 `isLoggedIn` 和 `loginPath` props。
+- 未登录状态在各 tab（事件/纪念日/礼物）显示清晰的登录入口。
+- 页面结构统一为 `LifeClient` 组件负责所有展示逻辑，page.tsx 只负责数据获取。
+
+影响文件：
+
+- `src/app/life/page.tsx`
+- `src/components/life/life-client.tsx`
+
+验证记录：
+
+- `npm run build` 通过。
+- 所有路由正常生成（22个路由）。
+- 移动端和PC端人生页面不再显示重复内容。
 
 如果后续需要写入测试数据验证页面行为，测试通过后必须删除或软删除对应测试数据。
