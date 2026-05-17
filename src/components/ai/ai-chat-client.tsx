@@ -336,21 +336,22 @@ export function AiChatClient() {
         </p>
       </header>
 
-      {/* Chat messages */}
-      <div className="panel-card min-h-[24rem] max-h-[36rem] overflow-y-auto">
-        <div className="flex flex-col gap-4">
+      {/* Chat container */}
+      <div className="panel-card chat-container">
+        {/* Chat messages */}
+        <div className="chat-messages">
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`chat-bubble-wrapper ${msg.role === "user" ? "user-bubble" : "ai-bubble"}`}
             >
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-3 ${
+                className={`chat-bubble ${
                   msg.role === "user"
-                    ? "bg-[var(--mist)] text-white"
+                    ? "chat-bubble-user"
                     : msg.role === "confirmation"
-                      ? "bg-[var(--card-muted)] border border-[var(--border)]"
-                      : "bg-[var(--surface)]"
+                      ? "chat-bubble-confirm"
+                      : "chat-bubble-ai"
                 }`}
               >
                 <p className="text-sm">{msg.content}</p>
@@ -377,7 +378,7 @@ export function AiChatClient() {
                   </div>
                 )}
 
-                <p className="text-xs text-[var(--muted-foreground)] mt-2">
+                <p className="chat-time">
                   {msg.timestamp.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
@@ -385,52 +386,55 @@ export function AiChatClient() {
           ))}
           <div ref={messagesEndRef} />
         </div>
-      </div>
 
-      {/* Quick actions */}
-      <div className="flex flex-col gap-2">
-        {[1, 2].map((row) => (
-          <div key={row} className="flex flex-wrap gap-2">
-            {quickActions
-              .filter((action) => action.row === row)
-              .map((action) => {
-                const Icon = action.Icon;
-                const isActive = action.type === activeQuickAction;
-                return (
-                  <button
-                    key={action.type}
-                    className={`quiet-button text-sm ${isActive ? "bg-[var(--mist-soft)] border-[var(--mist)]" : ""}`}
-                    type="button"
-                    onClick={() => setActiveQuickAction(isActive ? null : action.type)}
-                  >
-                    <Icon aria-hidden="true" className="h-4 w-4" />
-                    {action.label}
-                  </button>
-                );
-              })}
+        {/* Chat input area */}
+        <div className="chat-input-area">
+          {/* Quick actions */}
+          <div className="flex flex-col gap-2 mb-3">
+            {[1, 2].map((row) => (
+              <div key={row} className="flex flex-wrap gap-2">
+                {quickActions
+                  .filter((action) => action.row === row)
+                  .map((action) => {
+                    const Icon = action.Icon;
+                    const isActive = action.type === activeQuickAction;
+                    return (
+                      <button
+                        key={action.type}
+                        className={`quiet-button text-sm ${isActive ? "bg-[var(--mist-soft)] border-[var(--mist)]" : ""}`}
+                        type="button"
+                        onClick={() => setActiveQuickAction(isActive ? null : action.type)}
+                      >
+                        <Icon aria-hidden="true" className="h-4 w-4" />
+                        {action.label}
+                      </button>
+                    );
+                  })}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Input form */}
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          className="flex-1 min-h-[2.75rem] border border-[var(--border-strong)] rounded-md bg-[var(--surface)] px-3 text-sm"
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={placeholder}
-          disabled={isCreating}
-        />
-        <button
-          className="soft-button"
-          type="submit"
-          disabled={!input.trim() || isCreating}
-        >
-          <Send aria-hidden="true" className="h-4 w-4" />
-          发送
-        </button>
-      </form>
+          {/* Input form */}
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              className="chat-input flex-1 min-h-[2.75rem] border border-[var(--border-strong)] rounded-md bg-[var(--surface)] px-3 text-sm"
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={placeholder}
+              disabled={isCreating}
+            />
+            <button
+              className="soft-button"
+              type="submit"
+              disabled={!input.trim() || isCreating}
+            >
+              <Send aria-hidden="true" className="h-4 w-4" />
+              发送
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
