@@ -736,7 +736,7 @@
 执行指令：
 
 - 检查 `.env.example`、设置页、Supabase 配置读取逻辑、AI 配置读取逻辑、认证回调逻辑和部署配置。
-- 明确 Vercel 首版部署需要配置的环境变量。
+- 明确 Render 首版部署需要配置的环境变量。
 - 明确 AI 环境变量是否可以暂缓。
 - 明确 Supabase Auth Redirect URL 需要包含本地和线上回调地址。
 - 不修改 `.env.local`，不配置生产环境变量，不部署。
@@ -750,11 +750,11 @@
 - `npm run lint` 通过。
 - `npm run build` 通过。
 
-### Step 9.2：Vercel 正式部署与基础验收
+### Step 9.2：Render 正式部署与基础验收
 
 执行指令：
 
-- 在 Vercel 创建项目并连接 GitHub 仓库。
+- 在 Render 创建项目并连接 GitHub 仓库。
 - 配置首版部署必需环境变量：`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 和 `DATABASE_URL`。
 - 在 Supabase Auth 中配置正式域名 Redirect URL。
 - 首版部署可以暂不配置 AI 环境变量。

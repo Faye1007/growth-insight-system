@@ -26,7 +26,7 @@
 | ORM | Drizzle ORM | 类型安全地管理数据库表和查询 |
 | 图表 | Recharts | 任务、习惯、情绪和趋势可视化 |
 | AI 接入 | OpenAI-compatible Provider Adapter | 可切换低成本模型、国内模型或 OpenAI |
-| 部署 | Vercel | 适合 Next.js 的简单部署路径 |
+| 部署 | Render | 当前正式部署平台，适合从 GitHub 自动部署 Next.js 应用 |
 | 包管理 | npm | 默认、简单、资料最多 |
 
 ## 为什么这是最简单但最健壮
@@ -202,7 +202,7 @@ AI 功能：
 
 ## 环境变量方向
 
-Vercel 首版部署时，必填配置是：
+Render 首版部署时，必填配置是：
 
 - Supabase 项目地址。
 - Supabase 前端可用 publishable key 或 anon key。

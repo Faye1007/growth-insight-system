@@ -2,12 +2,12 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Vercel 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构、Step 19.5 AI 聊天界面、Step 19.6 复盘页移动端优化、Step 19.7 独立 API 层、Modification Step 20.1 Excel 历史数据迁移 dry-run、Modification Step 20.2 Excel 真实导入准备和 Modification Step 20.3 Excel 历史数据真实导入。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Render 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构、Step 19.5 AI 聊天界面、Step 19.6 复盘页移动端优化、Step 19.7 独立 API 层、Modification Step 20.1 Excel 历史数据迁移 dry-run、Modification Step 20.2 Excel 真实导入准备和 Modification Step 20.3 Excel 历史数据真实导入。
 
 当前目标：
 
 - 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台默认入口、每日工作台结构、今日任务创建、任务状态更新、任务编辑与软删除、任务置顶、习惯创建、习惯打卡、习惯编辑与停用、习惯置顶与软删除、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、日程置顶、随手记录、事件编辑与软删除、事件置顶、灵感编辑与软删除、灵感置顶、写入区默认收起、今日概览四入口切换、每日工作台移动端样式优化、工作台四类简洁列表、每日工作台当前列表按入口切换显示、移动端 body portal 抽屉导航、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、记录详情查看、事件详情情绪标签兜底显示、洞察报告今日优先展示、洞察报告成长概览、洞察报告 AI 复盘与问题拆解/个人说明书快捷入口、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、周复盘 Markdown 导出、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、月复盘 Markdown 导出、纪念日页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、问题拆解页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 下载路由、复盘报告导出和近期成长记录导出、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页基础状态展示、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
-- 首版部署按无 AI 优先准备：Vercel 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
+- 首版部署按无 AI 优先准备：Render 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 - `Faye的成长计划.xlsx` 中从 Coze + 飞书多维表格沉淀的历史数据已导入 `2215128728@qq.com` 账号下，迁移过程未修改数据库 schema，未写入飞书外部 ID。
 
 ## Confirmed Decisions
@@ -1399,14 +1399,14 @@
 已完成内容：
 
 - 只读检查 `.env.example`、设置页、Supabase 配置读取逻辑、AI 配置读取逻辑、认证回调逻辑和项目部署配置。
-- 确认项目当前没有 `vercel.json`，可使用 Vercel 默认 Next.js 部署。
-- 确认注册邮件回调使用当前请求 `origin` 生成 `/auth/confirm`，因此 Vercel Preview 和正式域名都需要加入 Supabase Auth Redirect URL。
+- 确认项目当前使用 Render 部署，仓库不再保留 `vercel.json`。
+- 确认注册邮件回调使用当前请求 `origin` 生成 `/auth/confirm`，因此 Render 正式域名需要加入 Supabase Auth Redirect URL。
 - 确认设置页只展示 Supabase、数据库和 AI 配置状态，不展示真实密钥、连接字符串或底层错误。
 - 确认 `SUPABASE_SERVICE_ROLE_KEY` 当前不需要配置，继续暂缓。
-- 输出 Vercel Preview/Production 需要配置的环境变量清单。
-- 本 Step 未修改 `.env.local`，未配置 Vercel 环境变量，未配置 Supabase Auth Redirect URL，未部署。
+- 输出 Render 需要配置的环境变量清单。
+- 本 Step 未修改 `.env.local`，未配置 Render 环境变量，未配置 Supabase Auth Redirect URL，未部署。
 
-Vercel 首版必填配置：
+Render 首版必填配置：
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
