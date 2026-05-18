@@ -20,7 +20,63 @@
 
 ## Planned
 
-- 暂无已确认的下一步计划。后续新增需求先写入本区，再按 Step 执行。
+### Modification Step 23：真实使用反馈改进（7 项）
+
+基于 Faye 实际使用后的反馈，以下 7 项改进按 Step 循环逐步实施：
+
+#### 改进点 1：清单/人生页内就地新建，不跳转每日工作台
+
+- **现状**：清单页点击"新增"跳转 `/daily?view=tasks` 到每日工作台展开表单；人生页纪念日/礼物用 `<details>` 就地展开。
+- **目标**：清单页（任务/日程/习惯/灵感）和人生页（事件）的"新增"按钮改为在当前页面弹出内联表单，提交后刷新当前列表，不跳转页面。
+- **每日工作台收敛**：每日工作台下方不再显示各模块的创建表单区块，只保留概览卡和复盘入口。
+- **影响文件**：`src/components/checklist/checklist-client.tsx`、`src/components/life/life-client.tsx`、`src/app/daily/page.tsx`、`src/app/checklist/page.tsx`
+
+#### 改进点 2：AI 界面改造为微信式对话框
+
+- **现状**：AI 页面有独立 header、消息区、快捷键和输入框分散布局。
+- **目标**：整体包裹在统一背景框内；快捷键放在输入框上方作为快捷工具栏；用户消息靠右气泡，AI/系统消息靠左气泡；输入框固定在底部。
+- **影响文件**：`src/components/ai/ai-chat-client.tsx`、`src/app/globals.css`
+
+#### 改进点 3：习惯点击后显示详情页（支持编辑）
+
+- **现状**：清单页习惯列表点击习惯名称没有跳转链接，无法编辑习惯。
+- **目标**：清单页习惯名称添加跳转到习惯维护详情页的链接；新建 `/checklist/habits/[id]/page.tsx` 支持编辑名称、分类、说明、开始日期、停用、软删除。
+- **影响文件**：`src/components/checklist/checklist-client.tsx`、新建 `src/app/checklist/habits/[id]/page.tsx`
+
+#### 改进点 4：日程新建只需填开始日期和结束日期
+
+- **现状**：日程创建表单有 `scheduleDate`、`startDate`、`endDate` 三个日期字段，冗余。
+- **目标**：去掉独立的"日期"字段，只保留开始日期和结束日期；`scheduleDate` 在 Server Action 中自动等于 `startDate`。
+- **影响文件**：`src/app/daily/page.tsx`、`src/components/checklist/checklist-client.tsx`、`src/app/daily/actions.ts`
+
+#### 改进点 5：纪念日增强
+
+- **5a**：纪念日可选择标签（纪念日/生日），schema 新增 `type` 枚举字段。
+- **5b**：提醒机制支持按年提示，选择后自动计算最新提醒日期，schema 新增 `reminderMode` 枚举。
+- **5c**：生日支持农历日期，schema 新增 `isLunar` 布尔字段，需引入农历转换库。
+- **5d**：礼物记录"用途"改名"对方回礼"，改为非必填项。
+- **影响文件**：`src/db/schema.ts`、新建数据库迁移文件、`src/app/life/actions.ts`、`src/components/life/life-client.tsx`、`src/lib/data/user-data.ts`
+
+#### 改进点 6：成长记录显示所有历史数据
+
+- **现状**：每种类型只取最近 12 条（`recentLimitPerType = 12`），总共最多 40 条。
+- **目标**："全部近期"改为"全部历史"，取消数量限制；保留"今天"和"最近 7 天"快捷筛选。
+- **影响文件**：`src/app/records/page.tsx`、`src/lib/data/user-data.ts`
+
+#### 改进点 7：人生页和成长记录页顶部纪念日/生日提醒
+
+- **目标**：在人生页和成长记录页顶部增加提醒横幅，显示未来 7 天内和当天的纪念日/生日；按时间排序，区分"今天"和"X 天后"提示文案。
+- **影响文件**：`src/components/life/life-client.tsx`、`src/app/records/page.tsx`、`src/lib/data/user-data.ts`
+
+## Planned Steps 执行顺序
+
+1. **Step 23.1**：清单页就地新建 + 每日工作台收敛（改进点 1）
+2. **Step 23.2**：AI 界面微信式改造（改进点 2）
+3. **Step 23.3**：习惯详情页（改进点 3）
+4. **Step 23.4**：日程表单简化（改进点 4）
+5. **Step 23.5**：纪念日增强 + 数据库迁移（改进点 5）
+6. **Step 23.6**：成长记录全部历史数据（改进点 6）
+7. **Step 23.7**：顶部纪念日提醒横幅（改进点 7）
 
 ## Completed
 
@@ -464,6 +520,21 @@
 - `npm run lint` 通过。
 - `npm run build` 通过。
 - 本地 `/daily` 和 `/settings` 返回 `200`。
+
+### ✅ Modification Step 23.1：清单/人生页内就地新建 + 每日工作台收敛
+
+完成内容：
+
+- 清单页（任务/日程/习惯/灵感）"新增"按钮改为 `<details>` 内联表单，提交后留在当前页面。
+- 人生页事件 tab 新增按钮改为内联表单，支持内容、日期、AI 权限、情绪标签和普通标签。
+- 每日工作台移除各模块创建表单区块，"新增"按钮改为跳转清单页或人生页对应 tab。
+- 新建 `src/app/checklist/actions.ts` 处理清单页就地创建（任务/日程/习惯/灵感/事件）。
+- 清单页和人生页支持创建成功/失败的 feedback 提示。
+- 空状态提示文案更新为引导用户点击"新增"。
+
+验证：
+
+- `npm run build` 通过。
 
 ### ✅ Modification Step 22.4：账号数据清除与真实注销修正
 

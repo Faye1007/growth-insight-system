@@ -17,6 +17,8 @@ type LifePageProps = {
     anniversarySaved?: string;
     giftError?: string;
     giftSaved?: string;
+    eventError?: string;
+    eventCreated?: string;
   }>;
 };
 
@@ -149,6 +151,16 @@ export default async function LifePage({ searchParams }: LifePageProps) {
     giftErrorFeedback[params?.giftError ?? ""] ??
     giftSavedFeedback[params?.giftSaved ?? ""] ??
     null;
+  const eventCreatedFeedback: FeedbackMessageType | null =
+    params?.eventCreated === "1"
+      ? { tone: "success", title: "事件已保存", detail: "这条事件已添加到列表中。" }
+      : null;
+  const eventErrorFeedback: FeedbackMessageType | null =
+    params?.eventError === "missing_content"
+      ? { tone: "error", title: "事件内容不能为空", detail: "请填写事件内容后重试。" }
+      : params?.eventError === "save_failed"
+        ? { tone: "error", title: "事件没有保存成功", detail: "请稍后重试。" }
+        : null;
 
   return (
     <div className="page-stack">
@@ -163,6 +175,8 @@ export default async function LifePage({ searchParams }: LifePageProps) {
 
       <FeedbackMessage feedback={anniversaryFeedback} />
       <FeedbackMessage feedback={giftFeedback} />
+      <FeedbackMessage feedback={eventCreatedFeedback} />
+      <FeedbackMessage feedback={eventErrorFeedback} />
       <FeedbackMessage feedback={hasDataLoadError ? dataLoadFeedback : null} />
     </div>
   );

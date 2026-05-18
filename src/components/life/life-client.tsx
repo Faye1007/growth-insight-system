@@ -6,8 +6,10 @@ import {
   CalendarHeart,
   Gift,
   NotebookPen,
+  Plus,
 } from "lucide-react";
 
+import { createChecklistEventAction } from "@/app/checklist/actions";
 import { createAnniversaryAction, createGiftRecordAction } from "@/app/life/actions";
 import type { AnniversaryRecord, GiftRecord, LifeEventRecord } from "@/lib/data/user-data";
 
@@ -137,9 +139,43 @@ export function LifeClient({
         <section className="workspace-panel tone-mist" id="events">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="section-heading">事件</h2>
-            <Link className="soft-button text-sm" href="/daily?view=notes">
-              新增
-            </Link>
+            {isLoggedIn && (
+              <details className="create-disclosure">
+                <summary className="create-summary soft-button text-sm">
+                  <Plus aria-hidden="true" className="h-3 w-3" />
+                  新增
+                </summary>
+                <form action={createChecklistEventAction} className="task-form mt-3">
+                  <label className="form-field">
+                    <span>内容</span>
+                    <textarea name="content" rows={3} maxLength={500} placeholder="记录今天发生的事..." required />
+                  </label>
+                  <div className="task-form-grid">
+                    <label className="form-field">
+                      <span>日期</span>
+                      <input name="eventDate" type="date" defaultValue={today} required />
+                    </label>
+                    <label className="form-field">
+                      <span>AI 分析权限</span>
+                      <select name="aiAnalysisPermission" defaultValue="summary_only">
+                        <option value="none">不参与 AI 分析</option>
+                        <option value="summary_only">仅摘要参与</option>
+                        <option value="allow_original">允许原文参与</option>
+                      </select>
+                    </label>
+                  </div>
+                  <label className="form-field">
+                    <span>情绪标签（逗号分隔）</span>
+                    <input name="emotionTags" type="text" maxLength={120} placeholder="例如：开心、期待" />
+                  </label>
+                  <label className="form-field">
+                    <span>普通标签（逗号分隔）</span>
+                    <input name="tags" type="text" maxLength={120} placeholder="例如：工作、学习" />
+                  </label>
+                  <button className="soft-button w-fit text-sm" type="submit">保存事件</button>
+                </form>
+              </details>
+            )}
           </div>
           {!isLoggedIn ? (
             <div className="empty-state mt-4">
@@ -201,7 +237,7 @@ export function LifeClient({
               </span>
               <div>
                 <p className="list-label">暂无事件记录</p>
-                <p className="body-copy mt-1">可以在每日工作台记录事件。</p>
+                <p className="body-copy mt-1">点击上方"新增"记录事件。</p>
               </div>
             </div>
           )}

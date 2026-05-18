@@ -10,11 +10,18 @@ import {
   ClipboardList,
   Lightbulb,
   List,
+  Plus,
   Repeat2,
 } from "lucide-react";
 
+import {
+  createChecklistHabitAction,
+  createChecklistIdeaAction,
+  createChecklistScheduleAction,
+  createChecklistTaskAction,
+} from "@/app/checklist/actions";
 import { updateHabitCheckinAction, updateTaskStatusAction } from "@/app/daily/actions";
-import { getTaskCategoryLabel } from "@/lib/tasks/options";
+import { getTaskCategoryLabel, taskCategories, taskStatuses } from "@/lib/tasks/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
 
 type ChecklistTab = "tasks" | "schedules" | "habits" | "ideas";
@@ -327,17 +334,49 @@ export function ChecklistClient({
         <section className="workspace-panel tone-lavender">
           <div className="flex items-center justify-between">
             <h2 className="section-heading">任务</h2>
-            <Link className="soft-button text-sm" href="/daily?view=tasks">
-              新增
-            </Link>
+            <details className="create-disclosure">
+              <summary className="create-summary soft-button text-sm">
+                <Plus aria-hidden="true" className="h-3 w-3" />
+                新增
+              </summary>
+              <form action={createChecklistTaskAction} className="task-form mt-3">
+                <label className="form-field">
+                  <span>任务标题</span>
+                  <input name="title" type="text" maxLength={120} placeholder="例如：整理 AI 产品学习笔记" required />
+                </label>
+                <div className="task-form-grid">
+                  <label className="form-field">
+                    <span>分类</span>
+                    <select name="category" defaultValue="study">
+                      {taskCategories.map((c) => (
+                        <option key={c.value} value={c.value}>{c.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="form-field">
+                    <span>日期</span>
+                    <input name="taskDate" type="date" defaultValue={todayStr} required />
+                  </label>
+                  <label className="form-field">
+                    <span>状态</span>
+                    <select name="status" defaultValue="todo">
+                      {taskStatuses.map((s) => (
+                        <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <button className="soft-button w-fit text-sm" type="submit">保存任务</button>
+              </form>
+            </details>
           </div>
           {view === "list" ? (
             filteredTasks.length > 0 ? (
               <div className="task-list mt-4">
-                {groupByDate(filteredTasks, "taskDate").map(([date, tasks]) => (
+                {groupByDate(filteredTasks, "taskDate").map(([date, items]) => (
                   <div key={date} className="mb-4">
                     <h3 className="date-group-header">{formatDateLabel(date)}</h3>
-                    {tasks.map((task) => (
+                    {items.map((task) => (
                       <article
                         key={task.id}
                         className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}
@@ -386,14 +425,13 @@ export function ChecklistClient({
                 </span>
                 <div>
                   <p className="list-label">本周暂无任务</p>
-                  <p className="body-copy mt-1">可以在每日工作台创建任务。</p>
+                  <p className="body-copy mt-1">点击上方"新增"创建任务。</p>
                 </div>
               </div>
             )
           ) : (
             <div className="mt-4 overflow-x-auto">
               <div className="habit-checkin-matrix">
-                {/* Header row */}
                 <div className="habit-checkin-header">
                   <span className="habit-checkin-name">任务</span>
                   {weekDays.map((d) => (
@@ -407,7 +445,6 @@ export function ChecklistClient({
                     </span>
                   ))}
                 </div>
-                {/* Task rows */}
                 {filteredTasks.map((task) => (
                   <div key={task.id} className="habit-checkin-row">
                     <span className="habit-checkin-name">{task.title}</span>
@@ -436,9 +473,45 @@ export function ChecklistClient({
         <section className="workspace-panel tone-clay">
           <div className="flex items-center justify-between">
             <h2 className="section-heading">日程</h2>
-            <Link className="soft-button text-sm" href="/daily?view=schedule">
-              新增
-            </Link>
+            <details className="create-disclosure">
+              <summary className="create-summary soft-button text-sm">
+                <Plus aria-hidden="true" className="h-3 w-3" />
+                新增
+              </summary>
+              <form action={createChecklistScheduleAction} className="task-form mt-3">
+                <label className="form-field">
+                  <span>日程标题</span>
+                  <input name="title" type="text" maxLength={120} placeholder="例如：英语课 / 咨询 / 项目复盘" required />
+                </label>
+                <div className="task-form-grid">
+                  <label className="form-field">
+                    <span>分类</span>
+                    <select name="category" defaultValue="work">
+                      {taskCategories.map((c) => (
+                        <option key={c.value} value={c.value}>{c.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="form-field">
+                    <span>开始日期</span>
+                    <input name="startDate" type="date" defaultValue={todayStr} required />
+                  </label>
+                  <label className="form-field">
+                    <span>结束日期</span>
+                    <input name="endDate" type="date" />
+                  </label>
+                  <label className="form-field">
+                    <span>开始时间</span>
+                    <input name="startTime" type="time" defaultValue="09:00" required />
+                  </label>
+                  <label className="form-field">
+                    <span>结束时间</span>
+                    <input name="endTime" type="time" />
+                  </label>
+                </div>
+                <button className="soft-button w-fit text-sm" type="submit">保存日程</button>
+              </form>
+            </details>
           </div>
           {view === "list" ? (
             filteredSchedules.length > 0 ? (
@@ -479,7 +552,7 @@ export function ChecklistClient({
                 </span>
                 <div>
                   <p className="list-label">本周暂无日程</p>
-                  <p className="body-copy mt-1">可以在每日工作台记录日程。</p>
+                  <p className="body-copy mt-1">点击上方"新增"记录日程。</p>
                 </div>
               </div>
             )
@@ -549,9 +622,33 @@ export function ChecklistClient({
         <section className="workspace-panel tone-sage">
           <div className="flex items-center justify-between">
             <h2 className="section-heading">习惯</h2>
-            <Link className="soft-button text-sm" href="/daily?view=habits">
-              新增
-            </Link>
+            <details className="create-disclosure">
+              <summary className="create-summary soft-button text-sm">
+                <Plus aria-hidden="true" className="h-3 w-3" />
+                新增
+              </summary>
+              <form action={createChecklistHabitAction} className="task-form mt-3">
+                <label className="form-field">
+                  <span>习惯名称</span>
+                  <input name="name" type="text" maxLength={120} placeholder="例如：多邻国 15 分钟" required />
+                </label>
+                <div className="task-form-grid">
+                  <label className="form-field">
+                    <span>分类</span>
+                    <select name="category" defaultValue="health">
+                      {taskCategories.map((c) => (
+                        <option key={c.value} value={c.value}>{c.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="form-field">
+                    <span>开始日期</span>
+                    <input name="startDate" type="date" defaultValue={todayStr} required />
+                  </label>
+                </div>
+                <button className="soft-button w-fit text-sm" type="submit">保存习惯</button>
+              </form>
+            </details>
           </div>
           {view === "list" ? (
             filteredHabits.length > 0 ? (
@@ -598,7 +695,7 @@ export function ChecklistClient({
                 </span>
                 <div>
                   <p className="list-label">暂无启用习惯</p>
-                  <p className="body-copy mt-1">可以在每日工作台添加习惯。</p>
+                  <p className="body-copy mt-1">点击上方"新增"添加习惯。</p>
                 </div>
               </div>
             )
@@ -643,9 +740,25 @@ export function ChecklistClient({
         <section className="workspace-panel tone-mist">
           <div className="flex items-center justify-between">
             <h2 className="section-heading">灵感</h2>
-            <Link className="soft-button text-sm" href="/daily?view=notes">
-              新增
-            </Link>
+            <details className="create-disclosure">
+              <summary className="create-summary soft-button text-sm">
+                <Plus aria-hidden="true" className="h-3 w-3" />
+                新增
+              </summary>
+              <form action={createChecklistIdeaAction} className="task-form mt-3">
+                <label className="form-field">
+                  <span>内容</span>
+                  <textarea name="content" rows={3} maxLength={500} placeholder="记录你的想法..." required />
+                </label>
+                <div className="task-form-grid">
+                  <label className="form-field">
+                    <span>日期</span>
+                    <input name="ideaDate" type="date" defaultValue={todayStr} required />
+                  </label>
+                </div>
+                <button className="soft-button w-fit text-sm" type="submit">保存灵感</button>
+              </form>
+            </details>
           </div>
           {filteredIdeas.length > 0 ? (
             <div className="task-list mt-4">
@@ -684,7 +797,7 @@ export function ChecklistClient({
               </span>
               <div>
                 <p className="list-label">本周暂无灵感</p>
-                <p className="body-copy mt-1">可以在每日工作台记录灵感。</p>
+                <p className="body-copy mt-1">点击上方"新增"记录灵感。</p>
               </div>
             </div>
           )}
