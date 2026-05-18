@@ -2,11 +2,11 @@
 
 ## Current Status
 
-项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Render 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构、Step 19.5 AI 聊天界面、Step 19.6 复盘页移动端优化、Step 19.7 独立 API 层、Modification Step 20.1 Excel 历史数据迁移 dry-run、Modification Step 20.2 Excel 真实导入准备、Modification Step 20.3 Excel 历史数据真实导入、Modification Step 21.0 人生页面修复（清理重复代码）、Modification Step 21.1 设置页登录入口与昵称编辑 + 账号注销、Modification Step 21.2 清单列表与统计体验修正、Modification Step 21.3 清单页各模块新增按钮、Modification Step 21.4 复盘页成长概览置顶、Modification Step 21.5 AI 快捷键顺序调整 + 礼物记录、Modification Step 21.6 AI 界面对话框样式改造、Modification Step 21.7 人生页加载兜底与设置页昵称入口修复、Modification Step 22.1 人生页列表分组、快捷新增与详情入口、Modification Step 22.2 成长记录页移动端概览压缩与按天分组和 Modification Step 22.3 设置页账号信息精简与每日工作台入口收敛。
+项目已完成 Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Render 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Modification Step 18.4 PC 账号入口右上角与公开版设置页改造、Step 19.1 灵感表增加转化字段、Step 19.2 底部导航重构、Step 19.3 清单页重构、Step 19.4 人生页重构、Step 19.5 AI 聊天界面、Step 19.6 复盘页移动端优化、Step 19.7 独立 API 层、Modification Step 20.1 Excel 历史数据迁移 dry-run、Modification Step 20.2 Excel 真实导入准备、Modification Step 20.3 Excel 历史数据真实导入、Modification Step 21.0 人生页面修复（清理重复代码）、Modification Step 21.1 设置页登录入口与昵称编辑 + 账号注销、Modification Step 21.2 清单列表与统计体验修正、Modification Step 21.3 清单页各模块新增按钮、Modification Step 21.4 复盘页成长概览置顶、Modification Step 21.5 AI 快捷键顺序调整 + 礼物记录、Modification Step 21.6 AI 界面对话框样式改造、Modification Step 21.7 人生页加载兜底与设置页昵称入口修复、Modification Step 22.1 人生页列表分组、快捷新增与详情入口、Modification Step 22.2 成长记录页移动端概览压缩与按天分组、Modification Step 22.3 设置页账号信息精简与每日工作台入口收敛和 Modification Step 22.4 账号数据清除与真实注销修正。
 
 当前目标：
 
-- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台默认入口、每日工作台入口页、今日任务创建、任务状态更新、任务编辑与软删除、任务置顶、习惯创建、习惯打卡、习惯编辑与停用、习惯置顶与软删除、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、日程置顶、随手记录、事件编辑与软删除、事件置顶、灵感编辑与软删除、灵感置顶、写入区默认收起、每日工作台今日概览卡片跳转清单/人生列表、每日工作台晚间总结跳转复盘、移动端底部 5 Tab 导航、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、成长记录按日期分组列表、成长记录移动端三列概览、成长记录事件两行预览、记录详情查看、事件详情情绪标签兜底显示、人生页事件标签运行时兜底、人生页分组数据加载兜底、人生页按日期分组列表、人生页新增快捷入口、纪念日和礼物详情页、纪念日关联历史礼物展示、洞察报告今日优先展示、洞察报告成长概览、洞察报告 AI 复盘与问题拆解/个人说明书快捷入口、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、周复盘 Markdown 导出、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、月复盘 Markdown 导出、纪念日页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、问题拆解页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 下载路由、复盘报告导出和近期成长记录导出、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页账号摘要展示、设置页昵称图标编辑、右上角昵称入口跳转设置页、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
+- 保持当前基础视觉系统、基础页面、导航、Supabase client 工具层、Drizzle schema、迁移流程、认证入口、安全跳转、写入保护 helper、Supabase SSR client 用户态读写、真实数据库 RLS、每日工作台默认入口、每日工作台入口页、今日任务创建、任务状态更新、任务编辑与软删除、任务置顶、习惯创建、习惯打卡、习惯编辑与停用、习惯置顶与软删除、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、日程置顶、随手记录、事件编辑与软删除、事件置顶、灵感编辑与软删除、灵感置顶、写入区默认收起、每日工作台今日概览卡片跳转清单/人生列表、每日工作台晚间总结跳转复盘、移动端底部 5 Tab 导航、每日程序复盘摘要、成长记录统一时间线、成长记录基础筛选、成长记录按日期分组列表、成长记录移动端三列概览、成长记录事件两行预览、记录详情查看、事件详情情绪标签兜底显示、人生页事件标签运行时兜底、人生页分组数据加载兜底、人生页按日期分组列表、人生页新增快捷入口、纪念日和礼物详情页、纪念日关联历史礼物展示、洞察报告今日优先展示、洞察报告成长概览、洞察报告 AI 复盘与问题拆解/个人说明书快捷入口、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、周复盘 Markdown 导出、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、月复盘 Markdown 导出、纪念日页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和筛选、问题拆解页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 下载路由、复盘报告导出和近期成长记录导出、AI 配置检查、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页账号摘要展示、设置页昵称图标编辑、账号数据物理清除、账号注销、右上角昵称入口跳转设置页、统一错误提示规范、基础闭环手工验收结果、Step 8.1 架构文档完成态、Step 8.2 进度文档完成态、Row Level Security 前置规划和本地 RLS 迁移文件稳定。
 - 首版部署按无 AI 优先准备：Render 已配置 Supabase public 配置和 `DATABASE_URL`，AI 环境变量后续按需接入。
 - `Faye的成长计划.xlsx` 中从 Coze + 飞书多维表格沉淀的历史数据已导入 `2215128728@qq.com` 账号下，迁移过程未修改数据库 schema，未写入飞书外部 ID。
 
@@ -2749,7 +2749,7 @@ Supabase Auth Redirect URL 需要配置：
 - 账号注销功能：
   - 折叠在"注销账号"展开区域中，避免误触。
   - 二次确认对话框（`confirm()`）。
-  - 注销时软删除所有业务表数据（tasks、habits、schedule_items、life_events、ideas 等）。
+  - 当时注销流程只软删除部分业务表数据；后续 Modification Step 22.4 已修正为先物理删除完整业务数据，再删除 Supabase Auth 用户。
   - 注销后自动退出登录并跳转首页。
 
 新增 Server Actions：
@@ -2980,6 +2980,34 @@ Supabase Auth Redirect URL 需要配置：
 - `npm run build` 通过。
 - 本地生产服务 `http://localhost:3007/daily` 返回 `200`。
 - 本地生产服务 `http://localhost:3007/settings` 返回 `200`。
+
+### ✅ Modification Step 22.4：账号数据清除与真实注销修正
+
+已完成内容：
+
+- 修正此前"注销账号"只退出登录、且业务数据清理不完整的问题。
+- 设置页账号操作区新增"清除数据"按钮，位置在"退出登录"和"注销账号"之间。
+- "清除数据"会物理删除当前账号所有业务数据，覆盖任务、习惯、习惯打卡、日程、事件、灵感、复盘报告、个人说明书、纪念日、礼物记录和工具箱记录；账号本身保留，用户保持登录。
+- "注销账号"按钮文案从"确认注销账号"改为"注销账号"。
+- "注销账号"会先物理删除当前账号所有业务数据，再通过 Supabase Admin API 删除 Supabase Auth 用户，最后退出登录并跳转首页。
+- 注销账号需要服务端配置 `SUPABASE_SERVICE_ROLE_KEY`；未配置时不删除数据，并在设置页展示明确提示。
+- 删除顺序按外键关系处理：先删除习惯打卡、礼物等子记录，再删除习惯、纪念日和任务等父记录。
+- 设置页新增账号数据清除成功提示、数据清除失败提示、注销失败提示和服务端权限缺失提示。
+
+影响文件：
+
+- `src/app/auth/actions.ts`
+- `src/app/settings/page.tsx`
+- `src/components/settings/clear-data-submit-button.tsx`
+- `src/components/settings/delete-account-submit-button.tsx`
+- `memory-bank/modification-plan.md`
+- `memory-bank/@architecture.md`
+- `memory-bank/progress.md`
+
+验证记录：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
 
 ## Not Started
 

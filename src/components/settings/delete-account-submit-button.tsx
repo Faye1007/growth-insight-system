@@ -1,5 +1,7 @@
 "use client";
 
+import { UserX } from "lucide-react";
+
 export function DeleteAccountSubmitButton() {
   return (
     <button
@@ -12,7 +14,8 @@ export function DeleteAccountSubmitButton() {
         }
       }}
     >
-      确认注销账号
+      <UserX aria-hidden="true" className="h-4 w-4" />
+      注销账号
     </button>
   );
 }

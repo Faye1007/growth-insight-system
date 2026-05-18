@@ -1,15 +1,44 @@
 "use server";
 
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { buildLoginPath, getSafeNextPath } from "@/lib/auth/paths";
 import { createClient } from "@/lib/supabase/server";
+import { assertSupabasePublicConfig } from "@/lib/supabase/config";
+
+const userOwnedTablesInDeleteOrder = [
+  "habit_checkins",
+  "gift_records",
+  "tool_sessions",
+  "insight_reports",
+  "personal_manuals",
+  "ideas",
+  "schedule_items",
+  "life_events",
+  "anniversaries",
+  "habits",
+  "tasks",
+] as const;
 
 function getStringValue(formData: FormData, key: string) {
   const value = formData.get(key);
 
   return typeof value === "string" ? value.trim() : "";
+}
+
+async function deleteBusinessDataForUser(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+) {
+  for (const table of userOwnedTablesInDeleteOrder) {
+    const { error } = await supabase.from(table).delete().eq("user_id", userId);
+
+    if (error) {
+      throw new Error(`Failed to delete ${table} rows for user.`);
+    }
+  }
 }
 
 export async function signInAction(formData: FormData) {
@@ -93,6 +122,24 @@ export async function updateNicknameAction(formData: FormData) {
   redirect("/settings?nicknameUpdated=1");
 }
 
+export async function clearAccountDataAction(formData: FormData) {
+  const confirmClear = getStringValue(formData, "confirmClear");
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user || confirmClear !== "CLEAR_MY_DATA") {
+    redirect("/settings");
+  }
+
+  try {
+    await deleteBusinessDataForUser(supabase, user.id);
+  } catch {
+    redirect("/settings?accountError=clear_failed");
+  }
+
+  redirect("/settings?accountDataCleared=1");
+}
+
 export async function deleteAccountAction(formData: FormData) {
   const confirmDelete = getStringValue(formData, "confirmDelete");
   const supabase = await createClient();
@@ -103,29 +150,30 @@ export async function deleteAccountAction(formData: FormData) {
   }
 
   const userId = user.id;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  const { error: dbError } = await supabase
-    .from("_direct_db_check")
-    .select("*")
-    .limit(1);
+  if (!serviceRoleKey) {
+    redirect("/settings?accountError=missing_service_role");
+  }
 
-  if (dbError && dbError.code === "42P01") {
-    const { createClient: createDirectClient } = await import("@/lib/supabase/server");
-    const directSupabase = await createDirectClient();
+  const { url } = assertSupabasePublicConfig();
+  const adminSupabase = createAdminClient(url, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 
-    const tables = [
-      "tasks", "habits", "habit_checkins", "schedule_items",
-      "life_events", "ideas", "insight_reports", "personal_manuals",
-      "anniversaries", "gift_records", "tool_sessions",
-    ];
+  try {
+    await deleteBusinessDataForUser(adminSupabase, userId);
 
-    for (const table of tables) {
-      await directSupabase
-        .from(table)
-        .update({ deleted_at: new Date().toISOString() })
-        .eq("user_id", userId)
-        .is("deleted_at", null);
+    const { error: deleteUserError } = await adminSupabase.auth.admin.deleteUser(userId);
+
+    if (deleteUserError) {
+      throw new Error("Failed to delete auth user.");
     }
+  } catch {
+    redirect("/settings?accountError=delete_failed");
   }
 
   await supabase.auth.signOut();

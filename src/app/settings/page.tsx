@@ -3,14 +3,23 @@ import { LogOut, Pencil } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/auth/session";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
-import { deleteAccountAction, signOutAction, updateNicknameAction } from "@/app/auth/actions";
+import { clearAccountDataAction, deleteAccountAction, signOutAction, updateNicknameAction } from "@/app/auth/actions";
+import { ClearDataSubmitButton } from "@/components/settings/clear-data-submit-button";
 import { DeleteAccountSubmitButton } from "@/components/settings/delete-account-submit-button";
 
 type SettingsPageProps = {
   searchParams?: Promise<{
+    accountDataCleared?: string;
+    accountError?: string;
     nicknameError?: string;
     nicknameUpdated?: string;
   }>;
+};
+
+const accountErrorMessages: Record<string, string> = {
+  clear_failed: "数据清除失败，请稍后重试",
+  delete_failed: "账号注销失败，请稍后重试",
+  missing_service_role: "账号注销需要管理员先配置服务端权限",
 };
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
@@ -20,6 +29,8 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const nickname = (user?.user_metadata?.nickname as string) ?? "";
   const hasNickname = nickname.trim().length > 0;
   const displayName = hasNickname ? nickname.trim() : user?.email ?? "未登录";
+  const accountDataCleared = params?.accountDataCleared === "1";
+  const accountErrorMessage = params?.accountError ? accountErrorMessages[params.accountError] : undefined;
   const nicknameError = params?.nicknameError;
   const nicknameUpdated = params?.nicknameUpdated === "1";
 
@@ -46,6 +57,16 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
       {nicknameUpdated && (
         <div className="panel-card" style={{ background: "var(--sage-soft)", border: "1px solid var(--sage)" }}>
           <p className="text-sm font-medium" style={{ color: "var(--sage)" }}>昵称已更新</p>
+        </div>
+      )}
+      {accountDataCleared && (
+        <div className="panel-card" style={{ background: "var(--sage-soft)", border: "1px solid var(--sage)" }}>
+          <p className="text-sm font-medium" style={{ color: "var(--sage)" }}>账号数据已清除</p>
+        </div>
+      )}
+      {accountErrorMessage && (
+        <div className="panel-card" style={{ background: "var(--clay-soft)", border: "1px solid var(--clay)" }}>
+          <p className="text-sm font-medium" style={{ color: "var(--clay)" }}>{accountErrorMessage}</p>
         </div>
       )}
 
@@ -110,6 +131,12 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                   退出登录
                 </button>
               </form>
+              <div>
+                <form action={clearAccountDataAction}>
+                  <input type="hidden" name="confirmClear" value="CLEAR_MY_DATA" />
+                  <ClearDataSubmitButton />
+                </form>
+              </div>
               <div>
                 <form action={deleteAccountAction}>
                   <input type="hidden" name="confirmDelete" value="DELETE_MY_ACCOUNT" />

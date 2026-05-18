@@ -331,7 +331,7 @@
 
 - 设置页未登录状态显示登录/注册入口。
 - 已登录状态支持修改昵称，昵称存储在 Supabase Auth `user_metadata`。
-- 新增账号注销能力：确认弹窗、软删除业务数据、退出登录。
+- 新增账号注销能力：确认弹窗、当时为软删除业务数据并退出登录；后续 Modification Step 22.4 已修正为物理清除业务数据并删除 Auth 用户。
 
 验证：
 
@@ -464,6 +464,22 @@
 - `npm run lint` 通过。
 - `npm run build` 通过。
 - 本地 `/daily` 和 `/settings` 返回 `200`。
+
+### ✅ Modification Step 22.4：账号数据清除与真实注销修正
+
+完成内容：
+
+- 设置页账号操作区在退出登录和注销账号之间新增"清除数据"按钮。
+- "清除数据"会物理删除当前账号所有业务数据，但保留 Supabase Auth 账号并保持登录。
+- "注销账号"按钮文案从"确认注销账号"改为"注销账号"。
+- 注销账号流程改为先物理删除所有业务数据，再通过 Supabase Admin API 删除 Auth 用户，最后退出登录。
+- 注销账号需要服务端配置 `SUPABASE_SERVICE_ROLE_KEY`；未配置时不清除数据，并在设置页显示明确提示。
+- 清理表范围覆盖 `tasks`、`habits`、`habit_checkins`、`schedule_items`、`life_events`、`ideas`、`insight_reports`、`personal_manuals`、`anniversaries`、`gift_records` 和 `tool_sessions`。
+
+验证：
+
+- `npm run lint` 通过。
+- `npm run build` 通过。
 
 ## Candidate Modifications
 
