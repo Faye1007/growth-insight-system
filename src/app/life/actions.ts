@@ -30,8 +30,11 @@ function isValidDateValue(value: string) {
 function getAnniversaryInput(formData: FormData) {
   const title = getStringValue(formData, "title");
   const personName = getStringValue(formData, "personName");
+  const type = (getStringValue(formData, "type") || "anniversary") as "anniversary" | "birthday";
   const anniversaryDate = getStringValue(formData, "anniversaryDate");
+  const isLunar = formData.get("isLunar") === "on";
   const reminderDate = getStringValue(formData, "reminderDate");
+  const reminderMode = (getStringValue(formData, "reminderMode") || "once") as "once" | "yearly";
   const note = getStringValue(formData, "note");
 
   if (!title || !personName || !isValidDateValue(anniversaryDate)) {
@@ -45,8 +48,11 @@ function getAnniversaryInput(formData: FormData) {
   return {
     title,
     personName,
+    type,
     anniversaryDate,
+    isLunar,
     reminderDate: getNullableString(reminderDate),
+    reminderMode,
     note: getNullableString(note),
   };
 }
@@ -55,11 +61,11 @@ function getGiftRecordInput(formData: FormData) {
   const giftName = getStringValue(formData, "giftName");
   const recipientName = getStringValue(formData, "recipientName");
   const giftDate = getStringValue(formData, "giftDate");
-  const purpose = getStringValue(formData, "purpose");
+  const returnGift = getStringValue(formData, "returnGift");
   const anniversaryId = getStringValue(formData, "anniversaryId");
   const note = getStringValue(formData, "note");
 
-  if (!giftName || !recipientName || !isValidDateValue(giftDate) || !purpose) {
+  if (!giftName || !recipientName || !isValidDateValue(giftDate)) {
     return null;
   }
 
@@ -67,7 +73,7 @@ function getGiftRecordInput(formData: FormData) {
     giftName,
     recipientName,
     giftDate,
-    purpose,
+    returnGift: getNullableString(returnGift),
     anniversaryId: getNullableString(anniversaryId),
     note: getNullableString(note),
   };

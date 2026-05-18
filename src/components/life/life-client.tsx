@@ -265,14 +265,36 @@ export function LifeClient({
                       <input name="personName" type="text" maxLength={80} required />
                     </label>
                     <label className="form-field">
+                      <span>类型</span>
+                      <select name="type" defaultValue="anniversary">
+                        <option value="anniversary">纪念日</option>
+                        <option value="birthday">生日</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div className="task-form-grid">
+                    <label className="form-field">
                       <span>日期</span>
                       <input name="anniversaryDate" type="date" defaultValue={today} required />
                     </label>
                     <label className="form-field">
-                      <span>提醒日期</span>
-                      <input name="reminderDate" type="date" />
+                      <span>提醒模式</span>
+                      <select name="reminderMode" defaultValue="once">
+                        <option value="once">一次性</option>
+                        <option value="yearly">按年提醒</option>
+                      </select>
                     </label>
                   </div>
+                  <label className="form-field">
+                    <span className="flex items-center gap-2">
+                      <input name="isLunar" type="checkbox" className="h-4 w-4" />
+                      农历日期
+                    </span>
+                  </label>
+                  <label className="form-field">
+                    <span>提醒日期</span>
+                    <input name="reminderDate" type="date" />
+                  </label>
                   <label className="form-field">
                     <span>备注</span>
                     <textarea name="note" rows={3} />
@@ -315,6 +337,7 @@ export function LifeClient({
                             </Link>
                             <p className="list-meta mt-1">
                               {anniversary.personName}
+                              {anniversary.type === "birthday" ? " · 生日" : ""}
                               {anniversary.reminderDate ? ` · 提醒 ${anniversary.reminderDate}` : ""}
                             </p>
                           </div>
@@ -364,8 +387,8 @@ export function LifeClient({
                       <input name="giftDate" type="date" defaultValue={today} required />
                     </label>
                     <label className="form-field">
-                      <span>用途</span>
-                      <input name="purpose" type="text" maxLength={120} required />
+                      <span>对方回礼</span>
+                      <input name="returnGift" type="text" maxLength={120} placeholder="选填" />
                     </label>
                     <label className="form-field">
                       <span>关联纪念日</span>
@@ -420,7 +443,8 @@ export function LifeClient({
                               {gift.giftName}
                             </Link>
                             <p className="list-meta mt-1">
-                              {gift.recipientName} · {gift.purpose}
+                              {gift.recipientName}
+                              {gift.returnGift ? ` · 回礼 ${gift.returnGift}` : ""}
                             </p>
                           </div>
                         </div>

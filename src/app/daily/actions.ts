@@ -577,8 +577,8 @@ export async function createScheduleItemAction(formData: FormData) {
   const startTimeValue = getStringValue(formData, "startTime");
   const endTimeValue = getStringValue(formData, "endTime");
   const category = isTaskCategory(categoryValue) ? categoryValue : "other";
-  const scheduleDate = isValidDateValue(scheduleDateValue) ? scheduleDateValue : getBeijingDateValue();
-  const startDate = isValidDateValue(startDateValue) ? startDateValue : scheduleDate;
+  const startDate = isValidDateValue(startDateValue) ? startDateValue : (isValidDateValue(scheduleDateValue) ? scheduleDateValue : getBeijingDateValue());
+  const scheduleDate = startDate;
   const endDate = isValidDateValue(endDateValue) ? endDateValue : null;
   const recurrence = isScheduleRecurrence(recurrenceValue) ? recurrenceValue : "none";
 

@@ -232,8 +232,11 @@ type AnniversaryRow = {
   user_id: string;
   title: string;
   person_name: string;
+  type: "anniversary" | "birthday";
   anniversary_date: string;
+  is_lunar: boolean;
   reminder_date: string | null;
+  reminder_mode: "once" | "yearly";
   note: string | null;
   created_at: string;
   updated_at: string;
@@ -247,7 +250,7 @@ type GiftRecordRow = {
   gift_name: string;
   recipient_name: string;
   gift_date: string;
-  purpose: string;
+  return_gift: string | null;
   note: string | null;
   created_at: string;
   updated_at: string;
@@ -388,8 +391,11 @@ export type AnniversaryRecord = {
   id: string;
   title: string;
   personName: string;
+  type: "anniversary" | "birthday";
   anniversaryDate: string;
+  isLunar: boolean;
   reminderDate: string | null;
+  reminderMode: "once" | "yearly";
   note: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -401,7 +407,7 @@ export type GiftRecord = {
   giftName: string;
   recipientName: string;
   giftDate: string;
-  purpose: string;
+  returnGift: string | null;
   note: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -706,8 +712,11 @@ function mapAnniversary(row: AnniversaryRow): AnniversaryRecord {
     id: row.id,
     title: row.title,
     personName: row.person_name,
+    type: row.type,
     anniversaryDate: row.anniversary_date,
+    isLunar: row.is_lunar,
     reminderDate: row.reminder_date,
+    reminderMode: row.reminder_mode,
     note: row.note,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
@@ -721,7 +730,7 @@ function mapGiftRecord(row: GiftRecordRow): GiftRecord {
     giftName: row.gift_name,
     recipientName: row.recipient_name,
     giftDate: row.gift_date,
-    purpose: row.purpose,
+    returnGift: row.return_gift,
     note: row.note,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
@@ -1662,8 +1671,11 @@ export async function createAnniversaryForUser(input: {
   userId: string;
   title: string;
   personName: string;
+  type: "anniversary" | "birthday";
   anniversaryDate: string;
+  isLunar: boolean;
   reminderDate: string | null;
+  reminderMode: "once" | "yearly";
   note: string | null;
 }) {
   const supabase = await createClient();
@@ -1671,8 +1683,11 @@ export async function createAnniversaryForUser(input: {
     user_id: input.userId,
     title: input.title,
     person_name: input.personName,
+    type: input.type,
     anniversary_date: input.anniversaryDate,
+    is_lunar: input.isLunar,
     reminder_date: input.reminderDate,
+    reminder_mode: input.reminderMode,
     note: input.note,
   });
 
@@ -1686,8 +1701,11 @@ export async function updateAnniversaryForUser(input: {
   anniversaryId: string;
   title: string;
   personName: string;
+  type: "anniversary" | "birthday";
   anniversaryDate: string;
+  isLunar: boolean;
   reminderDate: string | null;
+  reminderMode: "once" | "yearly";
   note: string | null;
   updatedAt: Date;
 }) {
@@ -1697,8 +1715,11 @@ export async function updateAnniversaryForUser(input: {
     .update({
       title: input.title,
       person_name: input.personName,
+      type: input.type,
       anniversary_date: input.anniversaryDate,
+      is_lunar: input.isLunar,
       reminder_date: input.reminderDate,
+      reminder_mode: input.reminderMode,
       note: input.note,
       updated_at: input.updatedAt.toISOString(),
     })
@@ -1737,7 +1758,7 @@ export async function getAnniversariesForUser(userId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("anniversaries")
-    .select("id,title,person_name,anniversary_date,reminder_date,note,created_at,updated_at")
+    .select("id,title,person_name,type,anniversary_date,is_lunar,reminder_date,reminder_mode,note,created_at,updated_at")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .order("anniversary_date", { ascending: true })
@@ -1751,7 +1772,7 @@ export async function getAnniversaryDetailForUser(userId: string, anniversaryId:
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("anniversaries")
-    .select("id,title,person_name,anniversary_date,reminder_date,note,created_at,updated_at")
+    .select("id,title,person_name,type,anniversary_date,is_lunar,reminder_date,reminder_mode,note,created_at,updated_at")
     .eq("id", anniversaryId)
     .eq("user_id", userId)
     .is("deleted_at", null)
@@ -1768,7 +1789,7 @@ export async function createGiftRecordForUser(input: {
   giftName: string;
   recipientName: string;
   giftDate: string;
-  purpose: string;
+  returnGift: string | null;
   note: string | null;
 }) {
   const supabase = await createClient();
@@ -1780,7 +1801,7 @@ export async function createGiftRecordForUser(input: {
     gift_name: input.giftName,
     recipient_name: input.recipientName,
     gift_date: input.giftDate,
-    purpose: input.purpose,
+    return_gift: input.returnGift,
     note: input.note,
   });
 
@@ -1796,7 +1817,7 @@ export async function updateGiftRecordForUser(input: {
   giftName: string;
   recipientName: string;
   giftDate: string;
-  purpose: string;
+  returnGift: string | null;
   note: string | null;
   updatedAt: Date;
 }) {
@@ -1810,7 +1831,7 @@ export async function updateGiftRecordForUser(input: {
       gift_name: input.giftName,
       recipient_name: input.recipientName,
       gift_date: input.giftDate,
-      purpose: input.purpose,
+      return_gift: input.returnGift,
       note: input.note,
       updated_at: input.updatedAt.toISOString(),
     })
@@ -1853,7 +1874,7 @@ export async function getGiftRecordsForUser(input: {
   const supabase = await createClient();
   let query = supabase
     .from("gift_records")
-    .select("id,anniversary_id,gift_name,recipient_name,gift_date,purpose,note,created_at,updated_at")
+    .select("id,anniversary_id,gift_name,recipient_name,gift_date,return_gift,note,created_at,updated_at")
     .eq("user_id", input.userId)
     .is("deleted_at", null);
 
@@ -1877,7 +1898,7 @@ export async function getGiftRecordDetailForUser(userId: string, giftRecordId: s
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("gift_records")
-    .select("id,anniversary_id,gift_name,recipient_name,gift_date,purpose,note,created_at,updated_at")
+    .select("id,anniversary_id,gift_name,recipient_name,gift_date,return_gift,note,created_at,updated_at")
     .eq("id", giftRecordId)
     .eq("user_id", userId)
     .is("deleted_at", null)

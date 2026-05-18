@@ -521,6 +521,40 @@
 - `npm run build` 通过。
 - 本地 `/daily` 和 `/settings` 返回 `200`。
 
+### ✅ Modification Step 23.5：纪念日增强 + 数据库迁移
+
+完成内容：
+
+- 纪念日新增 `type` 字段（纪念日/生日），`anniversary_type` 数据库枚举。
+- 纪念日新增 `reminderMode` 字段（一次性/按年），`reminder_mode` 数据库枚举。
+- 纪念日新增 `isLunar` 布尔字段，支持生日农历标记。
+- 礼物记录 `purpose` 字段改名为 `return_gift`（对方回礼），改为非必填项。
+- 执行真实数据库迁移（`0008_anniversary_enhancements.sql`），包含枚举创建、列添加、数据迁移和旧列删除。
+- 更新 `src/db/schema.ts` 新增枚举定义和表结构。
+- 更新 `src/lib/data/user-data.ts` 类型、mapper 函数和 CRUD 函数。
+- 更新 `src/app/life/actions.ts` 表单解析逻辑。
+- 更新 `src/components/life/life-client.tsx` 表单 UI：纪念日新增类型、提醒模式、农历复选框；礼物用途改为对方回礼并选填。
+- 更新 `src/app/life/[kind]/[id]/page.tsx` 详情页：纪念日详情和编辑表单展示新字段；礼物详情页展示对方回礼。
+- 历史数据兼容：迁移脚本自动将 `purpose` 数据复制到 `return_gift`。
+
+验证：
+
+- `npm run db:generate` 跳过（手动编写迁移 SQL）。
+- `npm run db:migrate` 通过，真实 Supabase 数据库迁移成功。
+- `npm run build` 通过。
+
+### ✅ Modification Step 23.4：日程表单简化
+
+完成内容：
+
+- `createScheduleItemAction` 改为以 `startDate` 为主日期字段，`scheduleDate` 自动等于 `startDate`。
+- 清单页日程内联表单已只包含开始日期和结束日期（Step 23.1 已完成）。
+- AI 聊天界面创建日程时发送的 `scheduleDate` 会被 `startDate` 覆盖，确保一致性。
+
+验证：
+
+- `npm run build` 通过。
+
 ### ✅ Modification Step 23.3：习惯详情页
 
 完成内容：

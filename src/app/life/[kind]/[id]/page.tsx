@@ -37,6 +37,16 @@ const kindLabels: Record<LifeDetailKind, string> = {
   gift: "礼物详情",
 };
 
+const anniversaryTypeLabels: Record<string, string> = {
+  anniversary: "纪念日",
+  birthday: "生日",
+};
+
+const reminderModeLabels: Record<string, string> = {
+  once: "一次性",
+  yearly: "按年",
+};
+
 const anniversaryErrorFeedback: Record<string, FeedbackMessageType> = {
   invalid_input: {
     tone: "error",
@@ -62,7 +72,7 @@ const giftErrorFeedback: Record<string, FeedbackMessageType> = {
   invalid_input: {
     tone: "error",
     title: "礼物信息还没填完整",
-    detail: "请填写礼物名称、对象、日期和用途；关联纪念日可以不选。",
+    detail: "请填写礼物名称、对象和日期；对方回礼和关联纪念日选填。",
   },
   save_failed: {
     tone: "error",
@@ -75,7 +85,7 @@ const giftSavedFeedback: Record<string, FeedbackMessageType> = {
   updated: {
     tone: "success",
     title: "礼物记录已更新",
-    detail: "礼物名称、对象、日期、用途、备注或关联纪念日已保存。",
+    detail: "礼物名称、对象、日期、对方回礼、备注或关联纪念日已保存。",
   },
 };
 
@@ -222,7 +232,10 @@ export default async function LifeDetailPage({ params, searchParams }: LifeDetai
           <div className="detail-grid">
             <DetailField label="标题" value={anniversary.title} />
             <DetailField label="关系对象" value={anniversary.personName} />
+            <DetailField label="类型" value={anniversaryTypeLabels[anniversary.type] ?? anniversary.type} />
             <DetailField label="纪念日日期" value={formatDateValue(anniversary.anniversaryDate)} />
+            {anniversary.isLunar && <DetailField label="农历" value="是" />}
+            <DetailField label="提醒模式" value={reminderModeLabels[anniversary.reminderMode] ?? anniversary.reminderMode} />
             <DetailField label="提醒日期" value={formatDateValue(anniversary.reminderDate)} />
             <DetailField label="创建时间" value={formatDateTimeValue(anniversary.createdAt)} />
             <DetailField label="更新时间" value={formatDateTimeValue(anniversary.updatedAt)} />
@@ -250,7 +263,8 @@ export default async function LifeDetailPage({ params, searchParams }: LifeDetai
                         {gift.giftName}
                       </Link>
                       <p className="list-meta mt-1">
-                        {gift.recipientName} · {gift.purpose}
+                        {gift.recipientName}
+                        {gift.returnGift ? ` · 回礼 ${gift.returnGift}` : ""}
                       </p>
                     </div>
                   </div>
@@ -283,14 +297,36 @@ export default async function LifeDetailPage({ params, searchParams }: LifeDetai
                 <input name="personName" type="text" maxLength={80} defaultValue={anniversary.personName} required />
               </label>
               <label className="form-field">
+                <span>类型</span>
+                <select name="type" defaultValue={anniversary.type}>
+                  <option value="anniversary">纪念日</option>
+                  <option value="birthday">生日</option>
+                </select>
+              </label>
+            </div>
+            <div className="task-form-grid">
+              <label className="form-field">
                 <span>日期</span>
                 <input name="anniversaryDate" type="date" defaultValue={anniversary.anniversaryDate} required />
               </label>
               <label className="form-field">
-                <span>提醒日期</span>
-                <input name="reminderDate" type="date" defaultValue={anniversary.reminderDate ?? ""} />
+                <span>提醒模式</span>
+                <select name="reminderMode" defaultValue={anniversary.reminderMode}>
+                  <option value="once">一次性</option>
+                  <option value="yearly">按年提醒</option>
+                </select>
               </label>
             </div>
+            <label className="form-field">
+              <span className="flex items-center gap-2">
+                <input name="isLunar" type="checkbox" className="h-4 w-4" defaultChecked={anniversary.isLunar} />
+                农历日期
+              </span>
+            </label>
+            <label className="form-field">
+              <span>提醒日期</span>
+              <input name="reminderDate" type="date" defaultValue={anniversary.reminderDate ?? ""} />
+            </label>
             <label className="form-field">
               <span>备注</span>
               <textarea name="note" rows={4} defaultValue={anniversary.note ?? ""} />
@@ -342,7 +378,7 @@ export default async function LifeDetailPage({ params, searchParams }: LifeDetai
           <DetailField label="礼物名称" value={gift.giftName} />
           <DetailField label="对象" value={gift.recipientName} />
           <DetailField label="礼物日期" value={formatDateValue(gift.giftDate)} />
-          <DetailField label="用途" value={gift.purpose} />
+          <DetailField label="对方回礼" value={gift.returnGift ?? "未记录"} />
           <DetailField label="关联纪念日" value={relatedAnniversary?.title ?? "未关联"} />
           <DetailField label="创建时间" value={formatDateTimeValue(gift.createdAt)} />
           <DetailField label="更新时间" value={formatDateTimeValue(gift.updatedAt)} />
@@ -371,8 +407,8 @@ export default async function LifeDetailPage({ params, searchParams }: LifeDetai
               <input name="giftDate" type="date" defaultValue={gift.giftDate} required />
             </label>
             <label className="form-field">
-              <span>用途</span>
-              <input name="purpose" type="text" maxLength={120} defaultValue={gift.purpose} required />
+              <span>对方回礼</span>
+              <input name="returnGift" type="text" maxLength={120} defaultValue={gift.returnGift ?? ""} placeholder="选填" />
             </label>
             <label className="form-field">
               <span>关联纪念日</span>

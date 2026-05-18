@@ -74,6 +74,16 @@ export const scheduleRecurrenceEnum = pgEnum("schedule_recurrence", [
   "monthly",
 ]);
 
+export const anniversaryTypeEnum = pgEnum("anniversary_type", [
+  "anniversary",
+  "birthday",
+]);
+
+export const reminderModeEnum = pgEnum("reminder_mode", [
+  "once",
+  "yearly",
+]);
+
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -282,8 +292,11 @@ export const anniversaries = pgTable(
     userId: uuid("user_id").notNull(),
     title: text("title").notNull(),
     personName: text("person_name").notNull(),
+    type: anniversaryTypeEnum("type").default("anniversary").notNull(),
     anniversaryDate: date("anniversary_date").notNull(),
+    isLunar: boolean("is_lunar").default(false).notNull(),
     reminderDate: date("reminder_date"),
+    reminderMode: reminderModeEnum("reminder_mode").default("once").notNull(),
     note: text("note"),
     ...timestamps,
     ...softDeleteTimestamp,
@@ -305,7 +318,7 @@ export const giftRecords = pgTable(
     giftName: text("gift_name").notNull(),
     recipientName: text("recipient_name").notNull(),
     giftDate: date("gift_date").notNull(),
-    purpose: text("purpose").notNull(),
+    returnGift: text("return_gift"),
     note: text("note"),
     ...timestamps,
     ...softDeleteTimestamp,
