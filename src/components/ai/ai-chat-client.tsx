@@ -46,15 +46,14 @@ const quickActions: Array<{
   label: string;
   Icon: typeof CheckCircle2;
   placeholder: string;
-  row: number;
 }> = [
-  { type: "task", label: "创建任务", Icon: CheckCircle2, placeholder: "输入任务标题...", row: 1 },
-  { type: "schedule", label: "创建日程", Icon: Clock, placeholder: "输入日程标题...", row: 1 },
-  { type: "habit", label: "创建习惯", Icon: Heart, placeholder: "输入习惯名称...", row: 1 },
-  { type: "idea", label: "记录灵感", Icon: Lightbulb, placeholder: "记录你的想法...", row: 1 },
-  { type: "event", label: "记录事件", Icon: Sparkles, placeholder: "记录今天发生的事...", row: 2 },
-  { type: "anniversary", label: "创建纪念日", Icon: CalendarDays, placeholder: "输入纪念日标题...", row: 2 },
-  { type: "gift", label: "礼物记录", Icon: Gift, placeholder: "输入礼物名称...", row: 2 },
+  { type: "task", label: "任务", Icon: CheckCircle2, placeholder: "输入任务标题..." },
+  { type: "schedule", label: "日程", Icon: Clock, placeholder: "输入日程标题..." },
+  { type: "habit", label: "习惯", Icon: Heart, placeholder: "输入习惯名称..." },
+  { type: "event", label: "事件", Icon: Sparkles, placeholder: "记录今天发生的事..." },
+  { type: "idea", label: "灵感", Icon: Lightbulb, placeholder: "记录你的想法..." },
+  { type: "anniversary", label: "纪念日", Icon: CalendarDays, placeholder: "输入纪念日标题..." },
+  { type: "gift", label: "礼物", Icon: Gift, placeholder: "输入礼物名称..." },
 ];
 
 function getBeijingDateValue(date = new Date()) {
@@ -74,7 +73,6 @@ function parseIntent(text: string): { type: IntentType; title: string; category:
 
   const today = getBeijingDateValue();
 
-  // Task patterns
   const taskPatterns = [
     /^(?:创建|新增|添加|加一个)?(?:任务|todo|待办)[：:]?\s*(.+)$/i,
     /^(?:今天|明天|后天)?(?:要|需要|得)?(.{2,})$/i,
@@ -86,7 +84,6 @@ function parseIntent(text: string): { type: IntentType; title: string; category:
     }
   }
 
-  // Schedule patterns
   const schedulePatterns = [
     /^(?:创建|新增|添加)?(?:日程|会议|约会|安排)[：:]?\s*(.+)$/i,
     /^(?:明天|后天|下周)?(?:上午|下午|晚上|早上|中午|晚上)?(.{2,})(?:点|时|:)\s*(\d{1,2}):?(\d{2})?/i,
@@ -105,7 +102,6 @@ function parseIntent(text: string): { type: IntentType; title: string; category:
     }
   }
 
-  // Habit patterns
   const habitPatterns = [
     /^(?:创建|新增|添加|养成)?(?:习惯|打卡|每日)[：:]?\s*(.+)$/i,
     /^(?:每天|每日|每周)?(?:坚持|开始)?(.{2,})(?:打卡|习惯)?$/i,
@@ -117,7 +113,6 @@ function parseIntent(text: string): { type: IntentType; title: string; category:
     }
   }
 
-  // Event patterns
   const eventPatterns = [
     /^(?:记录|记下|写一下)?(?:事件|今天|心情|感受)[：:]?\s*(.+)$/i,
     /^(?:今天|刚才|刚刚)(.{3,})$/i,
@@ -129,7 +124,6 @@ function parseIntent(text: string): { type: IntentType; title: string; category:
     }
   }
 
-  // Idea patterns
   const ideaPatterns = [
     /^(?:记录|记下|想到)?(?:灵感|想法|创意|点子)[：:]?\s*(.+)$/i,
     /^(?:突然想到|有个想法|想)(.{3,})$/i,
@@ -141,7 +135,6 @@ function parseIntent(text: string): { type: IntentType; title: string; category:
     }
   }
 
-  // Default: treat as task
   if (trimmed.length >= 2) {
     return { type: "task", title: trimmed, category: "other", date: today };
   }
@@ -332,42 +325,42 @@ export function AiChatClient() {
           </div>
         </div>
         <p className="page-description">
-          直接输入内容，AI 会自动识别意图并创建对应记录。也可以点击下方快捷键快速创建。
+          直接输入内容，AI 会自动识别意图并创建对应记录。
         </p>
       </header>
 
-      {/* Chat container */}
-      <div className="panel-card chat-container">
-        {/* Chat messages */}
-        <div className="chat-messages">
+      {/* Unified chat container */}
+      <div className="ai-chat-shell">
+        {/* Messages area */}
+        <div className="ai-chat-messages">
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`chat-bubble-wrapper ${msg.role === "user" ? "user-bubble" : "ai-bubble"}`}
+              className={`ai-msg-row ${msg.role === "user" ? "ai-msg-right" : "ai-msg-left"}`}
             >
               <div
-                className={`chat-bubble ${
+                className={`ai-msg-bubble ${
                   msg.role === "user"
-                    ? "chat-bubble-user"
+                    ? "ai-msg-user"
                     : msg.role === "confirmation"
-                      ? "chat-bubble-confirm"
-                      : "chat-bubble-ai"
+                      ? "ai-msg-confirm"
+                      : "ai-msg-system"
                 }`}
               >
-                <p className="text-sm">{msg.content}</p>
+                <p className="ai-msg-text">{msg.content}</p>
 
                 {msg.role === "confirmation" && msg.intent && (
-                  <div className="mt-3 space-y-2">
-                    <div className="rounded-md bg-[var(--card)] p-3 text-sm">
-                      <p className="font-semibold">{msg.intent.title}</p>
-                      <p className="text-[var(--muted-foreground)] mt-1">
+                  <div className="ai-msg-confirm-detail">
+                    <div className="ai-msg-confirm-card">
+                      <p className="ai-msg-confirm-title">{msg.intent.title}</p>
+                      <p className="ai-msg-confirm-meta">
                         类型：{getIntentLabel(msg.intent.type)}
                         {msg.intent.time && ` · 时间：${msg.intent.time}`}
                         {msg.intent.date && ` · 日期：${msg.intent.date}`}
                       </p>
                     </div>
                     <button
-                      className="soft-button w-full text-sm"
+                      className="ai-msg-confirm-btn"
                       type="button"
                       onClick={() => handleConfirmCreation(msg.id)}
                       disabled={isCreating}
@@ -378,7 +371,7 @@ export function AiChatClient() {
                   </div>
                 )}
 
-                <p className="chat-time">
+                <p className={`ai-msg-time ${msg.role === "user" ? "ai-msg-time-user" : ""}`}>
                   {msg.timestamp.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
@@ -387,37 +380,31 @@ export function AiChatClient() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Chat input area */}
-        <div className="chat-input-area">
-          {/* Quick actions */}
-          <div className="flex flex-col gap-2 mb-3">
-            {[1, 2].map((row) => (
-              <div key={row} className="flex flex-wrap gap-2">
-                {quickActions
-                  .filter((action) => action.row === row)
-                  .map((action) => {
-                    const Icon = action.Icon;
-                    const isActive = action.type === activeQuickAction;
-                    return (
-                      <button
-                        key={action.type}
-                        className={`quiet-button text-sm ${isActive ? "bg-[var(--mist-soft)] border-[var(--mist)]" : ""}`}
-                        type="button"
-                        onClick={() => setActiveQuickAction(isActive ? null : action.type)}
-                      >
-                        <Icon aria-hidden="true" className="h-4 w-4" />
-                        {action.label}
-                      </button>
-                    );
-                  })}
-              </div>
-            ))}
+        {/* Input area with quick actions */}
+        <div className="ai-chat-input-bar">
+          {/* Quick actions toolbar */}
+          <div className="ai-quick-actions">
+            {quickActions.map((action) => {
+              const Icon = action.Icon;
+              const isActive = action.type === activeQuickAction;
+              return (
+                <button
+                  key={action.type}
+                  className={`ai-quick-btn ${isActive ? "active" : ""}`}
+                  type="button"
+                  onClick={() => setActiveQuickAction(isActive ? null : action.type)}
+                >
+                  <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+                  {action.label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Input form */}
-          <form onSubmit={handleSubmit} className="flex gap-2">
+          {/* Text input */}
+          <form onSubmit={handleSubmit} className="ai-input-form">
             <input
-              className="chat-input flex-1 min-h-[2.75rem] border border-[var(--border-strong)] rounded-md bg-[var(--surface)] px-3 text-sm"
+              className="ai-input-field"
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -425,12 +412,11 @@ export function AiChatClient() {
               disabled={isCreating}
             />
             <button
-              className="soft-button"
+              className="ai-send-btn"
               type="submit"
               disabled={!input.trim() || isCreating}
             >
               <Send aria-hidden="true" className="h-4 w-4" />
-              发送
             </button>
           </form>
         </div>
