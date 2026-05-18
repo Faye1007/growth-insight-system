@@ -521,6 +521,22 @@
 - `npm run build` 通过。
 - 本地 `/daily` 和 `/settings` 返回 `200`。
 
+### ✅ Modification Step 23.6：成长记录全部历史数据
+
+完成内容：
+
+- 日期范围筛选项"全部近期"改为"全部历史"，取消数量限制。
+- 保留"今天"和"最近 7 天"快捷筛选。
+- 移除 `timelineLimit = 40` 的全局截断。
+-  wrapper 函数（`getRecentTasks`、`getRecentHabitCheckins` 等）改为接受 `limit` 参数。
+- "全部历史"模式下 limit 设为 9999，获取全部数据。
+- 页面文案更新：近期概览 → 历史概览，近期记录 → 历史记录，暂无近期记录 → 暂无历史记录。
+- 默认筛选从 `recent` 改为 `all`。
+
+验证：
+
+- `npm run build` 通过。
+
 ### ✅ Modification Step 23.5：纪念日增强 + 数据库迁移
 
 完成内容：

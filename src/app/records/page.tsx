@@ -21,7 +21,6 @@ import {
 import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
 
 const recentLimitPerType = 12;
-const timelineLimit = 40;
 
 const recordTypeOptions = [
   { value: "all", label: "全部" },
@@ -33,7 +32,7 @@ const recordTypeOptions = [
 ] as const;
 
 const dateRangeOptions = [
-  { value: "recent", label: "全部近期" },
+  { value: "all", label: "全部历史" },
   { value: "today", label: "今天" },
   { value: "7d", label: "最近 7 天" },
 ] as const;
@@ -151,7 +150,7 @@ function getFilterHref(type: RecordTypeFilter, range: DateRangeFilter) {
     params.set("type", type);
   }
 
-  if (range !== "recent") {
+  if (range !== "all") {
     params.set("range", range);
   }
 
@@ -170,8 +169,8 @@ function getPreview(content: string) {
   return content.length > 120 ? `${content.slice(0, 120)}...` : content;
 }
 
-async function getRecentTasks(userId: string): Promise<TimelineRecord[]> {
-  const rows = await getRecentTasksForUser(userId, recentLimitPerType);
+async function getRecentTasks(userId: string, limit: number): Promise<TimelineRecord[]> {
+  const rows = await getRecentTasksForUser(userId, limit);
 
   return rows.map((task) => ({
     id: `task-${task.id}`,
@@ -192,8 +191,8 @@ async function getRecentTasks(userId: string): Promise<TimelineRecord[]> {
   }));
 }
 
-async function getRecentHabitCheckins(userId: string): Promise<TimelineRecord[]> {
-  const rows = await getRecentHabitCheckinsForUser(userId, recentLimitPerType);
+async function getRecentHabitCheckins(userId: string, limit: number): Promise<TimelineRecord[]> {
+  const rows = await getRecentHabitCheckinsForUser(userId, limit);
 
   return rows.map((checkin) => ({
     id: `habit-${checkin.id}`,
@@ -210,8 +209,8 @@ async function getRecentHabitCheckins(userId: string): Promise<TimelineRecord[]>
   }));
 }
 
-async function getRecentScheduleItems(userId: string): Promise<TimelineRecord[]> {
-  const rows = await getRecentScheduleItemsForUser(userId, recentLimitPerType);
+async function getRecentScheduleItems(userId: string, limit: number): Promise<TimelineRecord[]> {
+  const rows = await getRecentScheduleItemsForUser(userId, limit);
 
   return rows.map((item) => ({
     id: `schedule-${item.id}`,
@@ -228,8 +227,8 @@ async function getRecentScheduleItems(userId: string): Promise<TimelineRecord[]>
   }));
 }
 
-async function getRecentLifeEvents(userId: string): Promise<TimelineRecord[]> {
-  const rows = await getRecentLifeEventsForUser(userId, recentLimitPerType);
+async function getRecentLifeEvents(userId: string, limit: number): Promise<TimelineRecord[]> {
+  const rows = await getRecentLifeEventsForUser(userId, limit);
 
   return rows.map((event) => ({
     id: `event-${event.id}`,
@@ -246,8 +245,8 @@ async function getRecentLifeEvents(userId: string): Promise<TimelineRecord[]> {
   }));
 }
 
-async function getRecentIdeas(userId: string): Promise<TimelineRecord[]> {
-  const rows = await getRecentIdeasForUser(userId, recentLimitPerType);
+async function getRecentIdeas(userId: string, limit: number): Promise<TimelineRecord[]> {
+  const rows = await getRecentIdeasForUser(userId, limit);
 
   return rows.map((idea) => ({
     id: `idea-${idea.id}`,
@@ -264,19 +263,19 @@ async function getRecentIdeas(userId: string): Promise<TimelineRecord[]> {
   }));
 }
 
-async function getRecentTimelineRecords(userId: string) {
-  const recordGroups = await Promise.all([
-    getRecentTasks(userId),
-    getRecentHabitCheckins(userId),
-    getRecentScheduleItems(userId),
-    getRecentLifeEvents(userId),
-    getRecentIdeas(userId),
+async function getRecentTimelineRecords(userId: string, range: DateRangeFilter) {
+  const limit = range === "all" ? 9999 : recentLimitPerType;
+
+  const [tasks, habitCheckins, schedules, events, ideas] = await Promise.all([
+    getRecentTasks(userId, limit),
+    getRecentHabitCheckins(userId, limit),
+    getRecentScheduleItems(userId, limit),
+    getRecentLifeEvents(userId, limit),
+    getRecentIdeas(userId, limit),
   ]);
 
-  return recordGroups
-    .flat()
-    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
-    .slice(0, timelineLimit);
+  return [...tasks, ...habitCheckins, ...schedules, ...events, ...ideas]
+    .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
 }
 
 function filterTimelineRecords(
@@ -332,18 +331,18 @@ function groupRecordsByDate(records: TimelineRecord[]) {
 export default async function RecordsPage({ searchParams }: RecordsPageProps) {
   const params = await searchParams;
   const typeFilter = isRecordTypeFilter(params?.type) ? params.type : "all";
-  const rangeFilter = isDateRangeFilter(params?.range) ? params.range : "recent";
+  const rangeFilter = isDateRangeFilter(params?.range) ? params.range : "all";
   const user = await getCurrentUser();
   const isLoggedIn = Boolean(user);
   const currentPath = getFilterHref(typeFilter, rangeFilter);
   const loginPath = buildLoginPath({ next: currentPath, message: loginRequiredMessage });
-  const allRecords = user ? await getRecentTimelineRecords(user.id) : [];
+  const allRecords = user ? await getRecentTimelineRecords(user.id, rangeFilter) : [];
   const records = filterTimelineRecords(allRecords, typeFilter, rangeFilter);
   const typeCounts = buildTypeCounts(records);
   const typeFilterLabel =
     recordTypeOptions.find((option) => option.value === typeFilter)?.label ?? "全部";
   const rangeFilterLabel =
-    dateRangeOptions.find((option) => option.value === rangeFilter)?.label ?? "全部近期";
+    dateRangeOptions.find((option) => option.value === rangeFilter)?.label ?? "全部历史";
   const taskDeletedFeedback =
     params?.taskDeleted === "1"
       ? {
@@ -403,7 +402,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
             <div>
               <h2 className="section-heading">登录后查看真实记录</h2>
               <p className="body-copy mt-2">
-                未登录时可以浏览页面结构；登录后会显示你在每日工作台创建的近期数据。
+                未登录时可以浏览页面结构；登录后会显示你在每日工作台创建的全部历史数据。
               </p>
             </div>
             <Link className="soft-button w-full sm:w-auto" href={loginPath}>
@@ -416,7 +415,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
       <section aria-labelledby="records-overview" className="panel-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="page-kicker">近期概览</p>
+            <p className="page-kicker">历史概览</p>
             <h2 id="records-overview" className="section-heading mt-1">
               已载入 {records.length} 条记录
             </h2>
@@ -486,7 +485,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
           <div>
             <p className="page-kicker">按天记录</p>
             <h2 id="records-timeline" className="section-heading mt-1">
-              近期记录
+              历史记录
             </h2>
           </div>
           <span className="status-pill w-fit">按日期分组</span>
@@ -546,7 +545,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
               <CheckCircle2 aria-hidden="true" className="h-5 w-5" />
             </span>
             <div>
-              <p className="list-label">暂无近期记录</p>
+              <p className="list-label">暂无历史记录</p>
               <p className="body-copy mt-1">
                 在每日工作台创建任务、打卡习惯、记录日程、事件或灵感后，会出现在这里。
               </p>
