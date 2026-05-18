@@ -9,6 +9,7 @@ import {
   createLifeEventForUser,
   createScheduleItemForUser,
   createTaskForUser,
+  updateHabitForUser,
 } from "@/lib/data/user-data";
 import { isTaskCategory } from "@/lib/tasks/options";
 
@@ -210,4 +211,41 @@ export async function createChecklistEventAction(formData: FormData) {
 
   revalidatePath("/life");
   redirect("/life?tab=events&eventCreated=1");
+}
+
+export async function updateChecklistHabitAction(formData: FormData) {
+  const user = await requireCurrentUser("/checklist");
+  const habitId = getStringValue(formData, "habitId");
+  const name = getStringValue(formData, "name");
+
+  if (!habitId) {
+    redirect("/checklist?tab=habits&habitError=missing_id");
+  }
+
+  if (!name) {
+    redirect(`/checklist/habits/${habitId}?habitError=missing_name`);
+  }
+
+  const categoryValue = getStringValue(formData, "category");
+  const category = isTaskCategory(categoryValue) ? categoryValue : "other";
+  const startDateRaw = getStringValue(formData, "startDate");
+  const startDate = isValidDateValue(startDateRaw) ? startDateRaw : getBeijingDateValue();
+  const description = getStringValue(formData, "description") || null;
+
+  try {
+    await updateHabitForUser({
+      userId: user.id,
+      habitId,
+      name,
+      description,
+      category,
+      startDate,
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect(`/checklist/habits/${habitId}?habitError=save_failed`);
+  }
+
+  revalidatePath(`/checklist/habits/${habitId}`);
+  redirect(`/checklist/habits/${habitId}?habitUpdated=1`);
 }

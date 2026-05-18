@@ -410,7 +410,9 @@ export async function deactivateHabitAction(formData: FormData) {
     redirect(
       source === "detail" && recordId
         ? `/records/habit/${recordId}?habitError=missing_habit`
-        : "/daily?habitError=missing_habit#habits",
+        : source === "checklist"
+          ? `/checklist/habits/${habitId}?habitError=missing_habit`
+          : "/daily?habitError=missing_habit#habits",
     );
   }
 
@@ -424,17 +426,24 @@ export async function deactivateHabitAction(formData: FormData) {
     redirect(
       source === "detail" && recordId
         ? `/records/habit/${recordId}?habitError=save_failed`
-        : "/daily?habitError=save_failed#habits",
+        : source === "checklist"
+          ? `/checklist/habits/${habitId}?habitError=save_failed`
+          : "/daily?habitError=save_failed#habits",
     );
   }
 
   revalidatePath("/daily");
   revalidatePath("/records");
   revalidatePath("/insights");
+  revalidatePath("/checklist");
 
   if (source === "detail" && recordId) {
     revalidatePath(`/records/habit/${recordId}`);
     redirect(`/records/habit/${recordId}?habitUpdated=deactivated`);
+  }
+
+  if (source === "checklist") {
+    redirect(`/checklist/habits/${habitId}?habitUpdated=deactivated`);
   }
 
   redirect("/daily?habitUpdated=deactivated#habits");
@@ -450,7 +459,9 @@ export async function softDeleteHabitAction(formData: FormData) {
     redirect(
       source === "detail" && recordId
         ? `/records/habit/${recordId}?habitError=missing_habit`
-        : "/daily?habitError=missing_habit#habits",
+        : source === "checklist"
+          ? `/checklist/habits/${habitId}?habitError=missing_habit`
+          : "/daily?habitError=missing_habit#habits",
     );
   }
 
@@ -464,17 +475,24 @@ export async function softDeleteHabitAction(formData: FormData) {
     redirect(
       source === "detail" && recordId
         ? `/records/habit/${recordId}?habitError=save_failed`
-        : "/daily?habitError=save_failed#habits",
+        : source === "checklist"
+          ? `/checklist/habits/${habitId}?habitError=save_failed`
+          : "/daily?habitError=save_failed#habits",
     );
   }
 
   revalidatePath("/daily");
   revalidatePath("/records");
   revalidatePath("/insights");
+  revalidatePath("/checklist");
 
   if (source === "detail" && recordId) {
     revalidatePath(`/records/habit/${recordId}`);
     redirect("/records?habitDeleted=1");
+  }
+
+  if (source === "checklist") {
+    redirect(`/checklist/habits/${habitId}?habitDeleted=1`);
   }
 
   redirect("/daily?view=habits&habitUpdated=deleted#habits");

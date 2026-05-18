@@ -679,7 +679,9 @@ export function ChecklistClient({
                         </button>
                       </form>
                       <div className="min-w-0">
-                        <p className="list-label">{habit.name}</p>
+                        <Link className="list-label list-title-link" href={`/checklist/habits/${habit.id}`}>
+                          {habit.name}
+                        </Link>
                         <p className="list-meta mt-1">
                           {getTaskCategoryLabel(habit.category)} · 累计 {habit.totalCount} 次 · 连续 {habit.streakCount} 天
                         </p>

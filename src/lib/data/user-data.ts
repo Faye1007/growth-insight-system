@@ -293,6 +293,17 @@ export type ActiveHabit = {
   createdAt: Date;
 };
 
+export type HabitRecord = {
+  id: string;
+  name: string;
+  description: string | null;
+  category: TaskCategory;
+  isActive: boolean;
+  startDate: string | null;
+  isPinned: boolean;
+  createdAt: Date;
+};
+
 export type HabitCheckin = {
   habitId: string;
   checkinDate: string;
@@ -1975,6 +1986,32 @@ export async function getActiveHabitsForUser(userId: string) {
     .returns<HabitRow[]>();
 
   return assertArray(data, error).map(mapActiveHabit);
+}
+
+export async function getHabitByIdForUser(userId: string, habitId: string): Promise<HabitRecord | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("habits")
+    .select("id,name,description,category,is_active,start_date,is_pinned,created_at")
+    .eq("id", habitId)
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .returns<HabitRow[]>()
+    .maybeSingle();
+
+  const row = assertRow(data as HabitRow | null, error);
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    category: row.category,
+    isActive: row.is_active,
+    startDate: row.start_date,
+    isPinned: row.is_pinned,
+    createdAt: new Date(row.created_at),
+  };
 }
 
 export async function getTodayScheduleItemsForUser(

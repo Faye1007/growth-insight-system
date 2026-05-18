@@ -3009,6 +3009,21 @@ Supabase Auth Redirect URL 需要配置：
 - `npm run lint` 通过。
 - `npm run build` 通过。
 
+### ✅ Modification Step 23.3：习惯详情页
+
+完成内容：
+
+- 清单页习惯名称添加跳转到 `/checklist/habits/[id]` 的链接。
+- 新建习惯详情页，支持编辑名称、说明、分类、开始日期。
+- 支持停用/重新启用习惯和软删除习惯。
+- 操作完成后 redirect 回详情页并显示 feedback 提示。
+- `src/lib/data/user-data.ts` 新增 `getHabitByIdForUser` 和 `HabitRecord` 类型。
+- `src/app/daily/actions.ts` 的停用/删除习惯 action 支持 `source=checklist` 来源。
+
+验证：
+
+- `npm run build` 通过。
+
 ### ✅ Modification Step 23.2：AI 界面微信式改造
 
 完成内容：
