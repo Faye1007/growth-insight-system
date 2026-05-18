@@ -521,6 +521,22 @@
 - `npm run build` 通过。
 - 本地 `/daily` 和 `/settings` 返回 `200`。
 
+### ✅ Modification Step 23.7：顶部纪念日提醒横幅
+
+完成内容：
+
+- 人生页和成长记录页顶部新增纪念日提醒横幅。
+- 显示未来 7 天内和当天的纪念日/生日。
+- 按时间排序，区分"今天"和"X 天后"提示文案。
+- 新增 `getUpcomingAnniversariesForUser` 数据函数，支持按年提醒模式自动计算下次日期。
+- 新增 `UpcomingAnniversary` 类型，包含 `upcomingDate`、`daysUntil`、`isToday` 字段。
+- 新增 `.anniversary-reminder-banner`、`.anniversary-days`、`.anniversary-today` 样式。
+- 横幅中纪念日标题可点击进入详情页。
+
+验证：
+
+- `npm run build` 通过。
+
 ### ✅ Modification Step 23.6：成长记录全部历史数据
 
 完成内容：

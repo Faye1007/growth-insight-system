@@ -11,7 +11,7 @@ import {
 
 import { createChecklistEventAction } from "@/app/checklist/actions";
 import { createAnniversaryAction, createGiftRecordAction } from "@/app/life/actions";
-import type { AnniversaryRecord, GiftRecord, LifeEventRecord } from "@/lib/data/user-data";
+import type { AnniversaryRecord, GiftRecord, LifeEventRecord, UpcomingAnniversary } from "@/lib/data/user-data";
 
 type LifeTab = "events" | "anniversaries" | "gifts";
 
@@ -76,6 +76,7 @@ export function LifeClient({
   events,
   anniversaries,
   giftRecords,
+  upcomingAnniversaries = [],
   isLoggedIn = false,
   loginPath = "/login",
 }: {
@@ -83,6 +84,7 @@ export function LifeClient({
   events: LifeEventRecord[];
   anniversaries: AnniversaryRecord[];
   giftRecords: GiftRecord[];
+  upcomingAnniversaries?: UpcomingAnniversary[];
   isLoggedIn?: boolean;
   loginPath?: string;
 }) {
@@ -102,6 +104,40 @@ export function LifeClient({
           记录生活中的重要事件、提前准备的重要日期和送出或收到的礼物。
         </p>
       </header>
+
+      {/* Upcoming anniversaries banner */}
+      {upcomingAnniversaries.length > 0 && (
+        <section className="panel-card anniversary-reminder-banner">
+          <div className="flex items-center gap-2">
+            <CalendarHeart className="h-4 w-4 flex-shrink-0" />
+            <h2 className="section-heading">即将到来的纪念日</h2>
+            <span className="status-pill">{upcomingAnniversaries.length} 条</span>
+          </div>
+          <div className="task-list mt-3">
+            {upcomingAnniversaries.map((ann) => (
+              <article key={ann.id} className="task-list-item compact-list-item">
+                <div className="compact-main-row">
+                  <span className="nav-icon">
+                    <CalendarHeart aria-hidden="true" className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <Link className="list-label list-title-link" href={`/life/anniversary/${ann.id}`}>
+                      {ann.title}
+                    </Link>
+                    <p className="list-meta mt-1">
+                      {ann.personName}
+                      {ann.type === "birthday" ? " · 生日" : ""}
+                    </p>
+                  </div>
+                  <span className={`anniversary-days ${ann.isToday ? "anniversary-today" : ""}`}>
+                    {ann.isToday ? "今天" : `${ann.daysUntil} 天后`}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Tab switcher */}
       <div className="daily-tab-list life-tab-list" role="tablist">

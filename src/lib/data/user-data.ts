@@ -1783,6 +1783,54 @@ export async function getAnniversaryDetailForUser(userId: string, anniversaryId:
   return row ? mapAnniversary(row) : null;
 }
 
+export type UpcomingAnniversary = AnniversaryRecord & {
+  upcomingDate: string;
+  daysUntil: number;
+  isToday: boolean;
+};
+
+export async function getUpcomingAnniversariesForUser(userId: string): Promise<UpcomingAnniversary[]> {
+  const anniversaries = await getAnniversariesForUser(userId);
+  const today = getBeijingDateValue(new Date());
+  const todayDate = new Date(`${today}T00:00:00+08:00`);
+  const sevenDaysLater = new Date(todayDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const sevenDaysLaterStr = getBeijingDateValue(sevenDaysLater);
+
+  const upcoming: UpcomingAnniversary[] = [];
+
+  for (const ann of anniversaries) {
+    let upcomingDate: string | null = null;
+
+    if (ann.reminderMode === "yearly") {
+      const annMonthDay = ann.anniversaryDate.slice(5);
+      const currentYear = todayDate.getFullYear();
+      let candidate = `${currentYear}-${annMonthDay}`;
+
+      if (candidate < today) {
+        candidate = `${currentYear + 1}-${annMonthDay}`;
+      }
+
+      upcomingDate = candidate;
+    } else if (ann.reminderDate) {
+      if (ann.reminderDate >= today && ann.reminderDate <= sevenDaysLaterStr) {
+        upcomingDate = ann.reminderDate;
+      }
+    }
+
+    if (upcomingDate && upcomingDate >= today && upcomingDate <= sevenDaysLaterStr) {
+      const daysUntil = getDaysBetween(today, upcomingDate);
+      upcoming.push({
+        ...ann,
+        upcomingDate,
+        daysUntil,
+        isToday: daysUntil === 0,
+      });
+    }
+  }
+
+  return upcoming.sort((a, b) => a.upcomingDate.localeCompare(b.upcomingDate));
+}
+
 export async function createGiftRecordForUser(input: {
   userId: string;
   anniversaryId: string | null;

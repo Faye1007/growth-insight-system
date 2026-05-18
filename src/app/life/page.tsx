@@ -6,9 +6,10 @@ import {
   getAnniversariesForUser,
   getGiftRecordsForUser,
   getLifeEventsForUser,
+  getUpcomingAnniversariesForUser,
 } from "@/lib/data/user-data";
 import type { FeedbackMessage as FeedbackMessageType } from "@/lib/feedback";
-import type { AnniversaryRecord, GiftRecord, LifeEventRecord } from "@/lib/data/user-data";
+import type { AnniversaryRecord, GiftRecord, LifeEventRecord, UpcomingAnniversary } from "@/lib/data/user-data";
 
 type LifePageProps = {
   searchParams?: Promise<{
@@ -123,15 +124,17 @@ export default async function LifePage({ searchParams }: LifePageProps) {
   let hasDataLoadError = false;
 
   if (user) {
-    const [eventsResult, anniversariesResult, giftRecordsResult] = await Promise.allSettled([
+    const [eventsResult, anniversariesResult, giftRecordsResult, upcomingResult] = await Promise.allSettled([
       getLifeEventsForUser(user.id, "2020-01-01", todayValue),
       getAnniversariesForUser(user.id),
       getGiftRecordsForUser({ userId: user.id }),
+      getUpcomingAnniversariesForUser(user.id),
     ]);
 
     events = settledValue(eventsResult, []);
     anniversaries = settledValue(anniversariesResult, []);
     giftRecords = settledValue(giftRecordsResult, []);
+    const upcomingAnniversaries = settledValue(upcomingResult, []);
     hasDataLoadError = [eventsResult, anniversariesResult, giftRecordsResult].some(
       (result) => result.status === "rejected",
     );
@@ -169,6 +172,7 @@ export default async function LifePage({ searchParams }: LifePageProps) {
         events={events}
         anniversaries={anniversaries}
         giftRecords={giftRecords}
+        upcomingAnniversaries={user ? (await getUpcomingAnniversariesForUser(user.id)) : []}
         isLoggedIn={isLoggedIn}
         loginPath={loginPath}
       />

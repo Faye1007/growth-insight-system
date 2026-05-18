@@ -1,12 +1,14 @@
-import Link from "next/link";
 import {
   CalendarDays,
+  CalendarHeart,
   CheckCircle2,
   ClipboardList,
   Lightbulb,
   NotebookPen,
   Repeat2,
 } from "lucide-react";
+
+import Link from "next/link";
 
 import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
@@ -17,7 +19,9 @@ import {
   getRecentLifeEventsForUser,
   getRecentScheduleItemsForUser,
   getRecentTasksForUser,
+  getUpcomingAnniversariesForUser,
 } from "@/lib/data/user-data";
+import type { UpcomingAnniversary } from "@/lib/data/user-data";
 import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
 
 const recentLimitPerType = 12;
@@ -337,6 +341,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
   const currentPath = getFilterHref(typeFilter, rangeFilter);
   const loginPath = buildLoginPath({ next: currentPath, message: loginRequiredMessage });
   const allRecords = user ? await getRecentTimelineRecords(user.id, rangeFilter) : [];
+  const upcomingAnniversaries = user ? await getUpcomingAnniversariesForUser(user.id) : [];
   const records = filterTimelineRecords(allRecords, typeFilter, rangeFilter);
   const typeCounts = buildTypeCounts(records);
   const typeFilterLabel =
@@ -390,6 +395,40 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
           按创建时间倒序汇总任务、习惯打卡、日程、事件和灵感。当前支持按记录类型和日期范围做基础筛选。
         </p>
       </header>
+
+      {/* Upcoming anniversaries banner */}
+      {upcomingAnniversaries.length > 0 && (
+        <section className="panel-card anniversary-reminder-banner">
+          <div className="flex items-center gap-2">
+            <CalendarHeart className="h-4 w-4 flex-shrink-0" />
+            <h2 className="section-heading">即将到来的纪念日</h2>
+            <span className="status-pill">{upcomingAnniversaries.length} 条</span>
+          </div>
+          <div className="task-list mt-3">
+            {upcomingAnniversaries.map((ann) => (
+              <article key={ann.id} className="task-list-item compact-list-item">
+                <div className="compact-main-row">
+                  <span className="nav-icon">
+                    <CalendarHeart aria-hidden="true" className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <Link className="list-label list-title-link" href={`/life/anniversary/${ann.id}`}>
+                      {ann.title}
+                    </Link>
+                    <p className="list-meta mt-1">
+                      {ann.personName}
+                      {ann.type === "birthday" ? " · 生日" : ""}
+                    </p>
+                  </div>
+                  <span className={`anniversary-days ${ann.isToday ? "anniversary-today" : ""}`}>
+                    {ann.isToday ? "今天" : `${ann.daysUntil} 天后`}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <FeedbackMessage feedback={taskDeletedFeedback} />
       <FeedbackMessage feedback={scheduleDeletedFeedback} />
