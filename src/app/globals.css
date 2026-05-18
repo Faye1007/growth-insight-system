@@ -226,6 +226,24 @@ select {
     padding: 1rem;
   }
 
+  .daily-summary-card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  .daily-summary-card-link:hover {
+    border-color: var(--border-strong);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    transform: translateY(-1px);
+  }
+
   .metric-card::before,
   .workspace-panel::before,
   .daily-summary-card::before {
@@ -433,6 +451,96 @@ select {
   .panel-list {
     margin-top: 1.25rem;
     border-top: 1px solid var(--border);
+  }
+
+  .settings-account-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .settings-inline-edit {
+    min-width: 0;
+  }
+
+  .settings-inline-summary {
+    width: fit-content;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .settings-inline-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .settings-inline-summary .section-heading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .settings-inline-summary svg {
+    color: var(--muted-foreground);
+  }
+
+  .settings-account-empty,
+  .settings-account-body {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .settings-account-meta {
+    display: grid;
+    gap: 0.75rem;
+    border-block: 1px solid var(--border);
+    padding-block: 0.875rem;
+  }
+
+  .settings-account-meta div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+  }
+
+  .settings-account-meta span {
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+    font-weight: 650;
+  }
+
+  .settings-account-meta strong {
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+  }
+
+  .settings-account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .settings-account-actions > *,
+  .settings-account-actions form {
+    min-width: 8rem;
+  }
+
+  .settings-account-action-button {
+    width: 100%;
+  }
+
+  .settings-nickname-form {
+    display: grid;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    border-top: 1px dashed var(--border);
+    padding-top: 0.875rem;
   }
 
   .list-row {

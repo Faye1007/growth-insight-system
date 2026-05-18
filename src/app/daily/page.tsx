@@ -190,6 +190,7 @@ const dailySections: Array<{
   Icon: typeof ClipboardList;
   EmptyIcon: typeof Plus;
   tone: string;
+  href: string;
 }> = [
   {
     id: "tasks",
@@ -200,6 +201,7 @@ const dailySections: Array<{
     Icon: ClipboardList,
     EmptyIcon: Plus,
     tone: "tone-lavender",
+    href: "/checklist?tab=tasks",
   },
   {
     id: "habits",
@@ -210,6 +212,7 @@ const dailySections: Array<{
     Icon: Repeat2,
     EmptyIcon: CheckCircle2,
     tone: "tone-sage",
+    href: "/checklist?tab=habits",
   },
   {
     id: "schedule",
@@ -220,6 +223,7 @@ const dailySections: Array<{
     Icon: CalendarDays,
     EmptyIcon: CalendarDays,
     tone: "tone-clay",
+    href: "/checklist?tab=schedules",
   },
   {
     id: "notes",
@@ -230,6 +234,7 @@ const dailySections: Array<{
     Icon: NotebookPen,
     EmptyIcon: Lightbulb,
     tone: "tone-mist",
+    href: "/life?tab=events",
   },
 ];
 
@@ -977,12 +982,6 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const activeSections = activeSectionId
     ? dailySections.filter((section) => section.id === activeSectionId)
     : [];
-  const dailySectionCounts: Record<DailySectionId, number> = {
-    tasks: todayTasks.length,
-    habits: activeHabits.length,
-    schedule: todayScheduleItems.length,
-    notes: todayLifeEvents.length + todayIdeas.length,
-  };
   const todayCompletedTaskCount = todayTasks.filter((task) => task.status === "completed").length;
   const todayHabitCheckedCount = activeHabits.filter((habit) =>
     habitStatsById.get(habit.id)?.isCheckedToday,
@@ -1037,11 +1036,11 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
               完成情况与列表入口
             </h2>
           </div>
-          <span className="status-pill w-fit">切换列表</span>
+          <span className="status-pill w-fit">点击卡片进入列表</span>
         </div>
 
         <div className="insight-kpi-grid mt-5">
-          <article className="daily-summary-card tone-lavender">
+          <Link className="daily-summary-card daily-summary-card-link tone-lavender" href="/checklist?tab=tasks">
             <div className="metric-label">任务完成率</div>
             <div className="metric-value">{todayTaskRate}%</div>
             <p className="body-copy mt-2">
@@ -1050,9 +1049,9 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
             <div className="overview-progress mt-4">
               <span style={{ width: `${todayTaskRate}%` }} />
             </div>
-          </article>
+          </Link>
 
-          <article className="daily-summary-card tone-sage">
+          <Link className="daily-summary-card daily-summary-card-link tone-sage" href="/checklist?tab=habits">
             <div className="metric-label">习惯打卡</div>
             <div className="metric-value">
               {todayHabitCheckedCount}/{activeHabits.length}
@@ -1061,47 +1060,22 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
             <div className="overview-progress mt-4">
               <span style={{ width: `${todayHabitRate}%` }} />
             </div>
-          </article>
+          </Link>
 
-          <article className="daily-summary-card tone-clay">
+          <Link className="daily-summary-card daily-summary-card-link tone-clay" href="/checklist?tab=schedules">
             <div className="metric-label">今日日程</div>
             <div className="metric-value">{todayScheduleItems.length}</div>
             <p className="body-copy mt-2">今天已记录的固定事项数量。</p>
-          </article>
+          </Link>
 
-          <article className="daily-summary-card tone-mist">
+          <Link className="daily-summary-card daily-summary-card-link tone-mist" href="/life?tab=events">
             <div className="metric-label">随手记录</div>
             <div className="metric-value">{todayRecordCount}</div>
             <div className="overview-detail-row mt-3">
               <span className="status-pill">事件 {todayLifeEvents.length}</span>
               <span className="status-pill">灵感 {todayIdeas.length}</span>
             </div>
-          </article>
-        </div>
-
-        <div className="daily-tab-list mt-5" role="list">
-          {dailySections.map((section) => {
-            const Icon = section.Icon;
-            const isActive = section.id === activeSectionId;
-
-            return (
-              <Link
-                key={section.id}
-                aria-current={isActive ? "page" : undefined}
-                className={`daily-tab ${section.tone} ${isActive ? "active" : ""}`}
-                href={`/daily?view=${section.id}#daily-list-section`}
-                role="listitem"
-              >
-                <span className="nav-icon">
-                  <Icon aria-hidden="true" className="h-4 w-4" />
-                </span>
-                <span className="min-w-0">
-                  <span className="daily-tab-title">{section.title}</span>
-                  <span className="daily-tab-meta">{dailySectionCounts[section.id]} 条</span>
-                </span>
-              </Link>
-            );
-          })}
+          </Link>
         </div>
       </section>
 
@@ -1117,14 +1091,14 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
             </p>
           </div>
           {isLoggedIn ? (
-            <Link className="soft-button w-full sm:w-auto" href="/daily?reviewPreview=1#daily-review-preview">
+            <Link className="soft-button w-full sm:w-auto" href="/insights">
               <Sparkles aria-hidden="true" className="h-4 w-4" />
-              查看今日复盘
+              进入复盘
             </Link>
           ) : (
-            <Link className="soft-button w-full sm:w-auto" href={loginPath}>
+            <Link className="soft-button w-full sm:w-auto" href="/insights">
               <Sparkles aria-hidden="true" className="h-4 w-4" />
-              登录后生成复盘
+              进入复盘
             </Link>
           )}
         </div>
@@ -1145,12 +1119,13 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
         />
       ) : null}
 
-      <section
-        id="daily-list-section"
-        aria-label="每日工作台当前列表"
-        className="workspace-grid active-workspace-grid"
-      >
-        {activeSections.length ? activeSections.map((section) => {
+      {activeSections.length ? (
+        <section
+          id="daily-list-section"
+          aria-label="每日工作台当前列表"
+          className="workspace-grid active-workspace-grid"
+        >
+        {activeSections.map((section) => {
           const Icon = section.Icon;
           const EmptyIcon = section.EmptyIcon;
           const isTaskSection = section.id === "tasks";
@@ -1660,22 +1635,9 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
 
           </article>
           );
-        }) : (
-          <section className="panel-card">
-            <div className="empty-state">
-              <span className="empty-icon">
-                <ClipboardList aria-hidden="true" className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="list-label">选择一个今日入口</p>
-                <p className="body-copy mt-1">
-                  点击上方今日任务、今日习惯、今日日程或随手记录后，这里会显示对应列表。
-                </p>
-              </div>
-            </div>
-          </section>
-        )}
-      </section>
+        })}
+        </section>
+      ) : null}
     </div>
   );
 }

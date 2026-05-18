@@ -3,7 +3,7 @@
 export function DeleteAccountSubmitButton() {
   return (
     <button
-      className="quiet-button text-sm"
+      className="quiet-button settings-account-action-button text-sm"
       style={{ color: "var(--clay)", borderColor: "var(--clay)" }}
       type="submit"
       onClick={(event) => {
