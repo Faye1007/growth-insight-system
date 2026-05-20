@@ -525,6 +525,7 @@ export async function updateHabitCheckinAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const habitId = getStringValue(formData, "habitId");
   const intent = getStringValue(formData, "intent");
+  const source = getStringValue(formData, "source");
   const todayDate = getBeijingDateValue();
 
   if (!habitId || (intent !== "check" && intent !== "cancel")) {
@@ -558,6 +559,12 @@ export async function updateHabitCheckinAction(formData: FormData) {
   }
 
   revalidatePath("/daily");
+  revalidatePath("/checklist");
+
+  if (source === "checklist") {
+    redirect(`/checklist?tab=habits&habitUpdated=${status}`);
+  }
+
   redirect(`/daily?habitUpdated=${status}#habits`);
 }
 

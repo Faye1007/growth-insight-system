@@ -675,11 +675,8 @@ export function ChecklistClient({
                     <div className="compact-main-row">
                       <form action={updateHabitCheckinAction}>
                         <input type="hidden" name="habitId" value={habit.id} />
-                        <input
-                          type="hidden"
-                          name="intent"
-                          value={habit.isCheckedOnDate ? "cancel" : "check"}
-                        />
+                        <input type="hidden" name="intent" value={habit.isCheckedOnDate ? "cancel" : "check"} />
+                        <input type="hidden" name="source" value="checklist" />
                         <button
                           aria-label={
                             habit.isCheckedOnDate

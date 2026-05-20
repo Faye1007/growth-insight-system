@@ -645,6 +645,20 @@
 
 - `npm run build` 通过。
 
+### ✅ Modification Step 24.2：打卡习惯不跳转
+
+完成内容：
+
+- `updateHabitCheckinAction` 增加 `source` 参数读取。
+- 当 `source === "checklist"` 时，重定向到 `/checklist?tab=habits`，保持在清单页面。
+- 默认行为不变，仍重定向到 `/daily`。
+- 清单页习惯打卡 form 增加 `<input type="hidden" name="source" value="checklist" />`。
+- 同时 `revalidatePath("/checklist")` 确保清单页数据刷新。
+
+验证：
+
+- `npm run build` 通过。
+
 ### ✅ Modification Step 24.1：日程复选框
 
 完成内容：
