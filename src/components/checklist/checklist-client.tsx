@@ -138,6 +138,12 @@ function getIdeaStatusLabel(value: string) {
   return map[value] ?? value;
 }
 
+function formatScheduleTimeRange(startTime: string | null, endTime: string | null) {
+  if (!startTime) return null;
+  const start = startTime.slice(0, 5);
+  return endTime ? `${start} - ${endTime.slice(0, 5)}` : start;
+}
+
 function formatDateLabel(dateStr: string): string {
   const d = new Date(`${dateStr}T00:00:00+08:00`);
   const today = new Date();
@@ -549,6 +555,11 @@ export function ChecklistClient({
                             >
                               {item.title}
                             </Link>
+                            {item.startTime && (
+                              <p className="list-meta mt-1 font-bold text-[var(--clay)]">
+                                {formatScheduleTimeRange(item.startTime, item.endTime)}
+                              </p>
+                            )}
                             <p className="list-meta mt-1">
                               {getTaskCategoryLabel(item.category)}
                             </p>
