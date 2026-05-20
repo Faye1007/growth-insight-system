@@ -121,6 +121,7 @@ export default async function LifePage({ searchParams }: LifePageProps) {
   let events: LifeEventRecord[] = [];
   let anniversaries: AnniversaryRecord[] = [];
   let giftRecords: GiftRecord[] = [];
+  let upcomingAnniversaries: UpcomingAnniversary[] = [];
   let hasDataLoadError = false;
 
   if (user) {
@@ -134,7 +135,7 @@ export default async function LifePage({ searchParams }: LifePageProps) {
     events = settledValue(eventsResult, []);
     anniversaries = settledValue(anniversariesResult, []);
     giftRecords = settledValue(giftRecordsResult, []);
-    const upcomingAnniversaries = settledValue(upcomingResult, []);
+    upcomingAnniversaries = settledValue(upcomingResult, []);
     hasDataLoadError = [eventsResult, anniversariesResult, giftRecordsResult].some(
       (result) => result.status === "rejected",
     );
@@ -172,7 +173,7 @@ export default async function LifePage({ searchParams }: LifePageProps) {
         events={events}
         anniversaries={anniversaries}
         giftRecords={giftRecords}
-        upcomingAnniversaries={user ? (await getUpcomingAnniversariesForUser(user.id)) : []}
+        upcomingAnniversaries={upcomingAnniversaries}
         isLoggedIn={isLoggedIn}
         loginPath={loginPath}
       />

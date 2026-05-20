@@ -645,6 +645,18 @@
 
 - `npm run build` 通过。
 
+### ✅ Modification Step 24.3：人生页加载修复
+
+完成内容：
+
+- 移除 `life/page.tsx` 第 175 行重复调用 `getUpcomingAnniversariesForUser(user.id)`。
+- 将 `upcomingAnniversaries` 变量提升到函数顶层作用域，使用 `Promise.allSettled` 中已获取的结果。
+- 避免重复数据库查询导致的潜在加载失败问题。
+
+验证：
+
+- `npm run build` 通过。
+
 ### ✅ Modification Step 24.2：打卡习惯不跳转
 
 完成内容：
