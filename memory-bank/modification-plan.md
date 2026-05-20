@@ -20,6 +20,34 @@
 
 ## Planned
 
+### Modification Step 24：日程复选框、习惯打卡不跳转、人生页加载修复
+
+基于 Faye 实际使用后的反馈，以下 3 项改进按 Step 循环逐步实施：
+
+#### 改进点 1：日程增加复选框，可标注完成状态
+
+- **现状**：日程列表没有复选框/完成状态标记，无法在清单页面标注日程是否已完成。
+- **目标**：日程表增加 `isCompleted` 字段；清单页日程列表增加复选框，点击可切换完成/未完成状态；打卡后不跳转页面，保持在清单界面。
+- **影响文件**：`src/db/schema.ts`、新建数据库迁移文件、`src/lib/data/user-data.ts`、`src/app/checklist/actions.ts`、`src/components/checklist/checklist-client.tsx`
+
+#### 改进点 2：打卡习惯不跳转每日工作台
+
+- **现状**：清单页打卡习惯后，`updateHabitCheckinAction` 统一 redirect 到 `/daily`，离开清单页面。
+- **目标**：打卡 form 增加 `source` 隐藏字段；action 根据来源判断重定向到 `/checklist` 还是 `/daily`，清单页打卡后保持在清单界面。
+- **影响文件**：`src/components/checklist/checklist-client.tsx`、`src/app/daily/actions.ts`
+
+#### 改进点 3：人生页面加载修复
+
+- **现状**：人生页面有时无法加载，`life/page.tsx` 第 175 行重复调用 `getUpcomingAnniversariesForUser` 可能抛异常。
+- **目标**：移除重复调用，改用 `Promise.allSettled` 中已获取的 `upcomingAnniversaries` 结果。
+- **影响文件**：`src/app/life/page.tsx`
+
+## Planned Steps 执行顺序
+
+1. **Step 24.1**：日程复选框（DB schema + migration + user-data + actions + UI）（改进点 1）
+2. **Step 24.2**：打卡习惯不跳转（source 参数 + action 路由判断）（改进点 2）
+3. **Step 24.3**：人生页加载修复（移除重复调用）（改进点 3）
+
 ### Modification Step 23：真实使用反馈改进（7 项）
 
 基于 Faye 实际使用后的反馈，以下 7 项改进按 Step 循环逐步实施：
@@ -615,6 +643,22 @@
 
 验证：
 
+- `npm run build` 通过。
+
+### ✅ Modification Step 24.1：日程复选框
+
+完成内容：
+
+- `schedule_items` 表增加 `is_completed` 布尔字段，默认 `false`。
+- 执行真实数据库迁移（`0009_schedule_completion.sql`）。
+- 更新 `src/db/schema.ts` 新增 `isCompleted` 字段。
+- 更新 `src/lib/data/user-data.ts`：`ScheduleItemRow`、`TodayScheduleItem`、`ChecklistSchedule` 类型增加 `isCompleted`；`getChecklistSchedulesForUser` 查询和映射增加该字段；新增 `updateScheduleCompletionForUser` 函数。
+- 新增 `toggleScheduleCompletionAction` Server Action 到 `src/app/checklist/actions.ts`。
+- 清单页日程列表增加复选框，点击可切换完成/未完成状态；已完成日程标题加删除线，状态色变为 completed。
+
+验证：
+
+- `npm run db:migrate` 通过，真实 Supabase 数据库迁移成功。
 - `npm run build` 通过。
 
 ### ✅ Modification Step 23.1：清单/人生页内就地新建 + 每日工作台收敛

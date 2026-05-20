@@ -19,6 +19,7 @@ import {
   createChecklistIdeaAction,
   createChecklistScheduleAction,
   createChecklistTaskAction,
+  toggleScheduleCompletionAction,
 } from "@/app/checklist/actions";
 import { updateHabitCheckinAction, updateTaskStatusAction } from "@/app/daily/actions";
 import { getTaskCategoryLabel, taskCategories, taskStatuses } from "@/lib/tasks/options";
@@ -55,6 +56,7 @@ type ChecklistSchedule = {
   startTime: string | null;
   endTime: string | null;
   isPinned: boolean;
+  isCompleted: boolean;
 };
 
 type ChecklistHabit = {
@@ -522,15 +524,27 @@ export function ChecklistClient({
                     {items.map((item) => (
                       <article
                         key={item.id}
-                        className="task-list-item compact-list-item task-status-todo"
+                        className={`task-list-item compact-list-item ${item.isCompleted ? "task-status-completed" : "task-status-todo"}`}
                       >
                         <div className="compact-main-row">
-                          <div className="schedule-time-chip">
-                            {item.startTime ? item.startTime.slice(0, 5) : "--:--"}
-                          </div>
+                          <form action={toggleScheduleCompletionAction}>
+                            <input type="hidden" name="scheduleId" value={item.id} />
+                            <input type="hidden" name="isCompleted" value={String(item.isCompleted)} />
+                            <button
+                              aria-label={
+                                item.isCompleted
+                                  ? `取消完成 ${item.title}`
+                                  : `完成 ${item.title}`
+                              }
+                              className={`quick-check-button ${item.isCompleted ? "checked" : ""}`}
+                              type="submit"
+                            >
+                              <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
+                            </button>
+                          </form>
                           <div className="min-w-0">
                             <Link
-                              className="list-label list-title-link"
+                              className={`list-label list-title-link ${item.isCompleted ? "line-through" : ""}`}
                               href={`/records/schedule/${item.id}`}
                             >
                               {item.title}

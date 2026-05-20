@@ -10,6 +10,7 @@ import {
   createScheduleItemForUser,
   createTaskForUser,
   updateHabitForUser,
+  updateScheduleCompletionForUser,
 } from "@/lib/data/user-data";
 import { isTaskCategory } from "@/lib/tasks/options";
 
@@ -248,4 +249,28 @@ export async function updateChecklistHabitAction(formData: FormData) {
 
   revalidatePath(`/checklist/habits/${habitId}`);
   redirect(`/checklist/habits/${habitId}?habitUpdated=1`);
+}
+
+export async function toggleScheduleCompletionAction(formData: FormData) {
+  const user = await requireCurrentUser("/checklist");
+  const scheduleId = getStringValue(formData, "scheduleId");
+  const isCompleted = getStringValue(formData, "isCompleted") === "true";
+
+  if (!scheduleId) {
+    redirect("/checklist?tab=schedules&scheduleError=missing_id");
+  }
+
+  try {
+    await updateScheduleCompletionForUser({
+      userId: user.id,
+      scheduleId,
+      isCompleted: !isCompleted,
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect("/checklist?tab=schedules&scheduleError=save_failed");
+  }
+
+  revalidatePath("/checklist");
+  redirect("/checklist?tab=schedules&scheduleUpdated=1");
 }

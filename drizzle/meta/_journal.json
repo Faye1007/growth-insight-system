@@ -57,6 +57,20 @@
       "when": 1779001789075,
       "tag": "0007_curved_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779001789076,
+      "tag": "0008_anniversary_enhancements",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779001789077,
+      "tag": "0009_schedule_completion",
+      "breakpoints": true
     }
   ]
 }

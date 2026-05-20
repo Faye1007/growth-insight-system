@@ -152,6 +152,7 @@ type ScheduleItemRow = {
   start_time: string | null;
   end_time: string | null;
   is_pinned: boolean;
+  is_completed: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -325,6 +326,7 @@ export type TodayScheduleItem = {
   startTime: string | null;
   endTime: string | null;
   isPinned: boolean;
+  isCompleted: boolean;
   createdAt: Date;
 };
 
@@ -1201,6 +1203,28 @@ export async function updateSchedulePinnedForUser(input: {
     .from("schedule_items")
     .update({
       is_pinned: input.isPinned,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.scheduleId)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function updateScheduleCompletionForUser(input: {
+  userId: string;
+  scheduleId: string;
+  isCompleted: boolean;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("schedule_items")
+    .update({
+      is_completed: input.isCompleted,
       updated_at: input.updatedAt.toISOString(),
     })
     .eq("id", input.scheduleId)
@@ -2702,6 +2726,7 @@ export type ChecklistSchedule = {
   startTime: string | null;
   endTime: string | null;
   isPinned: boolean;
+  isCompleted: boolean;
   createdAt: Date;
 };
 
@@ -2764,7 +2789,7 @@ export async function getChecklistSchedulesForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("id,title,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,is_pinned,created_at")
+    .select("id,title,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,is_pinned,is_completed,created_at")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .order("is_pinned", { ascending: false })
@@ -2795,6 +2820,7 @@ export async function getChecklistSchedulesForUser(
       startTime: row.start_time,
       endTime: row.end_time,
       isPinned: row.is_pinned,
+      isCompleted: row.is_completed,
       createdAt: new Date(row.created_at),
     }));
 }
