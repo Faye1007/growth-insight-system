@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import Link from "next/link";
 import {
   CalendarHeart,
@@ -12,6 +12,7 @@ import {
 
 import { createChecklistEventAction } from "@/app/checklist/actions";
 import { batchSoftDeleteAction, createAnniversaryAction, createGiftRecordAction } from "@/app/life/actions";
+import { useToast } from "@/components/toast-provider";
 import type { AnniversaryRecord, GiftRecord, LifeEventRecord, UpcomingAnniversary } from "@/lib/data/user-data";
 
 type LifeTab = "events" | "anniversaries" | "gifts";
@@ -93,6 +94,18 @@ export function LifeClient({
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [_batchState, batchAction, _batchPending] = useActionState(batchSoftDeleteAction, null);
+  const { addToast } = useToast();
+
+  useEffect(() => {
+    if (!_batchState) return;
+    if (_batchState.success) {
+      addToast("已删除选中的项目", "success");
+      exitSelectionMode();
+    } else {
+      addToast("删除失败，请稍后重试", "error");
+    }
+  }, [_batchState]);
+
   const today = getTodayValue();
 
   function toggleSelect(id: string) {
@@ -628,7 +641,7 @@ export function LifeClient({
             </summary>
             <div className="batch-confirm-card">
               <p className="text-sm">确定删除选中的 {selectedIds.size} 项？此操作可恢复。</p>
-              <form action={batchAction} onSubmit={() => setTimeout(exitSelectionMode, 100)}>
+              <form action={batchAction}>
                 <input type="hidden" name="kind" value={activeTab} />
                 <input type="hidden" name="ids" value={JSON.stringify(Array.from(selectedIds))} />
                 <div className="flex gap-2 mt-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -29,6 +29,7 @@ import {
 import { getBeijingDateValue } from "@/lib/date";
 import { TaskCompletionToggle } from "@/components/task-completion-toggle";
 import { HabitCheckinToggle } from "@/components/habit-checkin-toggle";
+import { useToast } from "@/components/toast-provider";
 import { getTaskCategoryLabel, taskCategories, taskStatuses } from "@/lib/tasks/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
 
@@ -220,6 +221,28 @@ export function ChecklistClient({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [_postponeState, postponeAction] = useActionState(postponeTaskAction, null);
   const [_batchState, batchAction, _batchPending] = useActionState(batchSoftDeleteAction, null);
+  const { addToast } = useToast();
+
+  useEffect(() => {
+    if (!_batchState) return;
+    if (_batchState.success) {
+      addToast("已删除选中的项目", "success");
+      exitSelectionMode();
+    } else {
+      addToast("删除失败，请稍后重试", "error");
+    }
+  }, [_batchState]);
+
+  useEffect(() => {
+    if (!_postponeState) return;
+    if (_postponeState.success) {
+      addToast("任务已延期", "success");
+    } else {
+      const msg =
+        _postponeState.error === "missing_task" ? "任务不存在" : "延期失败，请稍后重试";
+      addToast(msg, "error");
+    }
+  }, [_postponeState]);
 
   const today = new Date();
   const todayStr = getBeijingDateValue(today);
@@ -1034,7 +1057,7 @@ export function ChecklistClient({
             </summary>
             <div className="batch-confirm-card">
               <p className="text-sm">确定删除选中的 {selectedIds.size} 项？此操作可恢复。</p>
-              <form action={batchAction} onSubmit={() => setTimeout(exitSelectionMode, 100)}>
+              <form action={batchAction}>
                 <input type="hidden" name="kind" value={activeTab} />
                 <input type="hidden" name="ids" value={JSON.stringify(Array.from(selectedIds))} />
                 <div className="flex gap-2 mt-3">
