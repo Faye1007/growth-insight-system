@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Clock,
   Lightbulb,
   List,
   Plus,
@@ -20,6 +21,7 @@ import {
   createChecklistScheduleAction,
   createChecklistTaskAction,
   toggleScheduleCompletionAction,
+  postponeTaskAction,
 } from "@/app/checklist/actions";
 
 import { getBeijingDateValue } from "@/lib/date";
@@ -45,6 +47,7 @@ type ChecklistTask = {
   status: TaskStatus;
   taskDate: string;
   isPostponed: boolean;
+  postponedToDate: string | null;
   isPinned: boolean;
 };
 
@@ -211,6 +214,7 @@ export function ChecklistClient({
   const [activeTab, setActiveTab] = useState<ChecklistTab>(initialTab);
   const [view, setView] = useState<ChecklistView>("list");
   const [weekOffset, setWeekOffset] = useState(0);
+  const [_postponeState, postponeAction] = useActionState(postponeTaskAction, null);
 
   const today = new Date();
   const todayStr = getBeijingDateValue(today);
@@ -424,7 +428,7 @@ export function ChecklistClient({
                 {groupByDate(filteredTasks, "taskDate").map(([date, items]) => (
                   <div key={date} className="mb-4">
                     <h3 className="date-group-header">{formatDateLabel(date)}</h3>
-                    {items.map((task) => (
+                      {items.map((task) => (
                       <article
                         key={task.id}
                         className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}
@@ -440,8 +444,40 @@ export function ChecklistClient({
                             </Link>
                             <p className="list-meta mt-1">
                               {getTaskCategoryLabel(task.category)}
+                              {task.isPostponed
+                                ? ` · 已延期 ${task.postponedToDate ? "→ " + formatDateLabel(task.postponedToDate) : "· 待定"}`
+                                : ""}
                             </p>
                           </div>
+                          {task.status !== "completed" && (
+                            <details className="postpone-menu">
+                              <summary className="postpone-trigger" aria-label="延期">
+                                <Clock className="h-3.5 w-3.5" />
+                              </summary>
+                              <div className="postpone-dropdown">
+                                {[
+                                  { label: "推迟 1 天", offset: 1 },
+                                  { label: "推迟 3 天", offset: 3 },
+                                  { label: "推迟 1 周", offset: 7 },
+                                ].map(({ label, offset }) => {
+                                  const d = new Date();
+                                  d.setDate(d.getDate() + offset);
+                                  const dateStr = d.toISOString().slice(0, 10);
+                                  return (
+                                    <form key={offset} action={postponeAction}>
+                                      <input type="hidden" name="taskId" value={task.id} />
+                                      <input type="hidden" name="postponedToDate" value={dateStr} />
+                                      <button type="submit" className="postpone-option">{label}</button>
+                                    </form>
+                                  );
+                                })}
+                                <form action={postponeAction}>
+                                  <input type="hidden" name="taskId" value={task.id} />
+                                  <button type="submit" className="postpone-option">以后再说</button>
+                                </form>
+                              </div>
+                            </details>
+                          )}
                         </div>
                       </article>
                     ))}

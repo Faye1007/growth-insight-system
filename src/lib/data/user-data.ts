@@ -839,7 +839,7 @@ export async function postponeTaskForUser(input: {
   userId: string;
   taskId: string;
   postponedFromDate: string;
-  postponedToDate: string;
+  postponedToDate: string | null;
   updatedAt: Date;
 }) {
   const supabase = await createClient();
@@ -847,11 +847,9 @@ export async function postponeTaskForUser(input: {
     .from("tasks")
     .update({
       status: "postponed",
-      task_date: input.postponedToDate,
       is_postponed: true,
       postponed_from_date: input.postponedFromDate,
       postponed_to_date: input.postponedToDate,
-      completed_at: null,
       updated_at: input.updatedAt.toISOString(),
     })
     .eq("id", input.taskId)
@@ -2797,7 +2795,7 @@ export async function getChecklistTasksForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tasks")
-    .select("id,title,category,status,task_date,is_postponed,is_pinned,created_at")
+    .select("id,title,category,status,task_date,is_postponed,postponed_to_date,is_pinned,created_at")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .gte("task_date", dateFrom)
@@ -2814,6 +2812,7 @@ export async function getChecklistTasksForUser(
     status: row.status,
     taskDate: row.task_date,
     isPostponed: row.is_postponed,
+    postponedToDate: row.postponed_to_date,
     isPinned: row.is_pinned,
     createdAt: new Date(row.created_at),
   }));

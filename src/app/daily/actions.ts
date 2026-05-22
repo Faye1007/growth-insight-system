@@ -157,12 +157,7 @@ export async function updateTaskStatusAction(formData: FormData) {
   const now = new Date();
 
   if (statusValue === "postponed") {
-    const postponedToDate = getStringValue(formData, "postponedToDate");
-
-    if (!isValidDateValue(postponedToDate)) {
-      const redirectPath = source === "checklist" ? "/checklist?tab=tasks" : "/daily?taskError=missing_postponed_date#tasks";
-      redirect(redirectPath);
-    }
+    const postponedToDate = getStringValue(formData, "postponedToDate") || null;
 
     try {
       await postponeTaskForUser({
@@ -230,6 +225,40 @@ export async function toggleTaskCompletionAction(
       status: statusValue,
       completedAt: statusValue === "completed" ? now : null,
       updatedAt: now,
+    });
+
+    revalidatePath("/daily");
+    revalidatePath("/checklist");
+    return { success: true };
+  } catch {
+    return { success: false, error: "save_failed" };
+  }
+}
+
+export async function postponeTaskAction(
+  _prevState: { success: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await requireCurrentUser("/checklist");
+    const taskId = getStringValue(formData, "taskId");
+    const postponedToDate = getStringValue(formData, "postponedToDate") || null;
+
+    if (!taskId) {
+      return { success: false, error: "missing_task" };
+    }
+
+    const existingTask = await getTaskDateForUser(user.id, taskId);
+    if (!existingTask) {
+      return { success: false, error: "missing_task" };
+    }
+
+    await postponeTaskForUser({
+      userId: user.id,
+      taskId,
+      postponedFromDate: existingTask.taskDate,
+      postponedToDate,
+      updatedAt: new Date(),
     });
 
     revalidatePath("/daily");

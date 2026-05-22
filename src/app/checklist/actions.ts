@@ -10,6 +10,8 @@ import {
   createScheduleItemForUser,
   createTaskForUser,
   deleteScheduleCompletionForUser,
+  getTaskDateForUser,
+  postponeTaskForUser,
   updateHabitForUser,
   upsertScheduleCompletionForUser,
 } from "@/lib/data/user-data";
@@ -273,4 +275,38 @@ export async function toggleScheduleCompletionAction(formData: FormData) {
 
   revalidatePath("/checklist");
   redirect("/checklist?tab=schedules&scheduleUpdated=1");
+}
+
+export async function postponeTaskAction(
+  _prevState: { success: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await requireCurrentUser("/checklist");
+    const taskId = formData.get("taskId");
+    const postponedToDate = formData.get("postponedToDate");
+
+    if (!taskId || typeof taskId !== "string") {
+      return { success: false, error: "missing_task" };
+    }
+
+    const existingTask = await getTaskDateForUser(user.id, taskId);
+    if (!existingTask) {
+      return { success: false, error: "missing_task" };
+    }
+
+    await postponeTaskForUser({
+      userId: user.id,
+      taskId,
+      postponedFromDate: existingTask.taskDate,
+      postponedToDate: postponedToDate && typeof postponedToDate === "string" ? postponedToDate : null,
+      updatedAt: new Date(),
+    });
+
+    revalidatePath("/daily");
+    revalidatePath("/checklist");
+    return { success: true };
+  } catch {
+    return { success: false, error: "save_failed" };
+  }
 }

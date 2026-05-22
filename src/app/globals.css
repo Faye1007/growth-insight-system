@@ -1336,6 +1336,58 @@ select {
     gap: 0.375rem;
   }
 
+  .postpone-menu {
+    position: relative;
+    display: inline-block;
+  }
+
+  .postpone-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
+    background: var(--card);
+    color: var(--muted);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .postpone-trigger::-webkit-details-marker {
+    display: none;
+  }
+
+  .postpone-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    z-index: 50;
+    min-width: 8rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .postpone-option {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-size: 0.8125rem;
+    color: var(--foreground);
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .postpone-option:hover {
+    background: var(--subtle);
+  }
+
   .compact-tag-row {
     display: flex;
     flex-wrap: wrap;

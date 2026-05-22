@@ -955,7 +955,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                             <p className="list-meta mt-1">
                               {getTaskCategoryLabel(task.category)} · {task.taskDate}
                               {task.isPostponed
-                                ? ` · 延期 ${task.postponedFromDate ?? "未记录"} -> ${task.postponedToDate ?? "未记录"}`
+                                ? ` · 已延期 ${task.postponedToDate ? "→ " + task.postponedToDate.slice(5) : "· 待定"}`
                                 : ""}
                             </p>
                           </div>
