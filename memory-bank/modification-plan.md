@@ -33,16 +33,13 @@
   - `export/markdown/route.ts` 的 zh-CN 显示格式版本保持本地定义
 - **验证**：`npx tsc --noEmit` 通过
 
-#### Step 26.2：消除任务复选框整页刷新
+#### ✅ Step 26.2：消除任务复选框整页刷新（已完成）
 
-- **现状**：清单页和每日工作台勾选完成任务触发完整 `<form>` 提交 + Server Action redirect + 整页重新渲染。
-- **目标**：将任务复选框改为客户端组件，用 `useActionState` 提交 Server Action；操作后只更新列表项状态，不跳转页面。
-- **方案**：
-  - `TaskCompletionToggle` 改为客户端 `form action` + `useActionState`
-  - `updateTaskStatusAction` 取消 redirect，改为返回 `{ success: boolean }`
-  - 列表组件接收返回值后更新本地状态
-  - 保留 URL param 反馈作为 fallback
-- **影响文件**：`src/app/daily/page.tsx`、`src/app/daily/actions.ts`、`src/components/checklist/checklist-client.tsx`、`src/app/checklist/actions.ts`
+- **完成内容**：
+  - 新建 `src/components/task-completion-toggle.tsx`：客户端组件，`useActionState` + `isPending` 禁用态
+  - `src/app/daily/actions.ts` 新增 `toggleTaskCompletionAction`：`useActionState` 签名，不 redirect，返回 `{ success, error }`
+  - `src/app/daily/page.tsx` 和 `src/components/checklist/checklist-client.tsx` 的内联 `<form>` 全部替换为 `<TaskCompletionToggle>`
+- **验证**：`npx tsc --noEmit` 通过
 
 #### Step 26.3：消除习惯打卡/删除/置顶整页刷新
 
@@ -156,7 +153,7 @@
 ## Planned Steps 执行顺序
 
 1. ✅ **Step 26.1**：重复工具函数提取
-2. **Step 26.2**：整页刷新消除——任务复选框改为客户端 useActionState
+2. ✅ **Step 26.2**：整页刷新消除——任务复选框改为客户端 useActionState
 3. **Step 26.3**：整页刷新消除——习惯打卡、删除/置顶按钮同理改造
 4. **Step 26.4**：修复习惯周历矩阵 Bug
 5. **Step 26.5**：日程字段简化 + 循环日程按天打卡修复（数据库迁移）

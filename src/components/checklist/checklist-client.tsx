@@ -21,8 +21,9 @@ import {
   createChecklistTaskAction,
   toggleScheduleCompletionAction,
 } from "@/app/checklist/actions";
-import { updateHabitCheckinAction, updateTaskStatusAction } from "@/app/daily/actions";
+import { updateHabitCheckinAction } from "@/app/daily/actions";
 import { getBeijingDateValue } from "@/lib/date";
+import { TaskCompletionToggle } from "@/components/task-completion-toggle";
 import { getTaskCategoryLabel, taskCategories, taskStatuses } from "@/lib/tasks/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
 
@@ -398,22 +399,7 @@ export function ChecklistClient({
                     className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}
                   >
                     <div className="compact-main-row">
-                      <form action={updateTaskStatusAction}>
-                        <input type="hidden" name="taskId" value={task.id} />
-                        <input type="hidden" name="status" value={task.status === "completed" ? "todo" : "completed"} />
-                        <input type="hidden" name="source" value="checklist" />
-                        <button
-                          aria-label={
-                            task.status === "completed"
-                              ? `取消完成 ${task.title}`
-                              : `完成 ${task.title}`
-                          }
-                          className={`quick-check-button ${task.status === "completed" ? "checked" : ""}`}
-                          type="submit"
-                        >
-                          <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-                        </button>
-                      </form>
+                      <TaskCompletionToggle taskId={task.id} isCompleted={task.status === "completed"} />
                       <div className="min-w-0">
                         <Link
                           className={`list-label list-title-link ${task.status === "completed" ? "line-through" : ""}`}
@@ -443,22 +429,7 @@ export function ChecklistClient({
                         className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}
                       >
                         <div className="compact-main-row">
-                          <form action={updateTaskStatusAction}>
-                            <input type="hidden" name="taskId" value={task.id} />
-                            <input type="hidden" name="status" value={task.status === "completed" ? "todo" : "completed"} />
-                            <input type="hidden" name="source" value="checklist" />
-                            <button
-                              aria-label={
-                                task.status === "completed"
-                                  ? `取消完成 ${task.title}`
-                                  : `完成 ${task.title}`
-                              }
-                              className={`quick-check-button ${task.status === "completed" ? "checked" : ""}`}
-                              type="submit"
-                            >
-                              <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-                            </button>
-                          </form>
+                          <TaskCompletionToggle taskId={task.id} isCompleted={task.status === "completed"} />
                           <div className="min-w-0">
                             <Link
                               className={`list-label list-title-link ${task.status === "completed" ? "line-through" : ""}`}

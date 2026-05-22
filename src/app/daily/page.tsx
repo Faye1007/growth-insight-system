@@ -26,8 +26,8 @@ import {
   updateSchedulePinnedAction,
   updateTaskPinnedAction,
   updateHabitCheckinAction,
-  updateTaskStatusAction,
 } from "@/app/daily/actions";
+import { TaskCompletionToggle } from "@/components/task-completion-toggle";
 import { getBeijingDateValue, getBeijingDateAfter } from "@/lib/date";
 import { normalizeStringList } from "@/lib/utils";
 import { FeedbackMessage } from "@/components/feedback-message";
@@ -269,24 +269,6 @@ function getHabitStats(habit: ActiveHabit, checkins: HabitCheckin[], todayDate: 
     totalCount: checkedDates.size,
     streakCount,
   };
-}
-
-function TaskCompletionToggle({ task }: { task: TodayTask }) {
-  const isCompleted = task.status === "completed";
-
-  return (
-    <form action={updateTaskStatusAction}>
-      <input type="hidden" name="taskId" value={task.id} />
-      <input type="hidden" name="status" value={isCompleted ? "todo" : "completed"} />
-      <button
-        aria-label={isCompleted ? `取消完成 ${task.title}` : `完成 ${task.title}`}
-        className={`quick-check-button ${isCompleted ? "checked" : ""}`}
-        type="submit"
-      >
-        <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-      </button>
-    </form>
-  );
 }
 
 function DeleteScheduleAction({
@@ -1114,7 +1096,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                     {todayTasks.map((task) => (
                       <article key={task.id} className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}>
                         <div className="compact-main-row">
-                          <TaskCompletionToggle task={task} />
+                          <TaskCompletionToggle taskId={task.id} isCompleted={task.status === "completed"} />
                           <div className="min-w-0">
                             <Link className="list-label list-title-link" href={`/records/task/${task.id}`}>
                               {task.title}

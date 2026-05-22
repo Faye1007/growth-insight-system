@@ -205,6 +205,41 @@ export async function updateTaskStatusAction(formData: FormData) {
   redirect(`/daily?taskUpdated=${statusValue}#tasks`);
 }
 
+export async function toggleTaskCompletionAction(
+  _prevState: { success: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await requireCurrentUser("/daily");
+    const taskId = getStringValue(formData, "taskId");
+    const statusValue = getStringValue(formData, "status");
+
+    if (!taskId || !isTaskStatus(statusValue)) {
+      return { success: false, error: "invalid_status" };
+    }
+
+    const existingTask = await getTaskDateForUser(user.id, taskId);
+    if (!existingTask) {
+      return { success: false, error: "missing_task" };
+    }
+
+    const now = new Date();
+    await updateTaskStatusForUser({
+      userId: user.id,
+      taskId,
+      status: statusValue,
+      completedAt: statusValue === "completed" ? now : null,
+      updatedAt: now,
+    });
+
+    revalidatePath("/daily");
+    revalidatePath("/checklist");
+    return { success: true };
+  } catch {
+    return { success: false, error: "save_failed" };
+  }
+}
+
 export async function updateTaskAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const taskId = getStringValue(formData, "taskId");
