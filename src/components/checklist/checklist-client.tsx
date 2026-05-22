@@ -67,7 +67,6 @@ type ChecklistSchedule = {
   startTime: string | null;
   endTime: string | null;
   isPinned: boolean;
-  isCompleted: boolean;
 };
 
 type ChecklistHabit = {
@@ -206,6 +205,7 @@ export function ChecklistClient({
   habits,
   ideas,
   postponedTasks = [],
+  scheduleCompletionMap = new Map<string, Set<string>>(),
 }: {
   initialTab?: ChecklistTab;
   tasks: ChecklistTask[];
@@ -213,6 +213,7 @@ export function ChecklistClient({
   habits: ChecklistHabit[];
   ideas: ChecklistIdea[];
   postponedTasks?: PostponedTask[];
+  scheduleCompletionMap?: Map<string, Set<string>>;
 }) {
   const [activeTab, setActiveTab] = useState<ChecklistTab>(initialTab);
   const [view, setView] = useState<ChecklistView>("list");
@@ -585,46 +586,51 @@ export function ChecklistClient({
                 {groupByDate(filteredSchedules, "scheduleDate").map(([date, items]) => (
                   <div key={date} className="mb-4">
                     <h3 className="date-group-header">{formatDateLabel(date)}</h3>
-                    {items.map((item) => (
-                      <article
-                        key={item.id}
-                        className={`task-list-item compact-list-item ${item.isCompleted ? "task-status-completed" : "task-status-todo"}`}
-                      >
-                        <div className="compact-main-row">
-                          <form action={toggleScheduleCompletionAction}>
-                            <input type="hidden" name="scheduleId" value={item.id} />
-                            <input type="hidden" name="isCompleted" value={String(item.isCompleted)} />
-                            <button
-                              aria-label={
-                                item.isCompleted
-                                  ? `取消完成 ${item.title}`
-                                  : `完成 ${item.title}`
-                              }
-                              className={`quick-check-button ${item.isCompleted ? "checked" : ""}`}
-                              type="submit"
-                            >
-                              <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-                            </button>
-                          </form>
-                          <div className="min-w-0">
-                            <Link
-                              className={`list-label list-title-link ${item.isCompleted ? "line-through" : ""}`}
-                              href={`/records/schedule/${item.id}`}
-                            >
-                              {item.title}
-                            </Link>
-                            {item.startTime && (
-                              <p className="list-meta mt-1 font-bold text-[var(--clay)]">
-                                {formatScheduleTimeRange(item.startTime, item.endTime)}
+                    {items.map((item) => {
+                      const isCompleted = scheduleCompletionMap.get(item.id)?.has(date) ?? false;
+
+                      return (
+                        <article
+                          key={item.id}
+                          className={`task-list-item compact-list-item ${isCompleted ? "task-status-completed" : "task-status-todo"}`}
+                        >
+                          <div className="compact-main-row">
+                            <form action={toggleScheduleCompletionAction}>
+                              <input type="hidden" name="scheduleId" value={item.id} />
+                              <input type="hidden" name="completionDate" value={date} />
+                              <input type="hidden" name="isCurrentlyCompleted" value={String(isCompleted)} />
+                              <button
+                                aria-label={
+                                  isCompleted
+                                    ? `取消完成 ${item.title}`
+                                    : `完成 ${item.title}`
+                                }
+                                className={`quick-check-button ${isCompleted ? "checked" : ""}`}
+                                type="submit"
+                              >
+                                <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
+                              </button>
+                            </form>
+                            <div className="min-w-0">
+                              <Link
+                                className={`list-label list-title-link ${isCompleted ? "line-through" : ""}`}
+                                href={`/records/schedule/${item.id}`}
+                              >
+                                {item.title}
+                              </Link>
+                              {item.startTime && (
+                                <p className="list-meta mt-1 font-bold text-[var(--clay)]">
+                                  {formatScheduleTimeRange(item.startTime, item.endTime)}
+                                </p>
+                              )}
+                              <p className="list-meta mt-1">
+                                {getTaskCategoryLabel(item.category)}
                               </p>
-                            )}
-                            <p className="list-meta mt-1">
-                              {getTaskCategoryLabel(item.category)}
-                            </p>
+                            </div>
                           </div>
-                        </div>
-                      </article>
-                    ))}
+                        </article>
+                      );
+                    })}
                   </div>
                 ))}
               </div>
@@ -681,11 +687,12 @@ export function ChecklistClient({
                           d.date >= start &&
                           (!end || d.date <= end);
                       }
+                      const isCompleted = isOnDay && (scheduleCompletionMap.get(item.id)?.has(d.date) ?? false);
                       return (
                         <span
                           key={d.date}
-                          className={`habit-checkin-dot ${isOnDay ? "checked" : ""}`}
-                          style={isOnDay ? { borderColor: "var(--clay)", background: "var(--clay)" } : {}}
+                          className={`habit-checkin-dot ${isCompleted ? "checked" : ""}`}
+                          style={isCompleted ? { borderColor: "var(--clay)", background: "var(--clay)" } : {}}
                         />
                       );
                     })}

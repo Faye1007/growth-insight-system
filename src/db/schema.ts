@@ -349,3 +349,21 @@ export const toolSessions = pgTable(
     index("tool_sessions_user_created_idx").on(table.userId, table.createdAt),
   ],
 );
+
+export const scheduleCompletions = pgTable(
+  "schedule_completions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    scheduleId: uuid("schedule_id")
+      .notNull()
+      .references(() => scheduleItems.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull(),
+    completionDate: date("completion_date").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("schedule_completions_schedule_date_unique").on(table.scheduleId, table.completionDate),
+    index("schedule_completions_user_date_idx").on(table.userId, table.completionDate),
+    index("schedule_completions_schedule_date_idx").on(table.scheduleId, table.completionDate),
+  ],
+);

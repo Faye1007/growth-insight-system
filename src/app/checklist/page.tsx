@@ -7,6 +7,7 @@ import {
   getChecklistSchedulesForUser,
   getChecklistTasksForUser,
   getPostponedTasksForUser,
+  getScheduleCompletionsForUser,
 } from "@/lib/data/user-data";
 import type { FeedbackMessage as FeedbackMessageType } from "@/lib/feedback";
 
@@ -63,6 +64,13 @@ export default async function ChecklistPage({ searchParams }: ChecklistPageProps
         getPostponedTasksForUser(user.id),
       ])
     : [[], [], [], [], []];
+
+  // Load schedule completions for the week
+  let scheduleCompletionMap = new Map<string, Set<string>>();
+  if (user && schedules.length > 0) {
+    const scheduleIds = schedules.map((s) => s.id);
+    scheduleCompletionMap = await getScheduleCompletionsForUser(user.id, scheduleIds, weekStart, weekEnd);
+  }
 
   const tab = params?.tab;
   const initialTab =
@@ -132,6 +140,7 @@ export default async function ChecklistPage({ searchParams }: ChecklistPageProps
         habits={habits}
         ideas={ideas}
         postponedTasks={postponedTasks}
+        scheduleCompletionMap={scheduleCompletionMap}
       />
     </div>
   );

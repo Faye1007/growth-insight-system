@@ -9,8 +9,9 @@ import {
   createLifeEventForUser,
   createScheduleItemForUser,
   createTaskForUser,
+  deleteScheduleCompletionForUser,
   updateHabitForUser,
-  updateScheduleCompletionForUser,
+  upsertScheduleCompletionForUser,
 } from "@/lib/data/user-data";
 import { isTaskCategory } from "@/lib/tasks/options";
 
@@ -254,19 +255,28 @@ export async function updateChecklistHabitAction(formData: FormData) {
 export async function toggleScheduleCompletionAction(formData: FormData) {
   const user = await requireCurrentUser("/checklist");
   const scheduleId = getStringValue(formData, "scheduleId");
-  const isCompleted = getStringValue(formData, "isCompleted") === "true";
+  const completionDate = getStringValue(formData, "completionDate");
+  const isCurrentlyCompleted = getStringValue(formData, "isCurrentlyCompleted") === "true";
 
-  if (!scheduleId) {
+  if (!scheduleId || !completionDate) {
     redirect("/checklist?tab=schedules&scheduleError=missing_id");
   }
 
   try {
-    await updateScheduleCompletionForUser({
-      userId: user.id,
-      scheduleId,
-      isCompleted: !isCompleted,
-      updatedAt: new Date(),
-    });
+    if (isCurrentlyCompleted) {
+      await deleteScheduleCompletionForUser({
+        userId: user.id,
+        scheduleId,
+        completionDate,
+      });
+    } else {
+      await upsertScheduleCompletionForUser({
+        userId: user.id,
+        scheduleId,
+        completionDate,
+        updatedAt: new Date(),
+      });
+    }
   } catch {
     redirect("/checklist?tab=schedules&scheduleError=save_failed");
   }

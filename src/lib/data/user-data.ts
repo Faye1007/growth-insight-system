@@ -1215,26 +1215,73 @@ export async function updateSchedulePinnedForUser(input: {
   }
 }
 
-export async function updateScheduleCompletionForUser(input: {
+export async function upsertScheduleCompletionForUser(input: {
   userId: string;
   scheduleId: string;
-  isCompleted: boolean;
+  completionDate: string;
   updatedAt: Date;
 }) {
   const supabase = await createClient();
   const { error } = await supabase
-    .from("schedule_items")
-    .update({
-      is_completed: input.isCompleted,
-      updated_at: input.updatedAt.toISOString(),
-    })
-    .eq("id", input.scheduleId)
-    .eq("user_id", input.userId)
-    .is("deleted_at", null);
+    .from("schedule_completions")
+    .upsert(
+      {
+        schedule_id: input.scheduleId,
+        user_id: input.userId,
+        completion_date: input.completionDate,
+        updated_at: input.updatedAt.toISOString(),
+      },
+      { onConflict: "schedule_id,completion_date" },
+    )
+    .eq("user_id", input.userId);
 
   if (error) {
     throw error;
   }
+}
+
+export async function deleteScheduleCompletionForUser(input: {
+  userId: string;
+  scheduleId: string;
+  completionDate: string;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("schedule_completions")
+    .delete()
+    .eq("schedule_id", input.scheduleId)
+    .eq("user_id", input.userId)
+    .eq("completion_date", input.completionDate);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function getScheduleCompletionsForUser(
+  userId: string,
+  scheduleIds: string[],
+  dateFrom: string,
+  dateTo: string,
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("schedule_completions")
+    .select("schedule_id,completion_date")
+    .eq("user_id", userId)
+    .in("schedule_id", scheduleIds)
+    .gte("completion_date", dateFrom)
+    .lte("completion_date", dateTo)
+    .returns<{ schedule_id: string; completion_date: string }[]>();
+
+  const result = new Map<string, Set<string>>();
+  for (const row of assertArray(data, error)) {
+    if (!result.has(row.schedule_id)) {
+      result.set(row.schedule_id, new Set());
+    }
+    result.get(row.schedule_id)!.add(row.completion_date);
+  }
+  return result;
 }
 
 export async function createLifeEventForUser(input: {
@@ -2728,7 +2775,6 @@ export type ChecklistSchedule = {
   startTime: string | null;
   endTime: string | null;
   isPinned: boolean;
-  isCompleted: boolean;
   createdAt: Date;
 };
 
@@ -2817,7 +2863,7 @@ export async function getChecklistSchedulesForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("id,title,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,is_pinned,is_completed,created_at")
+    .select("id,title,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,is_pinned,created_at")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .order("is_pinned", { ascending: false })
@@ -2848,7 +2894,6 @@ export async function getChecklistSchedulesForUser(
       startTime: row.start_time,
       endTime: row.end_time,
       isPinned: row.is_pinned,
-      isCompleted: row.is_completed,
       createdAt: new Date(row.created_at),
     }));
 }
