@@ -22,7 +22,7 @@ import {
   getUpcomingAnniversariesForUser,
 } from "@/lib/data/user-data";
 import type { UpcomingAnniversary } from "@/lib/data/user-data";
-import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
+import { getTaskCategoryLabel } from "@/lib/tasks/options";
 
 const recentLimitPerType = 12;
 
@@ -68,6 +68,8 @@ type TimelineRecord = {
   meta: string[];
   tone: "tone-lavender" | "tone-sage" | "tone-mist" | "tone-clay";
   Icon: typeof ClipboardList;
+  status?: string;
+  isCompleted?: boolean;
 };
 
 type RecordTypeFilter = (typeof recordTypeOptions)[number]["value"];
@@ -96,11 +98,6 @@ const ideaStatusLabels: Record<string, string> = {
   converted_to_task: "已转任务",
   shelved: "已搁置",
   abandoned: "已放弃",
-};
-
-const habitCheckinStatusLabels: Record<string, string> = {
-  checked: "已打卡",
-  skipped: "已取消",
 };
 
 function formatDateTime(value: Date) {
@@ -187,11 +184,11 @@ async function getRecentTasks(userId: string, limit: number): Promise<TimelineRe
     dateText: formatDateTime(task.createdAt),
     meta: [
       getTaskCategoryLabel(task.category),
-      getTaskStatusLabel(task.status),
       task.isPostponed ? "延期任务" : "",
     ].filter(Boolean),
     tone: "tone-lavender",
     Icon: ClipboardList,
+    status: task.status,
   }));
 }
 
@@ -207,9 +204,11 @@ async function getRecentHabitCheckins(userId: string, limit: number): Promise<Ti
     description: `打卡日期：${formatDateValue(checkin.checkinDate)}`,
     occurredAt: checkin.createdAt,
     dateText: formatDateTime(checkin.createdAt),
-    meta: [habitCheckinStatusLabels[checkin.status] ?? checkin.status],
+    meta: [],
     tone: "tone-sage",
     Icon: Repeat2,
+    status: checkin.status,
+    isCompleted: checkin.status === "checked",
   }));
 }
 
@@ -228,6 +227,7 @@ async function getRecentScheduleItems(userId: string, limit: number): Promise<Ti
     meta: [getTaskCategoryLabel(item.category)],
     tone: "tone-clay",
     Icon: CalendarDays,
+    isCompleted: item.isCompleted,
   }));
 }
 
@@ -538,16 +538,23 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
                 <div className="task-group-list">
                   {group.records.map((record) => {
                     const Icon = record.Icon;
+                    const hasCheckbox = record.kind === "task" || record.kind === "habit" || record.kind === "schedule";
+                    const isCompleted = record.isCompleted === true || record.status === "completed";
 
                     return (
-                      <Link
+                      <div
                         key={record.id}
-                        className={`record-timeline-item compact-list-item ${record.tone}`}
-                        href={record.href}
+                        className={`record-timeline-item compact-list-item ${record.tone} ${isCompleted ? "task-status-completed" : ""}`}
                       >
-                        <div className="nav-icon">
-                          <Icon aria-hidden="true" className="h-4 w-4" />
-                        </div>
+                        {hasCheckbox ? (
+                          <div className="nav-icon">
+                            <CheckCircle2 aria-hidden="true" className={`h-4 w-4 ${isCompleted ? "text-[var(--sage)]" : "text-[var(--border)]"}`} />
+                          </div>
+                        ) : (
+                          <div className="nav-icon">
+                            <Icon aria-hidden="true" className="h-4 w-4" />
+                          </div>
+                        )}
                         <div className="min-w-0">
                           <div className="record-item-heading">
                             <span className="status-pill">{record.label}</span>
@@ -555,11 +562,12 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
                               {record.dateText}
                             </time>
                           </div>
-                          <h3
-                            className={`list-label mt-3${record.kind === "event" ? " two-line-preview" : ""}`}
+                          <Link
+                            className={`list-label list-title-link mt-3 ${record.kind === "event" ? "two-line-preview" : ""} ${isCompleted ? "line-through" : ""}`}
+                            href={record.href}
                           >
                             {record.title}
-                          </h3>
+                          </Link>
                           <p className="body-copy mt-1">{record.description}</p>
                           {record.meta.length > 0 ? (
                             <div className="compact-tag-row mt-3">
@@ -571,7 +579,7 @@ export default async function RecordsPage({ searchParams }: RecordsPageProps) {
                             </div>
                           ) : null}
                         </div>
-                      </Link>
+                      </div>
                     );
                   })}
                 </div>
