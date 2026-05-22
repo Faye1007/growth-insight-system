@@ -2773,6 +2773,7 @@ export type ChecklistHabit = {
   startDate: string | null;
   isPinned: boolean;
   isCheckedOnDate: boolean;
+  checkedDates: string[];
   totalCount: number;
   streakCount: number;
   createdAt: Date;
