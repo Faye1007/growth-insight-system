@@ -25,7 +25,7 @@ function getDaysBetween(start: string, end: string) {
 }
 
 function scheduleOccursOnDate(row: ScheduleItemRow, date: string) {
-  const startDate = row.start_date ?? row.schedule_date;
+  const startDate = row.start_date;
   const endDate = row.end_date;
 
   if (getDateTime(startDate) > getDateTime(date)) {
@@ -37,7 +37,7 @@ function scheduleOccursOnDate(row: ScheduleItemRow, date: string) {
   }
 
   if (row.recurrence === "none") {
-    return row.schedule_date === date || startDate === date;
+    return startDate === date;
   }
 
   if (row.recurrence === "daily") {
@@ -146,8 +146,7 @@ type ScheduleItemRow = {
   title: string;
   description: string | null;
   category: TaskCategory;
-  schedule_date: string;
-  start_date: string | null;
+  start_date: string;
   end_date: string | null;
   recurrence: ScheduleRecurrence;
   start_time: string | null;
@@ -320,8 +319,7 @@ export type TodayScheduleItem = {
   title: string;
   description: string | null;
   category: TaskCategory;
-  scheduleDate: string;
-  startDate: string | null;
+  startDate: string;
   endDate: string | null;
   recurrence: ScheduleRecurrence;
   startTime: string | null;
@@ -449,7 +447,7 @@ export type RecentScheduleRecord = {
   id: string;
   title: string;
   category: TaskCategory;
-  scheduleDate: string;
+  startDate: string;
   startTime: string | null;
   endTime: string | null;
   isCompleted: boolean;
@@ -506,8 +504,7 @@ export type ScheduleDetail = {
   title: string;
   description: string | null;
   category: TaskCategory;
-  scheduleDate: string;
-  startDate: string | null;
+  startDate: string;
   endDate: string | null;
   recurrence: ScheduleRecurrence;
   startTime: string | null;
@@ -649,7 +646,7 @@ export type WeeklyReviewHabit = DailyReviewHabit;
 export type WeeklyReviewHabitCheckin = DailyReviewHabitCheckin;
 
 export type WeeklyReviewSchedule = DailyReviewSchedule & {
-  scheduleDate: string;
+  startDate: string;
 };
 
 export type WeeklyReviewLifeEvent = DailyReviewLifeEvent & {
@@ -1109,7 +1106,6 @@ export async function createScheduleItemForUser(input: {
   userId: string;
   title: string;
   category: TaskCategory;
-  scheduleDate: string;
   startDate: string;
   endDate: string | null;
   recurrence: ScheduleRecurrence;
@@ -1121,7 +1117,6 @@ export async function createScheduleItemForUser(input: {
     user_id: input.userId,
     title: input.title,
     category: input.category,
-    schedule_date: input.scheduleDate,
     start_date: input.startDate,
     end_date: input.endDate,
     recurrence: input.recurrence,
@@ -1140,7 +1135,6 @@ export async function updateScheduleItemForUser(input: {
   title: string;
   description: string | null;
   category: TaskCategory;
-  scheduleDate: string;
   startDate: string;
   endDate: string | null;
   recurrence: ScheduleRecurrence;
@@ -1155,7 +1149,6 @@ export async function updateScheduleItemForUser(input: {
       title: input.title,
       description: input.description,
       category: input.category,
-      schedule_date: input.scheduleDate,
       start_date: input.startDate,
       end_date: input.endDate,
       recurrence: input.recurrence,
@@ -2163,10 +2156,10 @@ export async function getTodayScheduleItemsForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("id,title,description,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,is_pinned,created_at")
+    .select("id,title,description,category,start_date,end_date,recurrence,start_time,end_time,is_pinned,created_at")
     .eq("user_id", userId)
     .is("deleted_at", null)
-    .or(`schedule_date.eq.${todayDate},start_date.lte.${todayDate}`)
+    .lte("start_date", todayDate)
     .order("is_pinned", { ascending: false })
     .order("start_time", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true })
@@ -2179,7 +2172,6 @@ export async function getTodayScheduleItemsForUser(
       title: row.title,
       description: row.description,
       category: row.category,
-      scheduleDate: row.schedule_date,
       startDate: row.start_date,
       endDate: row.end_date,
       recurrence: row.recurrence,
@@ -2443,7 +2435,7 @@ export async function getRecentScheduleItemsForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("id,title,category,schedule_date,start_time,end_time,is_completed,created_at")
+    .select("id,title,category,start_date,start_time,end_time,is_completed,created_at")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
@@ -2454,7 +2446,7 @@ export async function getRecentScheduleItemsForUser(
     id: row.id,
     title: row.title,
     category: row.category,
-    scheduleDate: row.schedule_date,
+    startDate: row.start_date,
     startTime: row.start_time,
     endTime: row.end_time,
     isCompleted: row.is_completed,
@@ -2586,7 +2578,7 @@ export async function getScheduleDetailForUser(userId: string, id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("title,description,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,created_at,updated_at")
+    .select("title,description,category,start_date,end_date,recurrence,start_time,end_time,created_at,updated_at")
     .eq("id", id)
     .eq("user_id", userId)
     .is("deleted_at", null)
@@ -2599,7 +2591,6 @@ export async function getScheduleDetailForUser(userId: string, id: string) {
         title: row.title,
         description: row.description,
         category: row.category,
-        scheduleDate: row.schedule_date,
         startDate: row.start_date,
         endDate: row.end_date,
         recurrence: row.recurrence,
@@ -2704,11 +2695,10 @@ export async function getInsightRowsForUser(
       .returns<HabitCheckinRow[]>(),
     supabase
       .from("schedule_items")
-      .select("schedule_date")
+      .select("start_date,recurrence,end_date")
       .eq("user_id", userId)
       .is("deleted_at", null)
-      .gte("schedule_date", weekStart)
-      .lte("schedule_date", today)
+      .lte("start_date", today)
       .returns<ScheduleItemRow[]>(),
     supabase
       .from("life_events")
@@ -2742,7 +2732,7 @@ export async function getInsightRowsForUser(
     })),
     habitCheckins: assertArray(habitCheckinsResult.data, habitCheckinsResult.error).map(mapHabitCheckin),
     schedules: assertArray(schedulesResult.data, schedulesResult.error).map((row) => ({
-      scheduleDate: row.schedule_date,
+      scheduleDate: row.start_date,
     })),
     lifeEvents: assertArray(lifeEventsResult.data, lifeEventsResult.error).map((row) => ({
       eventDate: row.event_date,
@@ -2769,8 +2759,7 @@ export type ChecklistSchedule = {
   id: string;
   title: string;
   category: TaskCategory;
-  scheduleDate: string;
-  startDate: string | null;
+  startDate: string;
   endDate: string | null;
   recurrence: ScheduleRecurrence;
   startTime: string | null;
@@ -2864,23 +2853,23 @@ export async function getChecklistSchedulesForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("id,title,category,schedule_date,start_date,end_date,recurrence,start_time,end_time,is_pinned,created_at")
+    .select("id,title,category,start_date,end_date,recurrence,start_time,end_time,is_pinned,created_at")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .order("is_pinned", { ascending: false })
-    .order("schedule_date", { ascending: true })
+    .order("start_date", { ascending: true })
     .order("start_time", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true })
     .returns<ScheduleItemRow[]>();
 
   return assertArray(data, error)
     .filter((row) => {
-      const startDate = row.start_date ?? row.schedule_date;
+      const startDate = row.start_date;
       const endDate = row.end_date;
       if (getDateTime(startDate) > getDateTime(dateTo)) return false;
       if (endDate && getDateTime(endDate) < getDateTime(dateFrom)) return false;
       if (row.recurrence === "none") {
-        return row.schedule_date >= dateFrom && row.schedule_date <= dateTo;
+        return startDate >= dateFrom && startDate <= dateTo;
       }
       return true;
     })
@@ -2888,7 +2877,6 @@ export async function getChecklistSchedulesForUser(
       id: row.id,
       title: row.title,
       category: row.category,
-      scheduleDate: row.schedule_date,
       startDate: row.start_date,
       endDate: row.end_date,
       recurrence: row.recurrence,
@@ -3078,11 +3066,10 @@ export async function getMonthlyInsightRowsForUser(
       .returns<HabitCheckinRow[]>(),
     supabase
       .from("schedule_items")
-      .select("schedule_date")
+      .select("start_date")
       .eq("user_id", userId)
       .is("deleted_at", null)
-      .gte("schedule_date", monthStart)
-      .lte("schedule_date", today)
+      .lte("start_date", today)
       .returns<ScheduleItemRow[]>(),
     supabase
       .from("life_events")
@@ -3126,7 +3113,7 @@ export async function getMonthlyInsightRowsForUser(
     })),
     habitCheckins: assertArray(habitCheckinsResult.data, habitCheckinsResult.error).map(mapHabitCheckin),
     schedules: assertArray(schedulesResult.data, schedulesResult.error).map((row) => ({
-      scheduleDate: row.schedule_date,
+      scheduleDate: row.start_date,
     })),
     lifeEvents: assertArray(lifeEventsResult.data, lifeEventsResult.error).map((row) => ({
       eventDate: row.event_date,
@@ -3178,9 +3165,9 @@ export async function getDailyReviewRowsForUser(
         .returns<HabitRow[]>(),
       supabase
         .from("schedule_items")
-        .select("id,title,category,start_time,end_time,description,created_at")
+        .select("id,title,category,start_date,end_date,recurrence,start_time,end_time,description,created_at")
         .eq("user_id", userId)
-        .eq("schedule_date", date)
+        .lte("start_date", date)
         .is("deleted_at", null)
         .order("start_time", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: true })
@@ -3242,15 +3229,17 @@ export async function getDailyReviewRowsForUser(
       status: checkin.status,
       note: checkin.note,
     })),
-    schedules: assertArray(schedulesResult.data, schedulesResult.error).map((row) => ({
-      id: row.id,
-      title: row.title,
-      category: row.category,
-      startTime: row.start_time,
-      endTime: row.end_time,
-      description: row.description,
-      createdAt: new Date(row.created_at),
-    })),
+    schedules: assertArray(schedulesResult.data, schedulesResult.error)
+      .filter((row) => scheduleOccursOnDate(row, date))
+      .map((row) => ({
+        id: row.id,
+        title: row.title,
+        category: row.category,
+        startTime: row.start_time,
+        endTime: row.end_time,
+        description: row.description,
+        createdAt: new Date(row.created_at),
+      })),
     lifeEvents: assertArray(lifeEventsResult.data, lifeEventsResult.error).map((row) => ({
       id: row.id,
       content: row.content,
@@ -3308,12 +3297,11 @@ export async function getWeeklyReviewRowsForUser(
         .returns<HabitCheckinRow[]>(),
       supabase
         .from("schedule_items")
-        .select("id,title,category,start_time,end_time,description,schedule_date,created_at")
+        .select("id,title,category,start_date,start_time,end_time,description,created_at")
         .eq("user_id", userId)
-        .gte("schedule_date", weekStart)
-        .lte("schedule_date", weekEnd)
+        .lte("start_date", weekEnd)
         .is("deleted_at", null)
-        .order("schedule_date", { ascending: true })
+        .order("start_date", { ascending: true })
         .order("start_time", { ascending: true, nullsFirst: false })
         .returns<ScheduleItemRow[]>(),
       supabase
@@ -3366,10 +3354,10 @@ export async function getWeeklyReviewRowsForUser(
       id: row.id,
       title: row.title,
       category: row.category,
+      startDate: row.start_date,
       startTime: row.start_time,
       endTime: row.end_time,
       description: row.description,
-      scheduleDate: row.schedule_date,
       createdAt: new Date(row.created_at),
     })),
     lifeEvents: assertArray(lifeEventsResult.data, lifeEventsResult.error).map((row) => ({

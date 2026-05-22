@@ -352,7 +352,6 @@ export default async function RecordDetailPage({ params, searchParams }: DetailP
         <section className="panel-card">
           <div className="detail-grid">
             <DetailField label="分类" value={getTaskCategoryLabel(item.category)} />
-            <DetailField label="日程日期" value={formatDateValue(item.scheduleDate)} />
             <DetailField label="开始日期" value={formatDateValue(item.startDate)} />
             <DetailField label="结束日期" value={formatDateValue(item.endDate)} />
             <DetailField label="循环周期" value={getScheduleRecurrenceLabel(item.recurrence)} />
@@ -655,8 +654,7 @@ function ScheduleDetailEditSection({
     title: string;
     description: string | null;
     category: (typeof taskCategories)[number]["value"];
-    scheduleDate: string;
-    startDate: string | null;
+    startDate: string;
     endDate: string | null;
     recurrence: ScheduleRecurrence;
     startTime: string | null;
@@ -688,13 +686,8 @@ function ScheduleDetailEditSection({
           </label>
 
           <label className="form-field">
-            <span>日期</span>
-            <input name="scheduleDate" type="date" defaultValue={item.scheduleDate} required />
-          </label>
-
-          <label className="form-field">
             <span>开始日期</span>
-            <input name="startDate" type="date" defaultValue={item.startDate ?? item.scheduleDate} required />
+            <input name="startDate" type="date" defaultValue={item.startDate} required />
           </label>
 
           <label className="form-field">

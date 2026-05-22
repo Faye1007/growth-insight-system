@@ -726,15 +726,14 @@ export async function createScheduleItemAction(formData: FormData) {
   }
 
   const categoryValue = getStringValue(formData, "category");
-  const scheduleDateValue = getStringValue(formData, "scheduleDate");
   const startDateValue = getStringValue(formData, "startDate");
+  const scheduleDateFallback = getStringValue(formData, "scheduleDate");
   const endDateValue = getStringValue(formData, "endDate");
   const recurrenceValue = getStringValue(formData, "recurrence");
   const startTimeValue = getStringValue(formData, "startTime");
   const endTimeValue = getStringValue(formData, "endTime");
   const category = isTaskCategory(categoryValue) ? categoryValue : "other";
-  const startDate = isValidDateValue(startDateValue) ? startDateValue : (isValidDateValue(scheduleDateValue) ? scheduleDateValue : getBeijingDateValue());
-  const scheduleDate = startDate;
+  const startDate = isValidDateValue(startDateValue) ? startDateValue : (isValidDateValue(scheduleDateFallback) ? scheduleDateFallback : getBeijingDateValue());
   const endDate = isValidDateValue(endDateValue) ? endDateValue : null;
   const recurrence = isScheduleRecurrence(recurrenceValue) ? recurrenceValue : "none";
 
@@ -755,7 +754,6 @@ export async function createScheduleItemAction(formData: FormData) {
       userId: user.id,
       title,
       category,
-      scheduleDate,
       startDate,
       endDate,
       recurrence,
@@ -790,15 +788,14 @@ export async function updateScheduleItemAction(formData: FormData) {
   }
 
   const categoryValue = getStringValue(formData, "category");
-  const scheduleDateValue = getStringValue(formData, "scheduleDate");
   const startDateValue = getStringValue(formData, "startDate");
+  const scheduleDateFallback = getStringValue(formData, "scheduleDate");
   const endDateValue = getStringValue(formData, "endDate");
   const recurrenceValue = getStringValue(formData, "recurrence");
   const startTimeValue = getStringValue(formData, "startTime");
   const endTimeValue = getStringValue(formData, "endTime");
   const category = isTaskCategory(categoryValue) ? categoryValue : "other";
-  const scheduleDate = isValidDateValue(scheduleDateValue) ? scheduleDateValue : getBeijingDateValue();
-  const startDate = isValidDateValue(startDateValue) ? startDateValue : scheduleDate;
+  const startDate = isValidDateValue(startDateValue) ? startDateValue : (isValidDateValue(scheduleDateFallback) ? scheduleDateFallback : getBeijingDateValue());
   const endDate = isValidDateValue(endDateValue) ? endDateValue : null;
   const recurrence = isScheduleRecurrence(recurrenceValue) ? recurrenceValue : "none";
   const description = getStringValue(formData, "description") || null;
@@ -834,7 +831,6 @@ export async function updateScheduleItemAction(formData: FormData) {
       title,
       description,
       category,
-      scheduleDate,
       startDate,
       endDate,
       recurrence,

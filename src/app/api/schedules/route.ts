@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   const category: TaskCategory = typeof body.category === "string" && isTaskCategory(body.category)
     ? body.category
     : "other";
-  const scheduleDate = typeof body.date === "string" ? body.date : getBeijingDateValue();
+  const startDate = typeof body.date === "string" ? body.date : getBeijingDateValue();
   const startTime = typeof body.startTime === "string" ? body.startTime : "";
   const endTime = typeof body.endTime === "string" ? body.endTime : null;
   const recurrence = (typeof body.recurrence === "string" && ["none", "daily", "weekly", "monthly"].includes(body.recurrence)
@@ -63,8 +63,7 @@ export async function POST(request: NextRequest) {
       userId,
       title,
       category,
-      scheduleDate,
-      startDate: scheduleDate,
+      startDate,
       endDate: null,
       recurrence,
       startTime,
@@ -107,7 +106,7 @@ export async function PATCH(request: NextRequest) {
     const category: TaskCategory = typeof body.category === "string" && isTaskCategory(body.category)
       ? body.category
       : "other";
-    const scheduleDate = typeof body.date === "string" ? body.date : getBeijingDateValue();
+    const startDate = typeof body.date === "string" ? body.date : getBeijingDateValue();
     const startTime = typeof body.startTime === "string" ? body.startTime : "";
     const endTime = typeof body.endTime === "string" ? body.endTime : null;
     const recurrence = (typeof body.recurrence === "string" && ["none", "daily", "weekly", "monthly"].includes(body.recurrence)
@@ -120,8 +119,7 @@ export async function PATCH(request: NextRequest) {
       title,
       description: null,
       category,
-      scheduleDate,
-      startDate: scheduleDate,
+      startDate,
       endDate: null,
       startTime,
       endTime,

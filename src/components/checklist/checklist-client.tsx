@@ -63,8 +63,7 @@ type ChecklistSchedule = {
   id: string;
   title: string;
   category: TaskCategory;
-  scheduleDate: string;
-  startDate: string | null;
+  startDate: string;
   endDate: string | null;
   recurrence: string;
   startTime: string | null;
@@ -179,9 +178,9 @@ function formatDateLabel(dateStr: string): string {
   return `${monthDayFormatter.format(d)} ${weekdayFormatter.format(d)}`;
 }
 
-function groupByDate<T extends { taskDate?: string; scheduleDate?: string; ideaDate?: string }>(
+function groupByDate<T extends { taskDate?: string; startDate?: string; ideaDate?: string }>(
   items: T[],
-  dateKey: "taskDate" | "scheduleDate" | "ideaDate",
+  dateKey: "taskDate" | "startDate" | "ideaDate",
 ): [string, T[]][] {
   const groups = new Map<string, T[]>();
   for (const item of items) {
@@ -225,12 +224,12 @@ export function ChecklistClient({
     (t) => t.taskDate >= weekStart && t.taskDate <= weekEnd,
   );
   const filteredSchedules = schedules.filter((s) => {
-    const start = s.startDate ?? s.scheduleDate;
+    const start = s.startDate;
     const end = s.endDate;
     if (start > todayStr) return false;
     if (end && end < weekStart) return false;
     if (s.recurrence === "none") {
-      return s.scheduleDate >= weekStart && s.scheduleDate <= todayStr;
+      return start >= weekStart && start <= todayStr;
     }
     return true;
   });
@@ -241,8 +240,8 @@ export function ChecklistClient({
 
   const todayTasks = filteredTasks.filter((t) => t.taskDate === todayStr);
   const todaySchedules = filteredSchedules.filter((s) => {
-    if (s.recurrence === "none") return s.scheduleDate === todayStr;
-    const start = s.startDate ?? s.scheduleDate;
+    if (s.recurrence === "none") return s.startDate === todayStr;
+    const start = s.startDate;
     const end = s.endDate;
     if (start > todayStr) return false;
     if (end && end < todayStr) return false;
@@ -547,7 +546,7 @@ export function ChecklistClient({
           {view === "list" ? (
             filteredSchedules.length > 0 ? (
               <div className="task-list mt-4">
-                {groupByDate(filteredSchedules, "scheduleDate").map(([date, items]) => (
+                {groupByDate(filteredSchedules, "startDate").map(([date, items]) => (
                   <div key={date} className="mb-4">
                     <h3 className="date-group-header">{formatDateLabel(date)}</h3>
                     {items.map((item) => {
@@ -629,11 +628,11 @@ export function ChecklistClient({
                   <div key={item.id} className="habit-checkin-row">
                     <span className="habit-checkin-name">{item.title}</span>
                     {weekDays.map((d) => {
-                      const start = item.startDate ?? item.scheduleDate;
+                      const start = item.startDate;
                       const end = item.endDate;
                       let isOnDay = false;
                       if (item.recurrence === "none") {
-                        isOnDay = item.scheduleDate === d.date;
+                        isOnDay = item.startDate === d.date;
                       } else if (item.recurrence === "daily") {
                         isOnDay = d.date >= start && (!end || d.date <= end);
                       } else if (item.recurrence === "weekly") {

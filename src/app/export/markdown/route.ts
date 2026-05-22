@@ -164,7 +164,7 @@ async function buildRecordsMarkdown(userId: string) {
           .map((schedule) =>
             [
               `### ${schedule.title}`,
-              `- 日期：${getBeijingDateValue(schedule.scheduleDate)}`,
+              `- 日期：${schedule.startDate}`,
               `- 分类：${getTaskCategoryLabel(schedule.category)}`,
               `- 时间：${schedule.startTime?.slice(0, 5) ?? "未设置"}${schedule.endTime ? `-${schedule.endTime.slice(0, 5)}` : ""}`,
             ].join("\n"),

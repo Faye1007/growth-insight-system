@@ -165,8 +165,7 @@ export const scheduleItems = pgTable(
     title: text("title").notNull(),
     description: text("description"),
     category: taskCategoryEnum("category").default("other").notNull(),
-    scheduleDate: date("schedule_date").notNull(),
-    startDate: date("start_date"),
+    startDate: date("start_date").notNull(),
     endDate: date("end_date"),
     recurrence: scheduleRecurrenceEnum("recurrence").default("none").notNull(),
     startTime: time("start_time"),
@@ -177,7 +176,6 @@ export const scheduleItems = pgTable(
     ...softDeleteTimestamp,
   },
   (table) => [
-    index("schedule_items_user_date_idx").on(table.userId, table.scheduleDate),
     index("schedule_items_user_start_idx").on(table.userId, table.startDate),
     index("schedule_items_user_category_idx").on(table.userId, table.category),
   ],

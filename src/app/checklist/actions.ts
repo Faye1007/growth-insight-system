@@ -109,7 +109,6 @@ export async function createChecklistScheduleAction(formData: FormData) {
       userId: user.id,
       title,
       category,
-      scheduleDate: startDate,
       startDate,
       endDate,
       recurrence: "none",

@@ -272,19 +272,17 @@ function formatScheduleTimeRange(startTime: string | null, endTime: string | nul
 }
 
 function formatScheduleDateMeta(item: {
-  scheduleDate: string;
-  startDate: string | null;
+  startDate: string;
   endDate: string | null;
   recurrence: ScheduleRecurrence;
 }) {
   if (item.recurrence === "none") {
-    return item.scheduleDate;
+    return item.startDate;
   }
 
-  const start = item.startDate ?? item.scheduleDate;
   const end = item.endDate ? ` 至 ${item.endDate}` : "";
 
-  return `${getScheduleRecurrenceLabel(item.recurrence)} · ${start}${end}`;
+  return `${getScheduleRecurrenceLabel(item.recurrence)} · ${item.startDate}${end}`;
 }
 
 function getAiAnalysisPermissionLabel(value: string) {

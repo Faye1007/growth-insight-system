@@ -205,7 +205,7 @@ async function getRecentScheduleItems(userId: string, limit: number): Promise<Ti
     kind: "schedule",
     label: "日程记录",
     title: item.title,
-    description: `${formatDateValue(item.scheduleDate)} · ${formatScheduleTimeRange(item.startTime, item.endTime)}`,
+    description: `${formatDateTime(item.createdAt)} · ${formatScheduleTimeRange(item.startTime, item.endTime)}`,
     occurredAt: item.createdAt,
     dateText: formatDateTime(item.createdAt),
     meta: [getTaskCategoryLabel(item.category)],
