@@ -396,11 +396,8 @@ export function ChecklistClient({
                         <div className="compact-main-row">
                           <form action={updateTaskStatusAction}>
                             <input type="hidden" name="taskId" value={task.id} />
-                            <input
-                              type="hidden"
-                              name="status"
-                              value={task.status === "completed" ? "todo" : "completed"}
-                            />
+                            <input type="hidden" name="status" value={task.status === "completed" ? "todo" : "completed"} />
+                            <input type="hidden" name="source" value="checklist" />
                             <button
                               aria-label={
                                 task.status === "completed"

@@ -143,9 +143,11 @@ export async function updateTaskStatusAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const taskId = getStringValue(formData, "taskId");
   const statusValue = getStringValue(formData, "status");
+  const source = getStringValue(formData, "source");
 
   if (!taskId || !isTaskStatus(statusValue)) {
-    redirect("/daily?taskError=invalid_status#tasks");
+    const redirectPath = source === "checklist" ? "/checklist?tab=tasks" : "/daily?taskError=invalid_status#tasks";
+    redirect(redirectPath);
   }
 
   let existingTask: { taskDate: string } | undefined;
@@ -153,11 +155,13 @@ export async function updateTaskStatusAction(formData: FormData) {
   try {
     existingTask = (await getTaskDateForUser(user.id, taskId)) ?? undefined;
   } catch {
-    redirect("/daily?taskError=save_failed#tasks");
+    const redirectPath = source === "checklist" ? "/checklist?tab=tasks" : "/daily?taskError=save_failed#tasks";
+    redirect(redirectPath);
   }
 
   if (!existingTask) {
-    redirect("/daily?taskError=missing_task#tasks");
+    const redirectPath = source === "checklist" ? "/checklist?tab=tasks" : "/daily?taskError=missing_task#tasks";
+    redirect(redirectPath);
   }
 
   const now = new Date();
@@ -166,7 +170,8 @@ export async function updateTaskStatusAction(formData: FormData) {
     const postponedToDate = getStringValue(formData, "postponedToDate");
 
     if (!isValidDateValue(postponedToDate)) {
-      redirect("/daily?taskError=missing_postponed_date#tasks");
+      const redirectPath = source === "checklist" ? "/checklist?tab=tasks" : "/daily?taskError=missing_postponed_date#tasks";
+      redirect(redirectPath);
     }
 
     try {
@@ -178,11 +183,13 @@ export async function updateTaskStatusAction(formData: FormData) {
         updatedAt: now,
       });
     } catch {
-      redirect("/daily?taskError=save_failed#tasks");
+      const redirectPath = source === "checklist" ? "/checklist?tab=tasks" : "/daily?taskError=save_failed#tasks";
+      redirect(redirectPath);
     }
 
     revalidatePath("/daily");
-    redirect("/daily?taskUpdated=postponed#tasks");
+    revalidatePath("/checklist");
+    redirect(`/checklist?tab=tasks&taskUpdated=postponed`);
   }
 
   try {
@@ -194,10 +201,17 @@ export async function updateTaskStatusAction(formData: FormData) {
       updatedAt: now,
     });
   } catch {
-    redirect("/daily?taskError=save_failed#tasks");
+    const redirectPath = source === "checklist" ? "/checklist?tab=tasks" : "/daily?taskError=save_failed#tasks";
+    redirect(redirectPath);
   }
 
   revalidatePath("/daily");
+  revalidatePath("/checklist");
+
+  if (source === "checklist") {
+    redirect(`/checklist?tab=tasks&taskUpdated=${statusValue}`);
+  }
+
   redirect(`/daily?taskUpdated=${statusValue}#tasks`);
 }
 
