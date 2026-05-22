@@ -18,27 +18,15 @@ import {
   createScheduleItemAction,
   createTaskAction,
 } from "@/app/daily/actions";
-import { createGiftRecordAction } from "@/app/life/actions";
+import { createAnniversaryAction, createGiftRecordAction } from "@/app/life/actions";
 import { getBeijingDateValue } from "@/lib/date";
-
-type IntentType = "task" | "schedule" | "habit" | "event" | "idea" | "anniversary" | "gift" | null;
+import { parseIntent, type IntentType, type ParsedIntent } from "@/lib/intent-parser";
 
 type ChatMessage = {
   id: string;
   role: "user" | "system" | "confirmation";
   content: string;
-  intent?: {
-    type: IntentType;
-    title: string;
-    category: string;
-    date: string;
-    time?: string;
-    endTime?: string;
-    emotionTags?: string[];
-    tags?: string[];
-    personName?: string;
-    anniversaryDate?: string;
-  };
+  intent?: ParsedIntent;
   timestamp: Date;
 };
 
@@ -57,81 +45,6 @@ const quickActions: Array<{
   { type: "gift", label: "礼物", Icon: Gift, placeholder: "输入礼物名称..." },
 ];
 
-function parseIntent(text: string): { type: IntentType; title: string; category: string; date: string; time?: string } | null {
-  const trimmed = text.trim();
-  if (!trimmed) return null;
-
-  const today = getBeijingDateValue();
-
-  const taskPatterns = [
-    /^(?:创建|新增|添加|加一个)?(?:任务|todo|待办)[：:]?\s*(.+)$/i,
-    /^(?:今天|明天|后天)?(?:要|需要|得)?(.{2,})$/i,
-  ];
-  for (const pattern of taskPatterns) {
-    const match = trimmed.match(pattern);
-    if (match) {
-      return { type: "task", title: match[1] || trimmed, category: "other", date: today };
-    }
-  }
-
-  const schedulePatterns = [
-    /^(?:创建|新增|添加)?(?:日程|会议|约会|安排)[：:]?\s*(.+)$/i,
-    /^(?:明天|后天|下周)?(?:上午|下午|晚上|早上|中午|晚上)?(.{2,})(?:点|时|:)\s*(\d{1,2}):?(\d{2})?/i,
-  ];
-  for (const pattern of schedulePatterns) {
-    const match = trimmed.match(pattern);
-    if (match) {
-      const timeMatch = trimmed.match(/(\d{1,2}):?(\d{2})/);
-      return {
-        type: "schedule",
-        title: match[1] || trimmed,
-        category: "other",
-        date: today,
-        time: timeMatch ? `${timeMatch[1].padStart(2, "0")}:${timeMatch[2] || "00"}` : undefined,
-      };
-    }
-  }
-
-  const habitPatterns = [
-    /^(?:创建|新增|添加|养成)?(?:习惯|打卡|每日)[：:]?\s*(.+)$/i,
-    /^(?:每天|每日|每周)?(?:坚持|开始)?(.{2,})(?:打卡|习惯)?$/i,
-  ];
-  for (const pattern of habitPatterns) {
-    const match = trimmed.match(pattern);
-    if (match) {
-      return { type: "habit", title: match[1] || trimmed, category: "health", date: today };
-    }
-  }
-
-  const eventPatterns = [
-    /^(?:记录|记下|写一下)?(?:事件|今天|心情|感受)[：:]?\s*(.+)$/i,
-    /^(?:今天|刚才|刚刚)(.{3,})$/i,
-  ];
-  for (const pattern of eventPatterns) {
-    const match = trimmed.match(pattern);
-    if (match) {
-      return { type: "event", title: match[1] || trimmed, category: "other", date: today };
-    }
-  }
-
-  const ideaPatterns = [
-    /^(?:记录|记下|想到)?(?:灵感|想法|创意|点子)[：:]?\s*(.+)$/i,
-    /^(?:突然想到|有个想法|想)(.{3,})$/i,
-  ];
-  for (const pattern of ideaPatterns) {
-    const match = trimmed.match(pattern);
-    if (match) {
-      return { type: "idea", title: match[1] || trimmed, category: "other", date: today };
-    }
-  }
-
-  if (trimmed.length >= 2) {
-    return { type: "task", title: trimmed, category: "other", date: today };
-  }
-
-  return null;
-}
-
 export function AiChatClient() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -142,7 +55,7 @@ export function AiChatClient() {
     },
   ]);
   const [input, setInput] = useState("");
-  const [activeQuickAction, setActiveQuickAction] = useState<IntentType>(null);
+  const [activeQuickAction, setActiveQuickAction] = useState<IntentType | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const idCounter = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -176,7 +89,7 @@ export function AiChatClient() {
     setInput("");
 
     const intent = activeQuickAction
-      ? { type: activeQuickAction, title: text, category: "other", date: getBeijingDateValue() }
+      ? { type: activeQuickAction, title: text, category: "other", date: getBeijingDateValue(), confidence: "high" as const }
       : parseIntent(text);
 
     if (!intent) {
@@ -192,10 +105,27 @@ export function AiChatClient() {
       return;
     }
 
+    if (intent.confidence === "low") {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `system-${Date.now()}`,
+          role: "system",
+          content: "我没完全理解你想创建什么。请描述得更清楚一些，或点击下方快捷键选择类型。",
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
+
+    const content = intent.confidence === "medium"
+      ? `我可能没完全理解，请确认：${getIntentLabel(intent.type)}`
+      : `识别到意图：${getIntentLabel(intent.type)}`;
+
     const confirmMessage: ChatMessage = {
       id: `confirm-${nextId()}`,
       role: "confirmation",
-      content: `识别到意图：${getIntentLabel(intent.type)}`,
+      content,
       intent,
       timestamp: new Date(),
     };
@@ -260,10 +190,17 @@ export function AiChatClient() {
         case "gift": {
           const formData = new FormData();
           formData.append("giftName", intent.title);
-          formData.append("recipientName", intent.personName ?? "未知");
+          formData.append("recipientName", "未知");
           formData.append("giftDate", intent.date);
-          formData.append("purpose", intent.category || "其他");
           await createGiftRecordAction(formData);
+          break;
+        }
+        case "anniversary": {
+          const formData = new FormData();
+          formData.append("title", intent.title);
+          formData.append("personName", "未知");
+          formData.append("anniversaryDate", intent.date);
+          await createAnniversaryAction(formData);
           break;
         }
       }
