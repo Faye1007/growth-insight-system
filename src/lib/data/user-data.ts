@@ -3537,3 +3537,47 @@ export async function permanentlyDeleteTrashedItemForUser(input: {
     .eq("user_id", input.userId);
   if (error) throw error;
 }
+
+export type SearchResultItem = {
+  id: string;
+  kind: string;
+  label: string;
+  title: string;
+  date: string;
+};
+
+const searchTableConfig: Array<{ kind: string; table: string; titleField: string; dateField: string; label: string }> = [
+  { kind: "tasks", table: "tasks", titleField: "title", dateField: "task_date", label: "任务" },
+  { kind: "events", table: "life_events", titleField: "content", dateField: "event_date", label: "事件" },
+  { kind: "ideas", table: "ideas", titleField: "content", dateField: "idea_date", label: "灵感" },
+  { kind: "anniversaries", table: "anniversaries", titleField: "title", dateField: "anniversary_date", label: "纪念日" },
+  { kind: "gifts", table: "gift_records", titleField: "gift_name", dateField: "gift_date", label: "礼物" },
+];
+
+export async function searchAllForUser(userId: string, query: string, limit = 10): Promise<SearchResultItem[]> {
+  if (!query.trim()) return [];
+  const supabase = await createClient();
+  const escaped = `%${query.trim()}%`;
+  const results = await Promise.all(
+    searchTableConfig.map(async ({ kind, table, titleField, dateField, label }) => {
+      const { data, error } = await supabase
+        .from(table)
+        .select(`id, ${titleField}, ${dateField}`)
+        .eq("user_id", userId)
+        .is("deleted_at", null)
+        .ilike(titleField, escaped)
+        .order(dateField, { ascending: false })
+        .limit(limit)
+        .returns<Array<{ id: string } & Record<string, string>>>();
+      if (error) return [] as SearchResultItem[];
+      return (data ?? []).map((row) => ({
+        id: row.id,
+        kind,
+        label,
+        title: row[titleField] ?? "",
+        date: row[dateField] ?? "",
+      }));
+    }),
+  );
+  return results.flat().sort((a, b) => b.date.localeCompare(a.date)).slice(0, limit * 3);
+}
