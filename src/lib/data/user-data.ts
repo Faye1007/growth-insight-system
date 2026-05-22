@@ -2960,6 +2960,7 @@ export async function getChecklistHabitsForUser(userId: string, dateFrom: string
       isCheckedOnDate: dates.has(todayDate),
       totalCount: dates.size,
       streakCount: getStreakCount(habit.id, todayDate),
+      checkedDates: [...dates],
       createdAt: new Date(habit.created_at),
     };
   });

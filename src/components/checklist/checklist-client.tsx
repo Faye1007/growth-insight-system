@@ -79,6 +79,7 @@ type ChecklistHabit = {
   startDate: string | null;
   isPinned: boolean;
   isCheckedOnDate: boolean;
+  checkedDates: string[];
   totalCount: number;
   streakCount: number;
 };
@@ -755,12 +756,15 @@ export function ChecklistClient({
                 {filteredHabits.map((habit) => (
                   <div key={habit.id} className="habit-checkin-row">
                     <span className="habit-checkin-name">{habit.name}</span>
-                    {weekDays.map((d) => (
-                      <span
-                        key={d.date}
-                        className={`habit-checkin-dot ${habit.isCheckedOnDate && d.date === getBeijingDateValue() ? "checked" : ""}`}
-                      />
-                    ))}
+                    {weekDays.map((d) => {
+                      const isChecked = habit.checkedDates.includes(d.date);
+                      return (
+                        <span
+                          key={d.date}
+                          className={`habit-checkin-dot ${isChecked ? "checked" : ""}`}
+                        />
+                      );
+                    })}
                   </div>
                 ))}
                 {filteredHabits.length === 0 && (
