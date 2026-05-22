@@ -19,6 +19,7 @@ import {
   createTaskAction,
 } from "@/app/daily/actions";
 import { createGiftRecordAction } from "@/app/life/actions";
+import { getBeijingDateValue } from "@/lib/date";
 
 type IntentType = "task" | "schedule" | "habit" | "event" | "idea" | "anniversary" | "gift" | null;
 
@@ -55,17 +56,6 @@ const quickActions: Array<{
   { type: "anniversary", label: "纪念日", Icon: CalendarDays, placeholder: "输入纪念日标题..." },
   { type: "gift", label: "礼物", Icon: Gift, placeholder: "输入礼物名称..." },
 ];
-
-function getBeijingDateValue(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  return formatter.format(date);
-}
 
 function parseIntent(text: string): { type: IntentType; title: string; category: string; date: string; time?: string } | null {
   const trimmed = text.trim();

@@ -28,6 +28,8 @@ import {
   updateHabitCheckinAction,
   updateTaskStatusAction,
 } from "@/app/daily/actions";
+import { getBeijingDateValue, getBeijingDateAfter } from "@/lib/date";
+import { normalizeStringList } from "@/lib/utils";
 import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -157,23 +159,6 @@ const ideaStatusOptions = [
   { value: "shelved", label: "已搁置" },
   { value: "abandoned", label: "已放弃" },
 ] as const;
-
-function getBeijingDateValue(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  return formatter.format(date);
-}
-
-function getBeijingDateAfter(days: number, date = new Date()) {
-  const targetDate = new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
-
-  return getBeijingDateValue(targetDate);
-}
 
 type DailySectionId = "tasks" | "habits" | "schedule" | "notes";
 
@@ -477,37 +462,6 @@ function getIdeaStatusLabel(value: string) {
 
 function getTaskStatusTone(status: TodayTask["status"]) {
   return `task-status-${status}`;
-}
-
-function normalizeStringList(value: unknown) {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
-  }
-
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-
-    if (!trimmed) {
-      return [];
-    }
-
-    try {
-      const parsed = JSON.parse(trimmed) as unknown;
-
-      if (Array.isArray(parsed)) {
-        return parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
-      }
-    } catch {
-      return trimmed
-        .split(/[,，、]/)
-        .map((item) => item.trim())
-        .filter(Boolean);
-    }
-
-    return [trimmed];
-  }
-
-  return [];
 }
 
 function getRecordPreview(content: string) {

@@ -14,20 +14,11 @@ import {
   upsertScheduleCompletionForUser,
 } from "@/lib/data/user-data";
 import { isTaskCategory } from "@/lib/tasks/options";
+import { getBeijingDateValue } from "@/lib/date";
 
 function getStringValue(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
-}
-
-function getBeijingDateValue(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  return formatter.format(date);
 }
 
 function getValidTaskDate(value: string) {

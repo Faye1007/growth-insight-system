@@ -2,7 +2,7 @@
 
 ## 1. Current Stage
 
-当前项目已完成基础闭环、Step 8.1 架构文档更新、Step 8.2 进度文档更新、Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Render 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Step 19 移动端优先重构与 AI 自然语言输入、Modification Step 20 Excel 历史数据迁移、Modification Step 21 移动端体验优化与功能增强、Modification Step 22.1 人生页列表分组、快捷新增与详情入口、Modification Step 22.2 成长记录页移动端概览压缩与按天分组、Modification Step 22.3 设置页账号信息精简与每日工作台入口收敛、Modification Step 22.4 账号数据清除与真实注销修正、Modification Step 23.1 清单/人生页内就地新建与每日工作台收敛、Modification Step 23.2 AI 界面微信式改造和 Modification Step 23.3 习惯详情页。Modification Step 23 计划中：日程表单简化、纪念日增强（类型/按年提醒/农历/礼物回礼）、成长记录全部历史数据、顶部纪念日提醒横幅。，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台默认入口、每日工作台入口页、今日任务创建、任务状态更新、任务编辑与软删除、任务置顶、习惯创建、习惯打卡、习惯编辑与停用、习惯置顶与软删除、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、日程置顶、随手记录、事件编辑与软删除、事件置顶、灵感编辑与软删除、灵感置顶、四类写入区默认收起、每日工作台今日概览卡片跳转清单/人生列表、每日工作台晚间总结跳转复盘、移动端底部 5 Tab 导航、成长记录统一时间线、成长记录基础筛选、成长记录按日期分组列表、成长记录移动端三列概览、成长记录事件两行预览、记录详情查看、事件详情情绪标签兜底显示、人生页事件标签运行时兜底、人生页分组数据加载兜底、人生页按日期分组列表、人生页新增快捷入口、纪念日和礼物详情页、纪念日关联历史礼物展示、洞察报告入口分流、洞察报告成长概览、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、洞察报告 AI 复盘与问题拆解/个人说明书快捷入口、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、周复盘 Markdown 导出、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、月复盘 Markdown 导出、纪念日页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和按对象/纪念日筛选、问题拆解页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 下载路由、复盘报告导出和近期成长记录导出、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日程序复盘摘要、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界验证、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页账号摘要展示、设置页昵称图标编辑、账号数据物理清除、账号注销、右上角昵称入口跳转设置页、Excel 历史数据一次性迁移脚本、统一错误提示规范、基础闭环手工验收记录、RLS 接入验证记录、线上基础路由可用性验证记录和部署前核心闭环测试记录。
+当前项目已完成基础闭环、Step 8.1 架构文档更新、Step 8.2 进度文档更新、Row Level Security 前置规划、Supabase SSR client 用户态读写迁移、本地 RLS 策略迁移文件生成、真实数据库 RLS 启用、AI 可选部署前置调整、Render 正式部署基础验收、部署前最终测试、Step 10.1 任务编辑与软删除、Step 10.2 日程编辑与软删除、Step 10.3 事件编辑与软删除、Step 10.4 灵感编辑与软删除、Step 10.5 习惯维护、Step 11.1 写入区默认收起、Step 11.2 今日概览卡快捷入口、Step 11.3 移动端工作台优化、Step 12.1 个人说明书读取与保存、Step 12.2 个人说明书手动编辑、Step 12.3 个人说明书与复盘预留关联、Step 13.1 周复盘程序统计、Step 13.2 周复盘发送预览、Step 13.3 周复盘生成与缓存、Step 14.1 月复盘程序统计、Step 14.2 月复盘发送预览、Step 14.3 月复盘生成与缓存、Step 15.1 纪念日记录、Step 15.2 礼物记录、Step 15.3 场景工具箱基础版、Step 15.4 Markdown 导出、Step 16.1 工作台简洁化与移动端导航优化、Step 16.2 日程循环规则、Modification Step 17.1 导航收敛与导出入口回收、Modification Step 17.2 每日工作台去掉重复概览、Modification Step 17.3 成长主页能力并入洞察报告、Modification Step 17.4 个人说明书并入 AI 复盘、Modification Step 18.1 移动端导航修复与每日工作台概览改造、Modification Step 18.2 列表置顶、习惯删除与排序规则、Modification Step 18.3 洞察报告入口分流与问题拆解排版优化、Step 19 移动端优先重构与 AI 自然语言输入、Modification Step 20 Excel 历史数据迁移、Modification Step 21 移动端体验优化与功能增强、Modification Step 22.1 人生页列表分组、快捷新增与详情入口、Modification Step 22.2 成长记录页移动端概览压缩与按天分组、Modification Step 22.3 设置页账号信息精简与每日工作台入口收敛、Modification Step 22.4 账号数据清除与真实注销修正、Modification Step 23.1 清单/人生页内就地新建与每日工作台收敛、Modification Step 23.2 AI 界面微信式改造、Modification Step 23.3 习惯详情页、Modification Step 23.4 日程表单简化、Modification Step 23.5 纪念日增强与数据库迁移、Modification Step 23.6 成长记录全部历史数据、Modification Step 23.7 顶部纪念日提醒横幅、Modification Step 24.1 日程复选框、Modification Step 24.2 打卡习惯不跳转、Modification Step 24.3 人生页加载修复、Modification Step 25.1 周视图日期格式精简、Modification Step 25.2 任务标注完成不跳转、Modification Step 25.3 延期任务专区、Modification Step 25.4 清单日程只显示今天及之前的日程、Modification Step 25.5 成长记录列表完成状态改为复选框与颜色和 Modification Step 25.6 循环日程按日期打卡和 Step 26.1 重复工具函数提取，具备 Next.js App Router 基础应用骨架、初始目录结构、共享导航、基础页面壳、基础视觉规范、Supabase 客户端接入基线、Drizzle schema、迁移流程、认证入口、未登录写入拦截基线、安全跳转、登录后写入保护 helper、每日工作台默认入口、每日工作台入口页、今日任务创建、任务状态更新、任务编辑与软删除、任务置顶、习惯创建、习惯打卡、习惯编辑与停用、习惯置顶与软删除、今日日程记录、日程编辑与软删除、日程开始/结束日期和循环周期、日程置顶、随手记录、事件编辑与软删除、事件置顶、灵感编辑与软删除、灵感置顶、四类写入区默认收起、每日工作台今日概览卡片跳转清单/人生列表、每日工作台晚间总结跳转复盘、移动端底部 5 Tab 导航、成长记录统一时间线、成长记录基础筛选、成长记录按日期分组列表、成长记录移动端三列概览、成长记录事件两行预览、记录详情查看、事件详情情绪标签兜底显示、人生页事件标签运行时兜底、人生页分组数据加载兜底、人生页按日期分组列表、人生页新增快捷入口、纪念日和礼物详情页、纪念日关联历史礼物展示、洞察报告入口分流、洞察报告成长概览、任务完成率图表、习惯打卡图表、记录数量趋势、情绪基础统计、洞察报告 AI 复盘与问题拆解/个人说明书快捷入口、周复盘程序统计、周复盘发送预览、周复盘生成与缓存、周复盘 Markdown 导出、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、月复盘 Markdown 导出、纪念日页面、纪念日创建/编辑/软删除、礼物记录创建/编辑/软删除和按对象/纪念日筛选、问题拆解页面、情绪复盘/压力整理/明日计划程序化输出和工具记录保存、Markdown 下载路由、复盘报告导出和近期成长记录导出、AI 配置检查能力、AI Provider Adapter 基础能力、每日复盘上下文生成能力、每日程序复盘摘要、每日复盘发送预览能力、手动生成每日 AI 复盘能力、AI 成本控制边界验证、个人说明书读取与完整字段手动编辑、个人说明书复盘上下文预留读取接口、设置页账号摘要展示、设置页昵称图标编辑、账号数据物理清除、账号注销、右上角昵称入口跳转设置页、Excel 历史数据一次性迁移脚本、统一错误提示规范、基础闭环手工验收记录、RLS 接入验证记录、线上基础路由可用性验证记录和部署前核心闭环测试记录。
 
 当前已存在：
 
@@ -276,6 +276,11 @@ AI Provider Adapter for scheduled/manual reviews
 - `drizzle/0004_lonely_silver_samurai.sql`: 场景工具箱迁移 SQL，创建 `tool_type` 枚举、`tool_sessions` 表、用户工具类型索引、用户创建时间索引，并为该表启用按 `auth.uid() = user_id` 隔离的 RLS 策略。
 - `drizzle/0005_remarkable_doctor_strange.sql`: 日程循环迁移 SQL，创建 `schedule_recurrence` 枚举，为 `schedule_items` 增加 `start_date`、`end_date` 和 `recurrence`，回填旧日程 `start_date = schedule_date`，并新增用户开始日期索引；已执行到真实 Supabase 数据库。
 - `drizzle/0006_wandering_slayback.sql`: 列表置顶迁移 SQL，为 `tasks`、`habits`、`schedule_items`、`life_events` 和 `ideas` 增加 `is_pinned` 字段，默认 `false`；已执行到真实 Supabase 数据库。
+- `drizzle/0007_curved_stone_men.sql`: 灵感转化字段迁移 SQL，为 `ideas` 表增加 `converted_to_type` 枚举、`converted_to_id` 和 `shelved_at` 字段；已执行到真实 Supabase 数据库。
+- `drizzle/0008_anniversary_enhancements.sql`: 纪念日增强迁移 SQL，创建 `anniversary_type` 和 `reminder_mode` 枚举，为 `anniversaries` 增加 `type`、`is_lunar`、`reminder_mode` 字段，为 `gift_records` 重命名 `purpose` 为 `return_gift`；已执行到真实 Supabase 数据库。
+- `drizzle/0009_schedule_completion.sql`: 日程复选框迁移 SQL，为 `schedule_items` 增加 `is_completed` 布尔字段，默认 `false`；已执行到真实 Supabase 数据库。
+- `drizzle/0010_supabase_js_grants.sql`: Supabase Data API 授权迁移 SQL，为 2026年10月30日后新建的 `anniversaries`、`gift_records` 和 `tool_sessions` 表添加显式 GRANT 语句，确保 supabase-js 可正常读写。
+- `drizzle/0011_schedule_completions.sql`: 循环日程按日期打卡迁移 SQL，创建 `schedule_completions` 表（`schedule_id + completion_date` 唯一约束），支持按日期独立记录日程完成状态；已执行到真实 Supabase 数据库。
 - `drizzle/meta/`: Drizzle 迁移快照和迁移日志元数据，用于后续增量迁移。
 - `src/db/schema.ts`: Drizzle schema，定义 `tasks`、`habits`、`habit_checkins`、`schedule_items`、`life_events`、`ideas`、`insight_reports`、`personal_manuals`、`anniversaries`、`gift_records` 和 `tool_sessions`；任务、习惯、日程、人生笔记和灵感包含 `is_pinned` 字段。
 - `src/db/index.ts`: 服务端数据库入口，使用 `DATABASE_URL` 创建 Drizzle client；当前保留给 Drizzle schema、迁移和必要的服务端内部维护用途，不作为普通登录用户请求的主读写通道。
@@ -724,7 +729,7 @@ Responsibilities:
 
 ## 6. Current Data Model
 
-Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 Drizzle schema 和迁移文件落地到真实 Supabase Postgres；Step 15.1 新增生活扩展的纪念日表，Step 15.2 新增礼物记录表，Step 15.3 新增场景工具箱记录表，Step 16.2 新增日程循环字段，Step 18.2 为任务、习惯、日程、人生笔记和灵感增加置顶字段。当前本地 schema 和迁移结构以 `src/db/schema.ts` 和 `drizzle/0000` 至 `drizzle/0006` 迁移文件为准。
+Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 Drizzle schema 和迁移文件落地到真实 Supabase Postgres；Step 15.1 新增生活扩展的纪念日表，Step 15.2 新增礼物记录表，Step 15.3 新增场景工具箱记录表，Step 16.2 新增日程循环字段，Step 18.2 为任务、习惯、日程、人生笔记和灵感增加置顶字段。当前本地 schema 和迁移结构以 `src/db/schema.ts` 和 `drizzle/0000` 至 `drizzle/0011` 迁移文件为准。
 
 第一批基础表：
 
@@ -744,6 +749,7 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 - `anniversaries`
 - `gift_records`
 - `tool_sessions`
+- `schedule_completions`
 
 当前 `anniversaries` 已建立 schema、迁移 SQL、RLS 策略和用户态读写入口；纪念日支持创建、编辑、软删除和列表读取，当前只做记录，不做推送提醒，不调用 AI。
 
@@ -919,10 +925,11 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 - `title`: 日程标题，必填。
 - `description`: 日程说明，可选。
 - `category`: 日程分类，先复用任务分类：`study`、`work`、`life`、`health`、`relationship`、`other`。
-- `schedule_date`: 日程日期，按北京时间理解。
+- `schedule_date`: 日程日期，按北京时间理解（当前表单自动等于 `start_date`）。
 - `start_date`: 日程开始日期，循环日程从该日期开始命中。
 - `end_date`: 日程结束日期，可选；为空表示不设置结束日期。
 - `recurrence`: 循环周期，固定为 `none`、`daily`、`weekly`、`monthly`。
+- `is_completed`: 是否已完成，默认 `false`；已由 `schedule_completions` 表按日期独立记录。
 - `is_pinned`: 是否在今日日程列表置顶，默认 `false`。
 - `start_time`: 开始时间，可选，格式按本地时间理解。
 - `end_time`: 结束时间，可选。
@@ -938,6 +945,7 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 - `recurrence = monthly` 时，今日日期在日期范围内，且日期号与 `start_date` 相同就显示。
 - 今日工作台展示 `schedule_date = 今天` 的单日日程，以及命中今天的循环日程。
 - 有 `start_time` 时按开始时间排序，没有时间的日程排在后面。
+- 日程完成状态通过 `schedule_completions` 表（`schedule_id + completion_date` 唯一约束）按日期独立记录，支持循环日程每日期独立打卡。
 
 ### 6.5 `life_events`
 
@@ -997,7 +1005,10 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 - `status`: 灵感状态，固定为 `to_review`、`converted_to_task`、`shelved`、`abandoned`。
 - `is_pinned`: 是否在随手记录列表置顶，默认 `false`。
 - `solution_note`: 解决方法或处理说明，可选。
-- `converted_task_id`: 灵感转成任务后的任务 ID，可选。
+- `converted_task_id`: 灵感转成任务后的任务 ID，可选（历史字段，已由 `converted_to_id` 替代）。
+- `converted_to_type`: 转化目标类型，可选，枚举值为 `task`、`habit`。
+- `converted_to_id`: 转化后的任务或习惯 ID，可选。
+- `shelved_at`: 搁置时间，可选。
 - `created_at`: 创建时间。
 - `updated_at`: 更新时间。
 - `deleted_at`: 软删除时间，可选。
@@ -1006,7 +1017,8 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 
 - 灵感和人生笔记归属于两个不同思路：灵感偏未来行动候选，人生笔记偏已发生事件和复盘。
 - 新灵感默认 `status = to_review`。
-- 灵感可以转化为任务，转化后记录 `converted_task_id`。
+- 灵感可以转化为任务或习惯，转化后记录 `converted_to_type` 和 `converted_to_id`；历史 `converted_task_id` 字段保留兼容。
+- 搁置灵感时写入 `shelved_at`。
 - 灵感默认只进入 AI 复盘摘要，不进入原文候选。
 
 ### 6.7 `insight_reports`
@@ -1102,6 +1114,9 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 - `person_name`: 关系对象。
 - `anniversary_date`: 纪念日日期。
 - `reminder_date`: 可选提醒日期；当前只记录，不做推送。
+- `type`: 纪念日类型，枚举值为 `anniversary`（纪念日）、`birthday`（生日）。
+- `reminder_mode`: 提醒模式，枚举值为 `once`（一次性）、`yearly`（按年）。
+- `is_lunar`: 是否为农历日期，默认 `false`。
 - `note`: 备注，可选。
 - `created_at`: 创建时间。
 - `updated_at`: 更新时间。
@@ -1112,7 +1127,7 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 - 页面入口为 `/life`。
 - 纪念日列表按 `anniversary_date` 和 `created_at` 排序。
 - 删除采用软删除，写入 `deleted_at`，不物理删除。
-- 当前不调用 AI，不做自动提醒；后续礼物记录可选择关联纪念日。
+- 当前不调用 AI，不做推送提醒；后续礼物记录可选择关联纪念日。
 
 ### 6.10 `gift_records`
 
@@ -1135,7 +1150,7 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 - `gift_name`: 礼物名称。
 - `recipient_name`: 对象。
 - `gift_date`: 礼物日期。
-- `purpose`: 用途，例如生日、感谢、节日或探望。
+- `return_gift`: 对方回礼，可选；替代原 `purpose` 字段。
 - `note`: 备注，可选。
 - `created_at`: 创建时间。
 - `updated_at`: 更新时间。

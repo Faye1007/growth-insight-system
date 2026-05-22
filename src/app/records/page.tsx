@@ -23,6 +23,7 @@ import {
 } from "@/lib/data/user-data";
 import type { UpcomingAnniversary } from "@/lib/data/user-data";
 import { getTaskCategoryLabel } from "@/lib/tasks/options";
+import { getBeijingDateValue, getBeijingDateAfter } from "@/lib/date";
 
 const recentLimitPerType = 12;
 
@@ -117,23 +118,6 @@ function formatDateGroupLabel(value: Date) {
   });
 
   return formatter.format(value);
-}
-
-function getBeijingDateValue(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  return formatter.format(date);
-}
-
-function getBeijingDateAfter(days: number, date = new Date()) {
-  const targetDate = new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
-
-  return getBeijingDateValue(targetDate);
 }
 
 function isRecordTypeFilter(value: string | undefined): value is RecordTypeFilter {

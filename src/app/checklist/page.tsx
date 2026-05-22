@@ -10,6 +10,7 @@ import {
   getScheduleCompletionsForUser,
 } from "@/lib/data/user-data";
 import type { FeedbackMessage as FeedbackMessageType } from "@/lib/feedback";
+import { getBeijingDateValue } from "@/lib/date";
 
 type ChecklistPageProps = {
   searchParams?: Promise<{
@@ -24,16 +25,6 @@ type ChecklistPageProps = {
     ideaError?: string;
   }>;
 };
-
-function getBeijingDateValue(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  return formatter.format(date);
-}
 
 function getWeekRange(referenceDate: Date) {
   const day = referenceDate.getDay();

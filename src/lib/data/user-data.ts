@@ -3,6 +3,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { ScheduleRecurrence } from "@/lib/schedules/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
+import { getBeijingDateValue, getBeijingDateAfter } from "@/lib/date";
 
 type HabitCheckinStatus = "checked" | "skipped";
 type AiAnalysisPermission = "none" | "summary_only" | "allow_original";
@@ -2990,22 +2991,6 @@ export async function getChecklistIdeasForUser(
     isPinned: row.is_pinned,
     createdAt: new Date(row.created_at),
   }));
-}
-
-function getBeijingDateValue(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  return formatter.format(date);
-}
-
-function getBeijingDateAfter(days: number, dateStr: string) {
-  const d = new Date(`${dateStr}T00:00:00+08:00`);
-  d.setDate(d.getDate() + days);
-  return getBeijingDateValue(d);
 }
 
 export type LifeEventRecord = {

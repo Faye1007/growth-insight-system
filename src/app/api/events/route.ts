@@ -6,16 +6,7 @@ import {
   softDeleteLifeEventForUser,
   updateLifeEventForUser,
 } from "@/lib/data/user-data";
-
-function getBeijingDateValue(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  return formatter.format(date);
-}
+import { getBeijingDateValue } from "@/lib/date";
 
 export async function GET(request: NextRequest) {
   const auth = await requireApiKey(request);

@@ -22,6 +22,7 @@ import {
   toggleScheduleCompletionAction,
 } from "@/app/checklist/actions";
 import { updateHabitCheckinAction, updateTaskStatusAction } from "@/app/daily/actions";
+import { getBeijingDateValue } from "@/lib/date";
 import { getTaskCategoryLabel, taskCategories, taskStatuses } from "@/lib/tasks/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
 
@@ -94,16 +95,6 @@ type WeekDay = {
   dayNum: number;
   isToday: boolean;
 };
-
-function getBeijingDateValue(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  return formatter.format(date);
-}
 
 function getWeekDays(referenceDate: Date): WeekDay[] {
   const today = new Date();

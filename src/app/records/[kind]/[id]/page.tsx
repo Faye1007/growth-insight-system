@@ -50,6 +50,7 @@ import {
   defaultTaskErrorFeedback,
   getFeedbackByCode,
 } from "@/lib/feedback";
+import { normalizeStringList } from "@/lib/utils";
 
 type RecordKind = "task" | "habit" | "schedule" | "event" | "idea";
 type DetailPageProps = {
@@ -175,37 +176,6 @@ function TagRow({ items }: { items: string[] }) {
       ))}
     </div>
   );
-}
-
-function normalizeStringList(value: unknown) {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
-  }
-
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-
-    if (!trimmed) {
-      return [];
-    }
-
-    try {
-      const parsed = JSON.parse(trimmed) as unknown;
-
-      if (Array.isArray(parsed)) {
-        return parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
-      }
-    } catch {
-      return trimmed
-        .split(/[,，、]/)
-        .map((item) => item.trim())
-        .filter(Boolean);
-    }
-
-    return [trimmed];
-  }
-
-  return [];
 }
 
 function NotFoundState() {

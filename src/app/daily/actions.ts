@@ -10,6 +10,7 @@ import {
 } from "@/lib/ai/daily-review-context";
 import { AiConfigurationError, generateReview } from "@/lib/ai/provider";
 import type { GenerateReviewOutput } from "@/lib/ai/types";
+import { getBeijingDateValue } from "@/lib/date";
 import {
   createHabitForUser,
   createIdeaForUser,
@@ -55,17 +56,6 @@ function getStringValues(formData: FormData, key: string) {
     .filter((value): value is string => typeof value === "string")
     .map((value) => value.trim())
     .filter(Boolean);
-}
-
-function getBeijingDateValue(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  return formatter.format(date);
 }
 
 function getValidTaskDate(value: string) {

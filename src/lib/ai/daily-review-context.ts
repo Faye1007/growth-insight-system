@@ -8,6 +8,7 @@ import {
 } from "@/lib/ai/personal-manual-context";
 import { getDailyReviewRowsForUser } from "@/lib/data/user-data";
 import { getTaskCategoryLabel, getTaskStatusLabel, type TaskCategory, type TaskStatus } from "@/lib/tasks/options";
+import { getBeijingDateValue, getBeijingDateAfter } from "@/lib/date";
 
 const maxOriginalEvents = 5;
 const originalEventContentLimit = 600;
@@ -58,23 +59,6 @@ export function buildDailyReviewInputWithSelectedOriginals(
     selectedOriginals,
     sensitiveMode: selectedOriginals.length ? "allow_selected_originals" : "summary_only",
   };
-}
-
-function getBeijingDateValue(date = new Date()) {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  return formatter.format(date);
-}
-
-function getBeijingDateAfter(days: number, date = new Date()) {
-  const targetDate = new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
-
-  return getBeijingDateValue(targetDate);
 }
 
 function truncateText(content: string, limit: number) {
