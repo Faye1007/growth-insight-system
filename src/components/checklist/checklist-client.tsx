@@ -232,10 +232,10 @@ export function ChecklistClient({
   const filteredSchedules = schedules.filter((s) => {
     const start = s.startDate ?? s.scheduleDate;
     const end = s.endDate;
-    if (start > weekEnd) return false;
+    if (start > todayStr) return false;
     if (end && end < weekStart) return false;
     if (s.recurrence === "none") {
-      return s.scheduleDate >= weekStart && s.scheduleDate <= weekEnd;
+      return s.scheduleDate >= weekStart && s.scheduleDate <= todayStr;
     }
     return true;
   });
