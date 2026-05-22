@@ -37,9 +37,12 @@ import {
   getTodayLifeEventsForUser,
   getTodayScheduleItemsForUser,
   getTodayTasksForUser,
+  getDailyOverviewStatsForUser,
+  type DailyOverviewStats,
   type ActiveHabit,
   type HabitCheckin,
   type TodayTask,
+  type ChecklistSchedule,
 } from "@/lib/data/user-data";
 import {
   getScheduleRecurrenceLabel,
@@ -625,13 +628,46 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
   const beijingDate = beijingDateFormatter.format(now);
   const shortDate = beijingShortDateFormatter.format(now);
   const todayDate = getBeijingDateValue(now);
-  const todayTasks = user ? await getTodayTasksForUser(user.id, todayDate) : [];
-  const activeHabits = user ? await getActiveHabitsForUser(user.id) : [];
-  const todayScheduleItems = user ? await getTodayScheduleItemsForUser(user.id, todayDate) : [];
-  const todayLifeEvents = user ? await getTodayLifeEventsForUser(user.id, todayDate) : [];
-  const todayIdeas = user ? await getTodayIdeasForUser(user.id, todayDate) : [];
-  const todayDailyReviewReport = user ? await getTodayDailyReviewReportForUser(user.id, todayDate) : null;
   const reviewPreviewOpen = params?.reviewPreview === "1";
+
+  // Determine if full detailed data is needed
+  const activeSectionId: DailySectionId | null =
+    getDailySectionId(params?.view) ??
+    getCreateSectionId(params?.create) ??
+    (params?.taskCreated || params?.taskError || params?.taskUpdated ? "tasks" : null) ??
+    (params?.habitCreated || params?.habitError || params?.habitUpdated ? "habits" : null) ??
+    (params?.scheduleCreated || params?.scheduleError || params?.scheduleUpdated ? "schedule" : null) ??
+    (params?.recordCreated || params?.recordError || params?.recordUpdated ? "notes" : null);
+  const needsFullData = Boolean(activeSectionId) || reviewPreviewOpen;
+
+  // Data — lazy: only fetch full data when sections are visible
+  let todayTasks: TodayTask[] = [];
+  let activeHabits: ActiveHabit[] = [];
+  let todayScheduleItems: ChecklistSchedule[] = [];
+  let todayLifeEvents: Awaited<ReturnType<typeof getTodayLifeEventsForUser>> = [];
+  let todayIdeas: Awaited<ReturnType<typeof getTodayIdeasForUser>> = [];
+  let habitCheckins: HabitCheckin[] = [];
+  let habitStatsById = new Map<string, ReturnType<typeof getHabitStats>>();
+  let overviewStats: DailyOverviewStats | null = null;
+
+  const todayDailyReviewReport = user ? await getTodayDailyReviewReportForUser(user.id, todayDate) : null;
+
+  if (user && needsFullData) {
+    [todayTasks, activeHabits, todayScheduleItems, todayLifeEvents, todayIdeas] = await Promise.all([
+      getTodayTasksForUser(user.id, todayDate),
+      getActiveHabitsForUser(user.id),
+      getTodayScheduleItemsForUser(user.id, todayDate),
+      getTodayLifeEventsForUser(user.id, todayDate),
+      getTodayIdeasForUser(user.id, todayDate),
+    ]);
+    habitCheckins = await getHabitCheckinsForUser(user.id, activeHabits.map((h) => h.id));
+    habitStatsById = new Map(
+      activeHabits.map((habit) => [habit.id, getHabitStats(habit, habitCheckins, todayDate)]),
+    );
+  } else if (user) {
+    overviewStats = await getDailyOverviewStatsForUser(user.id, todayDate);
+  }
+
   const dailyReviewContext = user && reviewPreviewOpen
     ? await buildDailyReviewContext(user.id, todayDate)
     : null;
@@ -642,15 +678,6 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
         )
       : dailyReviewContext.originalCandidates.map((candidate) => candidate.eventId)
     : [];
-  const habitCheckins = user
-      ? await getHabitCheckinsForUser(
-        user.id,
-        activeHabits.map((habit) => habit.id),
-      )
-    : [];
-  const habitStatsById = new Map(
-    activeHabits.map((habit) => [habit.id, getHabitStats(habit, habitCheckins, todayDate)]),
-  );
   const taskCreated = params?.taskCreated === "1";
   const taskCreatedFeedback: FeedbackMessageData | null = taskCreated
     ? {
@@ -755,27 +782,34 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     params?.recordError === "missing_content" ||
     params?.recordError === "invalid_type" ||
     params?.recordError === "save_failed";
-  const activeSectionId: DailySectionId | null =
-    getDailySectionId(params?.view) ??
-    getCreateSectionId(params?.create) ??
-    (params?.taskCreated || params?.taskError || params?.taskUpdated ? "tasks" : null) ??
-    (params?.habitCreated || params?.habitError || params?.habitUpdated ? "habits" : null) ??
-    (params?.scheduleCreated || params?.scheduleError || params?.scheduleUpdated ? "schedule" : null) ??
-    (params?.recordCreated || params?.recordError || params?.recordUpdated ? "notes" : null);
   const activeSections = activeSectionId
     ? dailySections.filter((section) => section.id === activeSectionId)
     : [];
-  const todayCompletedTaskCount = todayTasks.filter((task) => task.status === "completed").length;
-  const todayHabitCheckedCount = activeHabits.filter((habit) =>
-    habitStatsById.get(habit.id)?.isCheckedToday,
-  ).length;
-  const todayTaskRate = todayTasks.length
-    ? Math.round((todayCompletedTaskCount / todayTasks.length) * 100)
-    : 0;
-  const todayHabitRate = activeHabits.length
-    ? Math.round((todayHabitCheckedCount / activeHabits.length) * 100)
-    : 0;
-  const todayRecordCount = todayLifeEvents.length + todayIdeas.length;
+  const todayCompletedTaskCount = overviewStats
+    ? overviewStats.completedTasks
+    : todayTasks.filter((task) => task.status === "completed").length;
+  const todayHabitCheckedCount = overviewStats
+    ? overviewStats.checkedHabits
+    : activeHabits.filter((habit) =>
+        habitStatsById.get(habit.id)?.isCheckedToday,
+      ).length;
+  const todayTaskRate = overviewStats
+    ? overviewStats.totalTasks
+      ? Math.round((overviewStats.completedTasks / overviewStats.totalTasks) * 100)
+      : 0
+    : todayTasks.length
+      ? Math.round((todayCompletedTaskCount / todayTasks.length) * 100)
+      : 0;
+  const todayHabitRate = overviewStats
+    ? overviewStats.totalHabits
+      ? Math.round((overviewStats.checkedHabits / overviewStats.totalHabits) * 100)
+      : 0
+    : activeHabits.length
+      ? Math.round((todayHabitCheckedCount / activeHabits.length) * 100)
+      : 0;
+  const todayRecordCount = overviewStats
+    ? overviewStats.totalEvents + overviewStats.totalIdeas
+    : todayLifeEvents.length + todayIdeas.length;
 
   return (
     <div className="page-stack">
@@ -827,7 +861,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
             <div className="metric-label">任务完成率</div>
             <div className="metric-value">{todayTaskRate}%</div>
             <p className="body-copy mt-2">
-              {todayCompletedTaskCount}/{todayTasks.length} 项已完成
+              {todayCompletedTaskCount}/{overviewStats ? overviewStats.totalTasks : todayTasks.length} 项已完成
             </p>
             <div className="overview-progress mt-4">
               <span style={{ width: `${todayTaskRate}%` }} />
@@ -837,7 +871,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
           <Link className="daily-summary-card daily-summary-card-link tone-sage" href="/checklist?tab=habits">
             <div className="metric-label">习惯打卡</div>
             <div className="metric-value">
-              {todayHabitCheckedCount}/{activeHabits.length}
+              {todayHabitCheckedCount}/{overviewStats ? overviewStats.totalHabits : activeHabits.length}
             </div>
             <p className="body-copy mt-2">今日已完成的启用习惯。</p>
             <div className="overview-progress mt-4">
@@ -847,7 +881,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
 
           <Link className="daily-summary-card daily-summary-card-link tone-clay" href="/checklist?tab=schedules">
             <div className="metric-label">今日日程</div>
-            <div className="metric-value">{todayScheduleItems.length}</div>
+            <div className="metric-value">{overviewStats ? overviewStats.totalSchedules : todayScheduleItems.length}</div>
             <p className="body-copy mt-2">今天已记录的固定事项数量。</p>
           </Link>
 
@@ -855,8 +889,8 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
             <div className="metric-label">随手记录</div>
             <div className="metric-value">{todayRecordCount}</div>
             <div className="overview-detail-row mt-3">
-              <span className="status-pill">事件 {todayLifeEvents.length}</span>
-              <span className="status-pill">灵感 {todayIdeas.length}</span>
+              <span className="status-pill">事件 {overviewStats ? overviewStats.totalEvents : todayLifeEvents.length}</span>
+              <span className="status-pill">灵感 {overviewStats ? overviewStats.totalIdeas : todayIdeas.length}</span>
             </div>
           </Link>
         </div>
