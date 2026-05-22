@@ -6,6 +6,7 @@ import {
   getChecklistIdeasForUser,
   getChecklistSchedulesForUser,
   getChecklistTasksForUser,
+  getPostponedTasksForUser,
 } from "@/lib/data/user-data";
 import type { FeedbackMessage as FeedbackMessageType } from "@/lib/feedback";
 
@@ -53,14 +54,15 @@ export default async function ChecklistPage({ searchParams }: ChecklistPageProps
 
   const { start: weekStart, end: weekEnd } = getWeekRange(new Date());
 
-  const [tasks, schedules, habits, ideas] = user
+  const [tasks, schedules, habits, ideas, postponedTasks] = user
     ? await Promise.all([
         getChecklistTasksForUser(user.id, weekStart, weekEnd),
         getChecklistSchedulesForUser(user.id, weekStart, weekEnd),
         getChecklistHabitsForUser(user.id, weekStart, weekEnd),
         getChecklistIdeasForUser(user.id, weekStart, weekEnd),
+        getPostponedTasksForUser(user.id),
       ])
-    : [[], [], [], []];
+    : [[], [], [], [], []];
 
   const tab = params?.tab;
   const initialTab =
@@ -129,6 +131,7 @@ export default async function ChecklistPage({ searchParams }: ChecklistPageProps
         schedules={schedules}
         habits={habits}
         ideas={ideas}
+        postponedTasks={postponedTasks}
       />
     </div>
   );

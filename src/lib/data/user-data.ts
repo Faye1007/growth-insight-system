@@ -2781,6 +2781,32 @@ export async function getChecklistTasksForUser(
   }));
 }
 
+export async function getPostponedTasksForUser(userId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("id,title,category,status,task_date,is_postponed,postponed_to_date,is_pinned,created_at")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .eq("is_postponed", true)
+    .neq("status", "completed")
+    .order("postponed_to_date", { ascending: true })
+    .order("created_at", { ascending: true })
+    .returns<TaskRow[]>();
+
+  return assertArray(data, error).map((row) => ({
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    status: row.status,
+    taskDate: row.task_date,
+    isPostponed: row.is_postponed,
+    postponedToDate: (row as any).postponed_to_date ?? null,
+    isPinned: row.is_pinned,
+    createdAt: new Date(row.created_at),
+  }));
+}
+
 export async function getChecklistSchedulesForUser(
   userId: string,
   dateFrom: string,

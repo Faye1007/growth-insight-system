@@ -45,6 +45,17 @@ type ChecklistTask = {
   isPinned: boolean;
 };
 
+type PostponedTask = {
+  id: string;
+  title: string;
+  category: TaskCategory;
+  status: TaskStatus;
+  taskDate: string;
+  isPostponed: boolean;
+  postponedToDate: string | null;
+  isPinned: boolean;
+};
+
 type ChecklistSchedule = {
   id: string;
   title: string;
@@ -194,12 +205,14 @@ export function ChecklistClient({
   schedules,
   habits,
   ideas,
+  postponedTasks = [],
 }: {
   initialTab?: ChecklistTab;
   tasks: ChecklistTask[];
   schedules: ChecklistSchedule[];
   habits: ChecklistHabit[];
   ideas: ChecklistIdea[];
+  postponedTasks?: PostponedTask[];
 }) {
   const [activeTab, setActiveTab] = useState<ChecklistTab>(initialTab);
   const [view, setView] = useState<ChecklistView>("list");
@@ -382,6 +395,50 @@ export function ChecklistClient({
               </form>
             </details>
           </div>
+          {/* Postponed tasks zone */}
+          {postponedTasks.length > 0 && (
+            <div className="mt-4">
+              <h3 className="section-heading text-sm text-[var(--clay)]">延期任务</h3>
+              <div className="task-list mt-2">
+                {postponedTasks.map((task) => (
+                  <article
+                    key={task.id}
+                    className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}
+                  >
+                    <div className="compact-main-row">
+                      <form action={updateTaskStatusAction}>
+                        <input type="hidden" name="taskId" value={task.id} />
+                        <input type="hidden" name="status" value={task.status === "completed" ? "todo" : "completed"} />
+                        <input type="hidden" name="source" value="checklist" />
+                        <button
+                          aria-label={
+                            task.status === "completed"
+                              ? `取消完成 ${task.title}`
+                              : `完成 ${task.title}`
+                          }
+                          className={`quick-check-button ${task.status === "completed" ? "checked" : ""}`}
+                          type="submit"
+                        >
+                          <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
+                        </button>
+                      </form>
+                      <div className="min-w-0">
+                        <Link
+                          className={`list-label list-title-link ${task.status === "completed" ? "line-through" : ""}`}
+                          href={`/records/task/${task.id}`}
+                        >
+                          {task.title}
+                        </Link>
+                        <p className="list-meta mt-1">
+                          {getTaskCategoryLabel(task.category)} · 延期至 {task.postponedToDate ? formatDateLabel(task.postponedToDate) : "待定"}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
           {view === "list" ? (
             filteredTasks.length > 0 ? (
               <div className="task-list mt-4">
