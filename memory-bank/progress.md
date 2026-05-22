@@ -3119,6 +3119,7 @@ Supabase Auth Redirect URL 需要配置：
 - 清单页服务端加载日程完成状态 Map 并传递给客户端组件。
 - 清单页日程列表和周视图使用完成状态 Map 判断是否完成。
 - 注意：迁移文件已就绪，需在 Supabase 上执行 `npx drizzle-kit migrate` 或手动运行 `0011_schedule_completions.sql`。
+- 注意：迁移文件已就绪，已在 Supabase 上手动运行 `0011_schedule_completions.sql`，`schedule_completions` 表已创建并按日期追踪日程完成状态。
 
 验证：
 
