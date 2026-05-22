@@ -3451,3 +3451,89 @@ export async function batchSoftDeleteForUser(input: {
     throw error;
   }
 }
+
+const trashTableConfig: Array<{ kind: string; table: string; titleField: string; label: string }> = [
+  { kind: "tasks", table: "tasks", titleField: "title", label: "任务" },
+  { kind: "schedules", table: "schedule_items", titleField: "title", label: "日程" },
+  { kind: "habits", table: "habits", titleField: "name", label: "习惯" },
+  { kind: "ideas", table: "ideas", titleField: "content", label: "灵感" },
+  { kind: "events", table: "life_events", titleField: "content", label: "事件" },
+  { kind: "anniversaries", table: "anniversaries", titleField: "title", label: "纪念日" },
+  { kind: "gifts", table: "gift_records", titleField: "gift_name", label: "礼物" },
+];
+
+export type TrashedItem = {
+  id: string;
+  kind: string;
+  label: string;
+  title: string;
+  deletedAt: string;
+};
+
+export async function getTrashedItemsForUser(userId: string): Promise<TrashedItem[]> {
+  const supabase = await createClient();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const cutoff = thirtyDaysAgo.toISOString();
+  const results = await Promise.all(
+    trashTableConfig.map(async ({ kind, table, titleField, label }) => {
+      const { data, error } = await supabase
+        .from(table)
+        .select(`id, ${titleField}, deleted_at`)
+        .eq("user_id", userId)
+        .not("deleted_at", "is", null)
+        .order("deleted_at", { ascending: false })
+        .returns<Array<{ id: string; deleted_at: string } & Record<string, string>>>();
+      if (error) return [] as TrashedItem[];
+      const items: TrashedItem[] = [];
+      for (const row of data ?? []) {
+        if (row.deleted_at < cutoff) {
+          await supabase.from(table).delete().eq("id", row.id).eq("user_id", userId);
+          continue;
+        }
+        items.push({
+          id: row.id,
+          kind,
+          label,
+          title: row[titleField] ?? "(无标题)",
+          deletedAt: row.deleted_at,
+        });
+      }
+      return items;
+    }),
+  );
+  return results.flat();
+}
+
+export async function restoreTrashedItemForUser(input: {
+  userId: string;
+  kind: string;
+  id: string;
+}) {
+  const config = trashTableConfig.find((c) => c.kind === input.kind);
+  if (!config) throw new Error(`Unknown kind: ${input.kind}`);
+  const now = new Date().toISOString();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from(config.table)
+    .update({ deleted_at: null, updated_at: now })
+    .eq("id", input.id)
+    .eq("user_id", input.userId);
+  if (error) throw error;
+}
+
+export async function permanentlyDeleteTrashedItemForUser(input: {
+  userId: string;
+  kind: string;
+  id: string;
+}) {
+  const config = trashTableConfig.find((c) => c.kind === input.kind);
+  if (!config) throw new Error(`Unknown kind: ${input.kind}`);
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from(config.table)
+    .delete()
+    .eq("id", input.id)
+    .eq("user_id", input.userId);
+  if (error) throw error;
+}

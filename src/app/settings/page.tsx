@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogOut, Pencil } from "lucide-react";
+import { LogOut, Pencil, Trash2 } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/auth/session";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
@@ -125,6 +125,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             </div>
 
             <div className="settings-account-actions">
+              <Link className="soft-button settings-account-action-button text-sm" href="/trash">
+                <Trash2 aria-hidden="true" className="h-4 w-4" />
+                回收站
+              </Link>
               <form action={signOutAction}>
                 <button className="soft-button settings-account-action-button text-sm" type="submit">
                   <LogOut aria-hidden="true" className="h-4 w-4" />
