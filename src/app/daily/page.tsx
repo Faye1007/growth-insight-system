@@ -1,12 +1,10 @@
 import Link from "next/link";
 import {
-  Ban,
   CalendarDays,
   CheckCircle2,
   ClipboardList,
   Lightbulb,
   NotebookPen,
-  Pin,
   Plus,
   Repeat2,
   Sparkles,
@@ -14,20 +12,12 @@ import {
 } from "lucide-react";
 
 import {
-  deactivateHabitAction,
   generateDailyReviewAction,
-  softDeleteHabitAction,
-  softDeleteIdeaAction,
-  softDeleteLifeEventAction,
-  softDeleteScheduleItemAction,
-  updateHabitPinnedAction,
-  updateIdeaPinnedAction,
-  updateLifeEventPinnedAction,
-  updateSchedulePinnedAction,
-  updateTaskPinnedAction,
-  updateHabitCheckinAction,
 } from "@/app/daily/actions";
 import { TaskCompletionToggle } from "@/components/task-completion-toggle";
+import { HabitCheckinToggle } from "@/components/habit-checkin-toggle";
+import { DeleteButton } from "@/components/delete-button";
+import { PinToggle } from "@/components/pin-toggle";
 import { getBeijingDateValue, getBeijingDateAfter } from "@/lib/date";
 import { normalizeStringList } from "@/lib/utils";
 import { FeedbackMessage } from "@/components/feedback-message";
@@ -271,146 +261,9 @@ function getHabitStats(habit: ActiveHabit, checkins: HabitCheckin[], todayDate: 
   };
 }
 
-function DeleteScheduleAction({
-  scheduleId,
-  source = "daily",
-}: {
-  scheduleId: string;
-  source?: "daily" | "detail";
-}) {
-  return (
-    <form action={softDeleteScheduleItemAction}>
-      <input type="hidden" name="scheduleId" value={scheduleId} />
-      <input type="hidden" name="source" value={source} />
-      <button className="quiet-button danger-button" type="submit">
-        <Trash2 aria-hidden="true" className="h-4 w-4" />
-        删除
-      </button>
-    </form>
-  );
-}
 
-function DeleteLifeEventAction({
-  eventId,
-  source = "daily",
-}: {
-  eventId: string;
-  source?: "daily" | "detail";
-}) {
-  return (
-    <form action={softDeleteLifeEventAction}>
-      <input type="hidden" name="eventId" value={eventId} />
-      <input type="hidden" name="source" value={source} />
-      <button className="quiet-button danger-button" type="submit">
-        <Trash2 aria-hidden="true" className="h-4 w-4" />
-        删除
-      </button>
-    </form>
-  );
-}
 
-function DeleteIdeaAction({
-  ideaId,
-  source = "daily",
-}: {
-  ideaId: string;
-  source?: "daily" | "detail";
-}) {
-  return (
-    <form action={softDeleteIdeaAction}>
-      <input type="hidden" name="ideaId" value={ideaId} />
-      <input type="hidden" name="source" value={source} />
-      <button className="quiet-button danger-button" type="submit">
-        <Trash2 aria-hidden="true" className="h-4 w-4" />
-        删除
-      </button>
-    </form>
-  );
-}
 
-function DeactivateHabitAction({ habitId }: { habitId: string }) {
-  return (
-    <form action={deactivateHabitAction}>
-      <input type="hidden" name="habitId" value={habitId} />
-      <input type="hidden" name="source" value="daily" />
-      <button className="quiet-button danger-button" type="submit">
-        <Ban aria-hidden="true" className="h-4 w-4" />
-        停用
-      </button>
-    </form>
-  );
-}
-
-function DeleteHabitAction({ habitId }: { habitId: string }) {
-  return (
-    <form action={softDeleteHabitAction}>
-      <input type="hidden" name="habitId" value={habitId} />
-      <input type="hidden" name="source" value="daily" />
-      <button className="quiet-button danger-button" type="submit">
-        <Trash2 aria-hidden="true" className="h-4 w-4" />
-        删除
-      </button>
-    </form>
-  );
-}
-
-function PinAction({
-  id,
-  isPinned,
-  kind,
-}: {
-  id: string;
-  isPinned: boolean;
-  kind: "task" | "habit" | "schedule" | "event" | "idea";
-}) {
-  const actionByKind = {
-    task: updateTaskPinnedAction,
-    habit: updateHabitPinnedAction,
-    schedule: updateSchedulePinnedAction,
-    event: updateLifeEventPinnedAction,
-    idea: updateIdeaPinnedAction,
-  };
-  const fieldByKind = {
-    task: "taskId",
-    habit: "habitId",
-    schedule: "scheduleId",
-    event: "eventId",
-    idea: "ideaId",
-  };
-
-  return (
-    <form action={actionByKind[kind]}>
-      <input type="hidden" name={fieldByKind[kind]} value={id} />
-      <input type="hidden" name="isPinned" value={isPinned ? "false" : "true"} />
-      <button className="quiet-button" type="submit">
-        <Pin aria-hidden="true" className="h-4 w-4" />
-        {isPinned ? "取消置顶" : "置顶"}
-      </button>
-    </form>
-  );
-}
-
-function HabitCheckinAction({
-  habit,
-  isCheckedToday,
-}: {
-  habit: ActiveHabit;
-  isCheckedToday: boolean;
-}) {
-  return (
-    <form action={updateHabitCheckinAction}>
-      <input type="hidden" name="habitId" value={habit.id} />
-      <input type="hidden" name="intent" value={isCheckedToday ? "cancel" : "check"} />
-      <button
-        aria-label={isCheckedToday ? `取消打卡 ${habit.name}` : `打卡 ${habit.name}`}
-        className={`quick-check-button ${isCheckedToday ? "checked" : ""}`}
-        type="submit"
-      >
-        <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-      </button>
-    </form>
-  );
-}
 
 function formatScheduleTimeRange(startTime: string | null, endTime: string | null) {
   const start = startTime ? startTime.slice(0, 5) : "未设置时间";
@@ -1110,7 +963,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                           </div>
                         </div>
                         <div className="compact-actions">
-                          <PinAction id={task.id} isPinned={task.isPinned} kind="task" />
+                          <PinToggle id={task.id} isPinned={task.isPinned} kind="task" />
                           <span className={`status-pill ${getTaskStatusTone(task.status)}`}>
                             {getTaskStatusLabel(task.status)}
                           </span>
@@ -1148,7 +1001,7 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                       return (
                         <article key={habit.id} className={`task-list-item compact-list-item ${stats.isCheckedToday ? "task-status-completed" : "task-status-todo"}`}>
                           <div className="compact-main-row">
-                            <HabitCheckinAction habit={habit} isCheckedToday={stats.isCheckedToday} />
+                            <HabitCheckinToggle habitId={habit.id} isCheckedToday={stats.isCheckedToday} />
                             <div className="min-w-0">
                               <p className="list-label">{habit.name}</p>
                               <p className="list-meta mt-1">
@@ -1161,12 +1014,9 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                             </div>
                           </div>
                           <div className="compact-actions">
-                            <PinAction id={habit.id} isPinned={habit.isPinned} kind="habit" />
-                            <span className={`status-pill ${stats.isCheckedToday ? "task-status-completed" : "task-status-todo"}`}>
-                              {stats.isCheckedToday ? "今日已完成" : "今日未完成"}
-                            </span>
-                            <DeactivateHabitAction habitId={habit.id} />
-                            <DeleteHabitAction habitId={habit.id} />
+                            <PinToggle id={habit.id} isPinned={habit.isPinned} kind="habit" />
+
+                            <DeleteButton id={habit.id} kind="habit" />
                           </div>
                         </article>
                       );
@@ -1208,8 +1058,8 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                           </div>
                         </div>
                         <div className="compact-actions">
-                          <PinAction id={item.id} isPinned={item.isPinned} kind="schedule" />
-                          <DeleteScheduleAction scheduleId={item.id} />
+                          <PinToggle id={item.id} isPinned={item.isPinned} kind="schedule" />
+                          <DeleteButton id={item.id} kind="schedule" />
                         </div>
                       </article>
                     ))}
@@ -1244,8 +1094,8 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                           </div>
                         </div>
                         <div className="compact-actions">
-                          <PinAction id={event.id} isPinned={event.isPinned} kind="event" />
-                          <DeleteLifeEventAction eventId={event.id} />
+                          <PinToggle id={event.id} isPinned={event.isPinned} kind="event" />
+                          <DeleteButton id={event.id} kind="event" />
                         </div>
                       </article>
                     ))}
@@ -1259,8 +1109,8 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
                           </div>
                         </div>
                         <div className="compact-actions">
-                          <PinAction id={idea.id} isPinned={idea.isPinned} kind="idea" />
-                          <DeleteIdeaAction ideaId={idea.id} />
+                          <PinToggle id={idea.id} isPinned={idea.isPinned} kind="idea" />
+                          <DeleteButton id={idea.id} kind="idea" />
                         </div>
                       </article>
                     ))}

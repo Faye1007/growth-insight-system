@@ -21,9 +21,10 @@ import {
   createChecklistTaskAction,
   toggleScheduleCompletionAction,
 } from "@/app/checklist/actions";
-import { updateHabitCheckinAction } from "@/app/daily/actions";
+
 import { getBeijingDateValue } from "@/lib/date";
 import { TaskCompletionToggle } from "@/components/task-completion-toggle";
+import { HabitCheckinToggle } from "@/components/habit-checkin-toggle";
 import { getTaskCategoryLabel, taskCategories, taskStatuses } from "@/lib/tasks/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
 
@@ -711,22 +712,7 @@ export function ChecklistClient({
                     className={`task-list-item compact-list-item ${habit.isCheckedOnDate ? "task-status-completed" : "task-status-todo"}`}
                   >
                     <div className="compact-main-row">
-                      <form action={updateHabitCheckinAction}>
-                        <input type="hidden" name="habitId" value={habit.id} />
-                        <input type="hidden" name="intent" value={habit.isCheckedOnDate ? "cancel" : "check"} />
-                        <input type="hidden" name="source" value="checklist" />
-                        <button
-                          aria-label={
-                            habit.isCheckedOnDate
-                              ? `取消打卡 ${habit.name}`
-                              : `打卡 ${habit.name}`
-                          }
-                          className={`quick-check-button ${habit.isCheckedOnDate ? "checked" : ""}`}
-                          type="submit"
-                        >
-                          <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-                        </button>
-                      </form>
+                      <HabitCheckinToggle habitId={habit.id} isCheckedToday={habit.isCheckedOnDate} />
                       <div className="min-w-0">
                         <Link className="list-label list-title-link" href={`/checklist/habits/${habit.id}`}>
                           {habit.name}

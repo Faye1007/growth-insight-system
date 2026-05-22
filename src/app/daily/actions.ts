@@ -240,6 +240,116 @@ export async function toggleTaskCompletionAction(
   }
 }
 
+export async function toggleHabitCheckinAction(
+  _prevState: { success: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await requireCurrentUser("/daily");
+    const habitId = getStringValue(formData, "habitId");
+    const intent = getStringValue(formData, "intent");
+
+    if (!habitId || (intent !== "check" && intent !== "cancel")) {
+      return { success: false, error: "invalid_checkin" };
+    }
+
+    const existingHabit = await getActiveHabitIdForUser(user.id, habitId);
+    if (!existingHabit) {
+      return { success: false, error: "missing_habit" };
+    }
+
+    const todayDate = getBeijingDateValue();
+    const status = intent === "check" ? "checked" : "skipped";
+    await upsertHabitCheckinForUser({
+      userId: user.id,
+      habitId,
+      checkinDate: todayDate,
+      status,
+      updatedAt: new Date(),
+    });
+
+    revalidatePath("/daily");
+    revalidatePath("/checklist");
+    return { success: true };
+  } catch {
+    return { success: false, error: "save_failed" };
+  }
+}
+
+export async function deleteRecordItemAction(
+  _prevState: { success: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await requireCurrentUser("/daily");
+    const kind = getStringValue(formData, "kind");
+    const id = getStringValue(formData, "id");
+
+    if (!id || !kind) {
+      return { success: false, error: "missing_id" };
+    }
+
+    const deletedAt = new Date();
+    const deleter = ({
+      schedule: (args: { scheduleId: string }) => softDeleteScheduleItemForUser({ ...args, userId: user.id, deletedAt }),
+      event: (args: { eventId: string }) => softDeleteLifeEventForUser({ ...args, userId: user.id, deletedAt }),
+      idea: (args: { ideaId: string }) => softDeleteIdeaForUser({ ...args, userId: user.id, deletedAt }),
+      habit: (args: { habitId: string }) => softDeleteHabitForUser({ ...args, userId: user.id, deletedAt }),
+    })[kind];
+
+    if (!deleter) {
+      return { success: false, error: "invalid_kind" };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (deleter as any)({ [`${kind === "event" ? "event" : kind}Id`]: id });
+
+    revalidatePath("/daily");
+    revalidatePath("/records");
+    revalidatePath("/insights");
+    return { success: true };
+  } catch {
+    return { success: false, error: "save_failed" };
+  }
+}
+
+export async function togglePinnedAction(
+  _prevState: { success: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await requireCurrentUser("/daily");
+    const kind = getStringValue(formData, "kind");
+    const id = getStringValue(formData, "id");
+    const isPinned = getStringValue(formData, "isPinned") === "true";
+
+    if (!id || !kind) {
+      return { success: false, error: "missing_id" };
+    }
+
+    const updatedAt = new Date();
+    const pinner = ({
+      task: (args: { taskId: string }) => updateTaskPinnedForUser({ ...args, userId: user.id, isPinned, updatedAt }),
+      habit: (args: { habitId: string }) => updateHabitPinnedForUser({ ...args, userId: user.id, isPinned, updatedAt }),
+      schedule: (args: { scheduleId: string }) => updateSchedulePinnedForUser({ ...args, userId: user.id, isPinned, updatedAt }),
+      event: (args: { eventId: string }) => updateLifeEventPinnedForUser({ ...args, userId: user.id, isPinned, updatedAt }),
+      idea: (args: { ideaId: string }) => updateIdeaPinnedForUser({ ...args, userId: user.id, isPinned, updatedAt }),
+    })[kind];
+
+    if (!pinner) {
+      return { success: false, error: "invalid_kind" };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (pinner as any)({ [`${kind}Id`]: id });
+
+    revalidatePath("/daily");
+    return { success: true };
+  } catch {
+    return { success: false, error: "save_failed" };
+  }
+}
+
 export async function updateTaskAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");
   const taskId = getStringValue(formData, "taskId");
