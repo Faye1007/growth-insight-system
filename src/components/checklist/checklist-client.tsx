@@ -124,6 +124,10 @@ function getWeekDays(referenceDate: Date): WeekDay[] {
   });
 }
 
+function formatShortDate(dateStr: string): string {
+  return dateStr.slice(5);
+}
+
 function getTaskStatusTone(status: string) {
   return `task-status-${status}`;
 }
@@ -324,7 +328,7 @@ export function ChecklistClient({
             上一周
           </button>
           <span className="status-pill">
-            {weekDays[0].date} ~ {weekDays[6].date}
+            {formatShortDate(weekDays[0].date)} ~ {formatShortDate(weekDays[6].date)}
           </span>
           <button
             className="quiet-button"

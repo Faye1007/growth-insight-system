@@ -20,6 +20,55 @@
 
 ## Planned
 
+### Modification Step 25：周视图日期格式、循环日程打卡、任务完成不跳转、延期任务专区、日程列表过滤、成长记录状态展示
+
+基于 Faye 实际使用后的反馈，以下 6 项改进按 Step 循环逐步实施：
+
+#### 改进点 1：周视图日期范围去掉年份
+
+- **现状**：清单页周视图的日期范围显示为 `2026-05-18 ~ 2026-05-24`，占用空间较长。
+- **目标**：改为 `05-18 ~ 05-24`，去掉年份，更紧凑。
+- **影响文件**：`src/components/checklist/checklist-client.tsx`
+
+#### 改进点 2：循环日程按日期记录完成状态
+
+- **现状**：日程的 `isCompleted` 是永久布尔值，打在日程本身。每天循环的日程（如异维A）第一天打卡后，第二天仍显示已完成状态，无法重新打卡。
+- **目标**：新建 `schedule_completions` 表（`schedule_id + completion_date` 唯一约束），打卡 action 改为 upsert 到此表；清单页和每日工作台按日期判断是否完成；周视图按日期显示打卡状态。
+- **影响文件**：`src/db/schema.ts`、新建数据库迁移文件、`src/lib/data/user-data.ts`、`src/app/checklist/actions.ts`、`src/components/checklist/checklist-client.tsx`、`src/app/daily/page.tsx`（如每日工作台也展示日程完成状态）
+
+#### 改进点 3：任务标注完成后停留在清单页
+
+- **现状**：清单页点击任务复选框后，`updateTaskStatusAction` 统一 redirect 到 `/daily`，离开清单页面。
+- **目标**：打卡 form 增加 `source` 隐藏字段；action 根据来源判断重定向到 `/checklist` 还是 `/daily`，清单页标注完成后保持在清单界面。
+- **影响文件**：`src/components/checklist/checklist-client.tsx`、`src/app/daily/actions.ts`
+
+#### 改进点 4：延期任务专区
+
+- **现状**：清单页只查询 `task_date` 在当前周范围内的任务，延期到未来周或过去的任务不会显示在清单里。
+- **目标**：在清单任务列表顶部增加"延期任务"专区，展示所有未完成且已延期的任务（`is_postponed = true` 且 `status != completed`），按 `postponed_to_date` 排序；正常任务列表保持按周范围过滤。
+- **影响文件**：`src/lib/data/user-data.ts`（新增查询延期任务的函数）、`src/app/checklist/page.tsx`、`src/components/checklist/checklist-client.tsx`
+
+#### 改进点 5：清单日程列表只显示今天及之前的日程
+
+- **现状**：清单日程列表显示当前周范围内的所有日程，包括未来的日程。
+- **目标**：清单日程列表只显示今天及今天之前的日程；明天及未来的日程不在清单显示，需到成长记录里查看。
+- **影响文件**：`src/components/checklist/checklist-client.tsx`
+
+#### 改进点 6：成长记录列表完成状态改为复选框+颜色
+
+- **现状**：成长记录列表中任务/习惯/日程的完成状态通过标题下方的文字标签（已完成、未完成、未开始、延期）展示。
+- **目标**：改为像清单列表一样，左侧放复选框，通过勾选状态和颜色变化来表达是否已完成，去掉文字状态标签。
+- **影响文件**：`src/app/records/page.tsx`、`src/app/globals.css`
+
+## Planned Steps 执行顺序
+
+1. **Step 25.1**：周视图日期格式精简（UI 改动，最轻量）
+2. **Step 25.2**：任务标注完成不跳转（source 参数 + action 路由判断）
+3. **Step 25.3**：延期任务专区（新增查询 + UI 专区）
+4. **Step 25.4**：清单日程列表只显示今天及之前的日程（UI 过滤）
+5. **Step 25.5**：成长记录列表完成状态改为复选框+颜色（UI 改造）
+6. **Step 25.6**：循环日程按日期打卡（DB schema + migration + user-data + actions + UI）
+
 ### Modification Step 24：日程复选框、习惯打卡不跳转、人生页加载修复
 
 基于 Faye 实际使用后的反馈，以下 3 项改进按 Step 循环逐步实施：
