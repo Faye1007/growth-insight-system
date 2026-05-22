@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { requireCurrentUser } from "@/lib/auth/session";
 import {
+  batchSoftDeleteForUser,
   createAnniversaryForUser,
   createGiftRecordForUser,
   softDeleteAnniversaryForUser,
@@ -259,4 +260,34 @@ export async function softDeleteGiftRecordAction(formData: FormData) {
   revalidatePath("/life");
   revalidatePath(detailPath);
   redirect("/life?tab=gifts&giftSaved=deleted#gifts");
+}
+
+export async function batchSoftDeleteAction(
+  _prevState: { success: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await requireCurrentUser("/life");
+    const kind = formData.get("kind");
+    const idsRaw = formData.get("ids");
+    if (!kind || typeof kind !== "string" || !idsRaw || typeof idsRaw !== "string") {
+      return { success: false, error: "invalid_input" };
+    }
+    let ids: string[];
+    try { ids = JSON.parse(idsRaw); }
+    catch { return { success: false, error: "invalid_ids" }; }
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return { success: false, error: "no_ids" };
+    }
+    await batchSoftDeleteForUser({
+      userId: user.id,
+      kind,
+      ids,
+      deletedAt: new Date(),
+    });
+    revalidatePath("/life");
+    return { success: true };
+  } catch {
+    return { success: false, error: "save_failed" };
+  }
 }

@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import Link from "next/link";
 import {
   CalendarHeart,
   Gift,
   NotebookPen,
   Plus,
+  Trash2,
 } from "lucide-react";
 
 import { createChecklistEventAction } from "@/app/checklist/actions";
-import { createAnniversaryAction, createGiftRecordAction } from "@/app/life/actions";
+import { batchSoftDeleteAction, createAnniversaryAction, createGiftRecordAction } from "@/app/life/actions";
 import type { AnniversaryRecord, GiftRecord, LifeEventRecord, UpcomingAnniversary } from "@/lib/data/user-data";
 
 type LifeTab = "events" | "anniversaries" | "gifts";
@@ -89,7 +90,39 @@ export function LifeClient({
   loginPath?: string;
 }) {
   const [activeTab, setActiveTab] = useState<LifeTab>(initialTab);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [_batchState, batchAction, _batchPending] = useActionState(batchSoftDeleteAction, null);
   const today = getTodayValue();
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function getCurrentItems() {
+    if (activeTab === "events") return events;
+    if (activeTab === "anniversaries") return anniversaries;
+    return giftRecords;
+  }
+
+  function toggleSelectAll() {
+    const items = getCurrentItems();
+    if (selectedIds.size === items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map((item) => item.id)));
+    }
+  }
+
+  function exitSelectionMode() {
+    setIsSelecting(false);
+    setSelectedIds(new Set());
+  }
 
   return (
     <div className="page-stack">
@@ -175,6 +208,18 @@ export function LifeClient({
         <section className="workspace-panel tone-mist" id="events">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="section-heading">事件</h2>
+            <div className="flex items-center gap-2">
+              {isLoggedIn && !isSelecting && (
+                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                  选择
+                </button>
+              )}
+              {isSelecting && (
+                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                  取消
+                </button>
+              )}
+            </div>
             {isLoggedIn && (
               <details className="create-disclosure">
                 <summary className="create-summary soft-button text-sm">
@@ -237,9 +282,20 @@ export function LifeClient({
                     {items.map((event) => (
                       <article key={event.id} className="task-list-item compact-list-item">
                         <div className="compact-main-row">
-                          <span className="nav-icon">
-                            <NotebookPen aria-hidden="true" className="h-4 w-4" />
-                          </span>
+                          {isSelecting ? (
+                            <label className="batch-checkbox-label">
+                              <input
+                                type="checkbox"
+                                className="batch-checkbox"
+                                checked={selectedIds.has(event.id)}
+                                onChange={() => toggleSelect(event.id)}
+                              />
+                            </label>
+                          ) : (
+                            <span className="nav-icon">
+                              <NotebookPen aria-hidden="true" className="h-4 w-4" />
+                            </span>
+                          )}
                           <div className="min-w-0">
                             <Link className="list-label list-title-link two-line-preview" href={`/records/event/${event.id}`}>
                               {event.content}
@@ -285,6 +341,18 @@ export function LifeClient({
         <section className="workspace-panel tone-clay" id="anniversaries">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="section-heading">纪念日</h2>
+            <div className="flex items-center gap-2">
+              {isLoggedIn && !isSelecting && (
+                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                  选择
+                </button>
+              )}
+              {isSelecting && (
+                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                  取消
+                </button>
+              )}
+            </div>
             {isLoggedIn && (
               <details className="create-disclosure">
                 <summary className="create-summary soft-button text-sm">
@@ -364,9 +432,20 @@ export function LifeClient({
                     {items.map((anniversary) => (
                       <article key={anniversary.id} className="task-list-item compact-list-item">
                         <div className="compact-main-row">
-                          <span className="nav-icon">
-                            <CalendarHeart aria-hidden="true" className="h-4 w-4" />
-                          </span>
+                          {isSelecting ? (
+                            <label className="batch-checkbox-label">
+                              <input
+                                type="checkbox"
+                                className="batch-checkbox"
+                                checked={selectedIds.has(anniversary.id)}
+                                onChange={() => toggleSelect(anniversary.id)}
+                              />
+                            </label>
+                          ) : (
+                            <span className="nav-icon">
+                              <CalendarHeart aria-hidden="true" className="h-4 w-4" />
+                            </span>
+                          )}
                           <div className="min-w-0">
                             <Link className="list-label list-title-link" href={`/life/anniversary/${anniversary.id}`}>
                               {anniversary.title}
@@ -403,6 +482,18 @@ export function LifeClient({
         <section className="workspace-panel tone-lavender" id="gifts">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="section-heading">礼物</h2>
+            <div className="flex items-center gap-2">
+              {isLoggedIn && !isSelecting && (
+                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                  选择
+                </button>
+              )}
+              {isSelecting && (
+                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                  取消
+                </button>
+              )}
+            </div>
             {isLoggedIn && (
               <details className="create-disclosure">
                 <summary className="create-summary soft-button text-sm">
@@ -471,9 +562,20 @@ export function LifeClient({
                     {items.map((gift) => (
                       <article key={gift.id} className="task-list-item compact-list-item">
                         <div className="compact-main-row">
-                          <span className="nav-icon">
-                            <Gift aria-hidden="true" className="h-4 w-4" />
-                          </span>
+                          {isSelecting ? (
+                            <label className="batch-checkbox-label">
+                              <input
+                                type="checkbox"
+                                className="batch-checkbox"
+                                checked={selectedIds.has(gift.id)}
+                                onChange={() => toggleSelect(gift.id)}
+                              />
+                            </label>
+                          ) : (
+                            <span className="nav-icon">
+                              <Gift aria-hidden="true" className="h-4 w-4" />
+                            </span>
+                          )}
                           <div className="min-w-0">
                             <Link className="list-label list-title-link" href={`/life/gift/${gift.id}`}>
                               {gift.giftName}
@@ -502,6 +604,42 @@ export function LifeClient({
             </div>
           )}
         </section>
+      )}
+
+      {/* Batch delete bar */}
+      {isSelecting && (
+        <div className="batch-action-bar">
+          <label className="batch-checkbox-label">
+            <input
+              type="checkbox"
+              className="batch-checkbox"
+              checked={selectedIds.size === getCurrentItems().length && getCurrentItems().length > 0}
+              onChange={toggleSelectAll}
+            />
+          </label>
+          <span className="text-sm text-[var(--muted-foreground)]">
+            {selectedIds.size > 0 ? `已选 ${selectedIds.size} 项` : "全选"}
+          </span>
+          <span className="flex-1" />
+          <details className="batch-confirm-disclosure">
+            <summary className="soft-button text-sm batch-delete-trigger">
+              <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+              {selectedIds.size > 0 ? `删除 ${selectedIds.size} 项` : "删除"}
+            </summary>
+            <div className="batch-confirm-card">
+              <p className="text-sm">确定删除选中的 {selectedIds.size} 项？此操作可恢复。</p>
+              <form action={batchAction} onSubmit={() => setTimeout(exitSelectionMode, 100)}>
+                <input type="hidden" name="kind" value={activeTab} />
+                <input type="hidden" name="ids" value={JSON.stringify(Array.from(selectedIds))} />
+                <div className="flex gap-2 mt-3">
+                  <button type="submit" className="soft-button text-sm">
+                    确认删除
+                  </button>
+                </div>
+              </form>
+            </div>
+          </details>
+        </div>
       )}
     </div>
   );

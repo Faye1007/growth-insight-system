@@ -13,9 +13,11 @@ import {
   List,
   Plus,
   Repeat2,
+  Trash2,
 } from "lucide-react";
 
 import {
+  batchSoftDeleteAction,
   createChecklistHabitAction,
   createChecklistIdeaAction,
   createChecklistScheduleAction,
@@ -214,7 +216,10 @@ export function ChecklistClient({
   const [activeTab, setActiveTab] = useState<ChecklistTab>(initialTab);
   const [view, setView] = useState<ChecklistView>("list");
   const [weekOffset, setWeekOffset] = useState(0);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [_postponeState, postponeAction] = useActionState(postponeTaskAction, null);
+  const [_batchState, batchAction, _batchPending] = useActionState(batchSoftDeleteAction, null);
 
   const today = new Date();
   const todayStr = getBeijingDateValue(today);
@@ -253,6 +258,35 @@ export function ChecklistClient({
   });
   const todayHabits = filteredHabits;
   const todayIdeas = filteredIdeas.filter((i) => i.ideaDate === todayStr);
+
+  const currentItems = (() => {
+    if (activeTab === "tasks") return filteredTasks;
+    if (activeTab === "schedules") return filteredSchedules;
+    if (activeTab === "habits") return filteredHabits;
+    return filteredIdeas;
+  })();
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === currentItems.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(currentItems.map((item) => item.id)));
+    }
+  }
+
+  function exitSelectionMode() {
+    setIsSelecting(false);
+    setSelectedIds(new Set());
+  }
 
   return (
     <div className="page-stack">
@@ -357,7 +391,17 @@ export function ChecklistClient({
         <section className="workspace-panel tone-lavender">
           <div className="flex items-center justify-between">
             <h2 className="section-heading">任务</h2>
-            <details className="create-disclosure">
+            <div className="flex items-center gap-2">
+              {!isSelecting ? (
+                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                  选择
+                </button>
+              ) : (
+                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                  取消
+                </button>
+              )}
+              <details className="create-disclosure">
               <summary className="create-summary soft-button text-sm">
                 <Plus aria-hidden="true" className="h-3 w-3" />
                 新增
@@ -393,6 +437,7 @@ export function ChecklistClient({
               </form>
             </details>
           </div>
+          </div>
           {/* Postponed tasks zone */}
           {postponedTasks.length > 0 && (
             <div className="mt-4">
@@ -404,7 +449,18 @@ export function ChecklistClient({
                     className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}
                   >
                     <div className="compact-main-row">
-                      <TaskCompletionToggle taskId={task.id} isCompleted={task.status === "completed"} />
+                      {isSelecting ? (
+                        <label className="batch-checkbox-label">
+                          <input
+                            type="checkbox"
+                            className="batch-checkbox"
+                            checked={selectedIds.has(task.id)}
+                            onChange={() => toggleSelect(task.id)}
+                          />
+                        </label>
+                      ) : (
+                        <TaskCompletionToggle taskId={task.id} isCompleted={task.status === "completed"} />
+                      )}
                       <div className="min-w-0">
                         <Link
                           className={`list-label list-title-link ${task.status === "completed" ? "line-through" : ""}`}
@@ -434,7 +490,18 @@ export function ChecklistClient({
                         className={`task-list-item compact-list-item ${getTaskStatusTone(task.status)}`}
                       >
                         <div className="compact-main-row">
-                          <TaskCompletionToggle taskId={task.id} isCompleted={task.status === "completed"} />
+                          {isSelecting ? (
+                            <label className="batch-checkbox-label">
+                              <input
+                                type="checkbox"
+                                className="batch-checkbox"
+                                checked={selectedIds.has(task.id)}
+                                onChange={() => toggleSelect(task.id)}
+                              />
+                            </label>
+                          ) : (
+                            <TaskCompletionToggle taskId={task.id} isCompleted={task.status === "completed"} />
+                          )}
                           <div className="min-w-0">
                             <Link
                               className={`list-label list-title-link ${task.status === "completed" ? "line-through" : ""}`}
@@ -449,7 +516,7 @@ export function ChecklistClient({
                                 : ""}
                             </p>
                           </div>
-                          {task.status !== "completed" && (
+                          {!isSelecting && task.status !== "completed" && (
                             <details className="postpone-menu">
                               <summary className="postpone-trigger" aria-label="延期">
                                 <Clock className="h-3.5 w-3.5" />
@@ -539,7 +606,17 @@ export function ChecklistClient({
         <section className="workspace-panel tone-clay">
           <div className="flex items-center justify-between">
             <h2 className="section-heading">日程</h2>
-            <details className="create-disclosure">
+            <div className="flex items-center gap-2">
+              {!isSelecting ? (
+                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                  选择
+                </button>
+              ) : (
+                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                  取消
+                </button>
+              )}
+              <details className="create-disclosure">
               <summary className="create-summary soft-button text-sm">
                 <Plus aria-hidden="true" className="h-3 w-3" />
                 新增
@@ -579,6 +656,7 @@ export function ChecklistClient({
               </form>
             </details>
           </div>
+          </div>
           {view === "list" ? (
             filteredSchedules.length > 0 ? (
               <div className="task-list mt-4">
@@ -594,22 +672,33 @@ export function ChecklistClient({
                           className={`task-list-item compact-list-item ${isCompleted ? "task-status-completed" : "task-status-todo"}`}
                         >
                           <div className="compact-main-row">
-                            <form action={toggleScheduleCompletionAction}>
-                              <input type="hidden" name="scheduleId" value={item.id} />
-                              <input type="hidden" name="completionDate" value={date} />
-                              <input type="hidden" name="isCurrentlyCompleted" value={String(isCompleted)} />
-                              <button
-                                aria-label={
-                                  isCompleted
-                                    ? `取消完成 ${item.title}`
-                                    : `完成 ${item.title}`
-                                }
-                                className={`quick-check-button ${isCompleted ? "checked" : ""}`}
-                                type="submit"
-                              >
-                                <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-                              </button>
-                            </form>
+                            {isSelecting ? (
+                              <label className="batch-checkbox-label">
+                                <input
+                                  type="checkbox"
+                                  className="batch-checkbox"
+                                  checked={selectedIds.has(item.id)}
+                                  onChange={() => toggleSelect(item.id)}
+                                />
+                              </label>
+                            ) : (
+                              <form action={toggleScheduleCompletionAction}>
+                                <input type="hidden" name="scheduleId" value={item.id} />
+                                <input type="hidden" name="completionDate" value={date} />
+                                <input type="hidden" name="isCurrentlyCompleted" value={String(isCompleted)} />
+                                <button
+                                  aria-label={
+                                    isCompleted
+                                      ? `取消完成 ${item.title}`
+                                      : `完成 ${item.title}`
+                                  }
+                                  className={`quick-check-button ${isCompleted ? "checked" : ""}`}
+                                  type="submit"
+                                >
+                                  <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
+                                </button>
+                              </form>
+                            )}
                             <div className="min-w-0">
                               <Link
                                 className={`list-label list-title-link ${isCompleted ? "line-through" : ""}`}
@@ -711,7 +800,17 @@ export function ChecklistClient({
         <section className="workspace-panel tone-sage">
           <div className="flex items-center justify-between">
             <h2 className="section-heading">习惯</h2>
-            <details className="create-disclosure">
+            <div className="flex items-center gap-2">
+              {!isSelecting ? (
+                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                  选择
+                </button>
+              ) : (
+                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                  取消
+                </button>
+              )}
+              <details className="create-disclosure">
               <summary className="create-summary soft-button text-sm">
                 <Plus aria-hidden="true" className="h-3 w-3" />
                 新增
@@ -739,6 +838,7 @@ export function ChecklistClient({
               </form>
             </details>
           </div>
+          </div>
           {view === "list" ? (
             filteredHabits.length > 0 ? (
               <div className="task-list mt-4">
@@ -748,7 +848,18 @@ export function ChecklistClient({
                     className={`task-list-item compact-list-item ${habit.isCheckedOnDate ? "task-status-completed" : "task-status-todo"}`}
                   >
                     <div className="compact-main-row">
-                      <HabitCheckinToggle habitId={habit.id} isCheckedToday={habit.isCheckedOnDate} />
+                      {isSelecting ? (
+                        <label className="batch-checkbox-label">
+                          <input
+                            type="checkbox"
+                            className="batch-checkbox"
+                            checked={selectedIds.has(habit.id)}
+                            onChange={() => toggleSelect(habit.id)}
+                          />
+                        </label>
+                      ) : (
+                        <HabitCheckinToggle habitId={habit.id} isCheckedToday={habit.isCheckedOnDate} />
+                      )}
                       <div className="min-w-0">
                         <Link className="list-label list-title-link" href={`/checklist/habits/${habit.id}`}>
                           {habit.name}
@@ -816,7 +927,17 @@ export function ChecklistClient({
         <section className="workspace-panel tone-mist">
           <div className="flex items-center justify-between">
             <h2 className="section-heading">灵感</h2>
-            <details className="create-disclosure">
+            <div className="flex items-center gap-2">
+              {!isSelecting ? (
+                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                  选择
+                </button>
+              ) : (
+                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                  取消
+                </button>
+              )}
+              <details className="create-disclosure">
               <summary className="create-summary soft-button text-sm">
                 <Plus aria-hidden="true" className="h-3 w-3" />
                 新增
@@ -836,6 +957,7 @@ export function ChecklistClient({
               </form>
             </details>
           </div>
+          </div>
           {filteredIdeas.length > 0 ? (
             <div className="task-list mt-4">
               {groupByDate(filteredIdeas, "ideaDate").map(([date, items]) => (
@@ -847,6 +969,16 @@ export function ChecklistClient({
                       className="task-list-item compact-list-item task-status-todo"
                     >
                       <div className="compact-main-row">
+                        {isSelecting ? (
+                          <label className="batch-checkbox-label">
+                            <input
+                              type="checkbox"
+                              className="batch-checkbox"
+                              checked={selectedIds.has(idea.id)}
+                              onChange={() => toggleSelect(idea.id)}
+                            />
+                          </label>
+                        ) : null}
                         <div className="min-w-0">
                           <Link
                             className="list-label list-title-link"
@@ -878,6 +1010,42 @@ export function ChecklistClient({
             </div>
           )}
         </section>
+      )}
+
+      {/* Batch delete bar */}
+      {isSelecting && (
+        <div className="batch-action-bar">
+          <label className="batch-checkbox-label">
+            <input
+              type="checkbox"
+              className="batch-checkbox"
+              checked={selectedIds.size === currentItems.length && currentItems.length > 0}
+              onChange={toggleSelectAll}
+            />
+          </label>
+          <span className="text-sm text-[var(--muted-foreground)]">
+            {selectedIds.size > 0 ? `已选 ${selectedIds.size} 项` : "全选"}
+          </span>
+          <span className="flex-1" />
+          <details className="batch-confirm-disclosure">
+            <summary className="soft-button text-sm batch-delete-trigger">
+              <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+              {selectedIds.size > 0 ? `删除 ${selectedIds.size} 项` : "删除"}
+            </summary>
+            <div className="batch-confirm-card">
+              <p className="text-sm">确定删除选中的 {selectedIds.size} 项？此操作可恢复。</p>
+              <form action={batchAction} onSubmit={() => setTimeout(exitSelectionMode, 100)}>
+                <input type="hidden" name="kind" value={activeTab} />
+                <input type="hidden" name="ids" value={JSON.stringify(Array.from(selectedIds))} />
+                <div className="flex gap-2 mt-3">
+                  <button type="submit" className="soft-button text-sm">
+                    确认删除
+                  </button>
+                </div>
+              </form>
+            </div>
+          </details>
+        </div>
       )}
     </div>
   );

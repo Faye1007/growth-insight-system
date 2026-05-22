@@ -3414,3 +3414,40 @@ export async function getMonthlyReviewRowsForUser(
     })),
   };
 }
+
+const batchDeleteTableMap: Record<string, string> = {
+  tasks: "tasks",
+  schedules: "schedule_items",
+  habits: "habits",
+  ideas: "ideas",
+  events: "life_events",
+  anniversaries: "anniversaries",
+  gifts: "gift_records",
+};
+
+export async function batchSoftDeleteForUser(input: {
+  userId: string;
+  kind: string;
+  ids: string[];
+  deletedAt: Date;
+}) {
+  const tableName = batchDeleteTableMap[input.kind];
+  if (!tableName) {
+    throw new Error(`Unknown kind: ${input.kind}`);
+  }
+  const deletedAtIso = input.deletedAt.toISOString();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from(tableName)
+    .update({
+      deleted_at: deletedAtIso,
+      updated_at: deletedAtIso,
+    })
+    .in("id", input.ids)
+    .eq("user_id", input.userId)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw error;
+  }
+}

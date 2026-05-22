@@ -15,6 +15,9 @@ import {
   updateHabitForUser,
   upsertScheduleCompletionForUser,
 } from "@/lib/data/user-data";
+import {
+  batchSoftDeleteForUser,
+} from "@/lib/data/user-data";
 import { isTaskCategory } from "@/lib/tasks/options";
 import { getBeijingDateValue } from "@/lib/date";
 
@@ -304,6 +307,36 @@ export async function postponeTaskAction(
     });
 
     revalidatePath("/daily");
+    revalidatePath("/checklist");
+    return { success: true };
+  } catch {
+    return { success: false, error: "save_failed" };
+  }
+}
+
+export async function batchSoftDeleteAction(
+  _prevState: { success: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = await requireCurrentUser("/checklist");
+    const kind = formData.get("kind");
+    const idsRaw = formData.get("ids");
+    if (!kind || typeof kind !== "string" || !idsRaw || typeof idsRaw !== "string") {
+      return { success: false, error: "invalid_input" };
+    }
+    let ids: string[];
+    try { ids = JSON.parse(idsRaw); }
+    catch { return { success: false, error: "invalid_ids" }; }
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return { success: false, error: "no_ids" };
+    }
+    await batchSoftDeleteForUser({
+      userId: user.id,
+      kind,
+      ids,
+      deletedAt: new Date(),
+    });
     revalidatePath("/checklist");
     return { success: true };
   } catch {
