@@ -4,11 +4,18 @@
 
 本文记录基础闭环之后的迭代改造计划，用于承接真实使用中发现的体验问题、bug 修复、数据迁移和功能增强。
 
+当前使用方式：
+
+- 先看 `progress.md` 判断项目已完成到哪一步。
+- 再看本文 `Planned` 区域确认下一轮准备做什么。
+- 本文不作为权威完成流水账；已完成状态以 `progress.md` 为准。
+- 已完成的 Modification Step 可以在本文保留简短结果，避免重复记录完整执行历史。
+
 文档分工：
 
 - `implementation-plan.md`: 从 0 到 1 的基础功能主线计划，保留历史，不再追加新的 Modification Step。
-- `modification-plan.md`: 自用和上线后的迭代计划，按迭代顺序记录目标、完成内容和验证结果。
-- `progress.md`: 权威完成流水账，按真实执行顺序记录每个已完成 Step。
+- `modification-plan.md`: 自用和上线后的迭代计划，重点记录当前和未来要做的目标、范围和验证方式。
+- `progress.md`: 权威当前状态和完成流水账，按真实执行顺序记录每个已完成 Step。
 - `@architecture.md`: 当前真实系统结构，只记录已经落地的重要结构变化。
 
 执行原则：
@@ -19,6 +26,113 @@
 - 完成后更新 `progress.md`；涉及页面结构、数据结构、认证流程、核心数据流或重要视觉系统时同步更新 `@architecture.md`。
 
 ## Planned
+
+### Modification Step 27：产品体验全面审查修复（4 大类 12 项）
+
+基于 Faye 从产品视角提出的全面审查反馈，以下按优先级分 4 类逐步修复：
+
+#### 一、P0 功能缺失 / 核心逻辑 Bug
+
+##### Step 27.1：清单页日程表单补齐循环选项
+
+- **现状**：清单页日程新增表单（`checklist-client.tsx:647-680`）没有循环周期选择器；`checklist/actions.ts:119` 硬编码 `recurrence: "none"`。用户无法从清单页创建循环日程，循环功能形同虚设。
+- **目标**：清单页日程新增表单增加"循环周期"下拉选择（不循环/每天/每周/每月），默认"不循环"；对应 action 读取表单值，不再硬编码。
+- **影响文件**：`src/components/checklist/checklist-client.tsx`、`src/app/checklist/actions.ts`
+
+##### Step 27.2：日程详情页补齐循环字段编辑
+
+- **现状**：日程详情页编辑表单（`records/[kind]/[id]/page.tsx`）不支持编辑 `recurrence`、`start_date`、`end_date` 字段。架构文档确认"日程详情支持编辑标题、分类、日期、开始时间、结束时间、说明和软删除"——缺少循环相关字段。
+- **目标**：日程详情编辑表单增加开始日期、结束日期和循环周期字段；保存时写入对应字段。
+- **影响文件**：`src/app/records/[kind]/[id]/page.tsx`
+
+##### Step 27.3：灵感列表增加复选框快捷操作（转化→新建任务）
+
+- **现状**：清单页灵感列表（`checklist-client.tsx:984-1020`）左侧无快捷操作，`isSelecting=false` 时渲染 `null`。灵感的状态有"待处理/已转任务/已搁置/已放弃"，但目前只能进详情页修改。
+- **目标**：
+  - 灵感列表左侧增加复选框，勾选后弹出确认：「将此灵感转化为新任务？」
+  - 确认后：(1) 将灵感 `status` 改为 `converted`，写入 `converted_to_type=task`；(2) 跳转到清单页任务 tab 并展开新增表单，预填标题为灵感内容
+  - 已转化/已搁置/已放弃的灵感不显示复选框，只显示对应状态标签
+- **影响文件**：`src/components/checklist/checklist-client.tsx`、`src/app/checklist/actions.ts`
+
+#### 二、P1 交互 Bug / 数据准确性
+
+##### Step 27.4：修复推迟日期时区 Bug
+
+- **现状**：`checklist-client.tsx:553-556` 的推迟日期计算使用 `new Date()` + `toISOString().slice(0,10)`，这是 UTC 时间。如果用户在 UTC 和北京日期不一致的时段操作（如 UTC 23:00 = 北京次日 07:00），推迟目标日期会错误。
+- **目标**：改用项目统一的 `getBeijingDateValue()` 计算推迟目标日期。
+- **影响文件**：`src/components/checklist/checklist-client.tsx`
+
+##### Step 27.5：日程完成切换消除整页刷新
+
+- **现状**：`toggleScheduleCompletionAction`（`checklist/actions.ts:250-281`）使用 `redirect()` 导致整页刷新。任务和习惯的切换都已改为 `useActionState` 局部更新（Step 26.2/26.3），但日程没改。
+- **目标**：日程完成切换改为与任务/习惯一致的 `useActionState` + 客户端状态更新，不 redirect。
+- **影响文件**：`src/app/checklist/actions.ts`、`src/components/checklist/checklist-client.tsx`
+
+##### Step 27.6：修复每日概览统计灵感日期口径
+
+- **现状**：`getDailyOverviewStatsForUser`（`user-data.ts:3636-3640`）统计灵感数量时用 `created_at` 过滤，但列表展示按 `idea_date`。如果创建日期和灵感日期不一致，统计和列表会不匹配。任务和事件都用各自业务日期字段过滤，灵感也应该用 `idea_date`。
+- **目标**：灵感统计查询改用 `idea_date` 过滤，与其他统计口径一致。
+- **影响文件**：`src/lib/data/user-data.ts`
+
+##### Step 27.7：清理废弃的 `schedule_items.is_completed` 字段
+
+- **现状**：`schedule_items` 表有 `is_completed` 布尔字段（migration 0009），但实际完成状态已迁移到 `schedule_completions` 表（migration 0011）。`is_completed` 字段是死代码，`getRecentScheduleItemsForUser` 仍在读取它，可能造成成长记录和清单页的状态不一致。
+- **目标**：确认 `is_completed` 不再被任何页面使用后，生成迁移删除该字段；如仍有引用则先清理引用再删字段。
+- **影响文件**：`src/db/schema.ts`、新建数据库迁移文件、`src/lib/data/user-data.ts`
+
+#### 三、P2 搜索覆盖 / 移动端体验
+
+##### Step 27.8：搜索扩展到日程和习惯
+
+- **现状**：`searchAllForUser`（`user-data.ts:3550-3556`）的 `searchTableConfig` 只覆盖 tasks、life_events、ideas、anniversaries、gift_records 五张表。搜日程标题或习惯名称无结果。
+- **目标**：`searchTableConfig` 增加 `schedule_items`（搜 title）和 `habits`（搜 name）两张表。
+- **影响文件**：`src/lib/data/user-data.ts`
+
+##### Step 27.9：手机端搜索入口
+
+- **现状**：`SearchOverlay` 只在桌面端 header（`hidden ... lg:flex`）渲染，移动端无搜索入口。
+- **目标**：在移动端底部导航栏或页面顶部增加搜索入口，点击后打开搜索 overlay。
+- **影响文件**：`src/components/app-shell.tsx`、`src/components/bottom-nav.tsx`、`src/components/search-overlay.tsx`
+
+#### 四、P3 代码质量 / 性能
+
+##### Step 27.10：日程列表查询增加数据库级日期过滤
+
+- **现状**：`getChecklistSchedulesForUser`（`user-data.ts:2848-2888`）加载用户所有未删除日程，然后在 JS 层做日期过滤。随着日程积累会越来越慢。
+- **目标**：在 Supabase 查询层增加 `start_date` 范围过滤，减少返回数据量。
+- **影响文件**：`src/lib/data/user-data.ts`
+
+##### Step 27.11：统一服务端和客户端循环日程判断逻辑
+
+- **现状**：循环日程的"是否命中某天"逻辑在服务端（`user-data.ts:scheduleOccursOnDate`）和客户端（`checklist-client.tsx:786-792`）各实现了一份，用的算法略有不同（服务端用 `getDaysBetween`，客户端用毫秒差值）。改了一边容易忘另一边。
+- **目标**：提取 `scheduleOccursOnDate` 到 `src/lib/date.ts` 或 `src/lib/schedules/options.ts`，服务端和客户端统一调用。
+- **影响文件**：`src/lib/date.ts` 或 `src/lib/schedules/options.ts`、`src/lib/data/user-data.ts`、`src/components/checklist/checklist-client.tsx`
+
+##### Step 27.12：纪念日/礼物页图标与布局对齐
+
+- **现状**：
+  - 纪念日"新增"summary 缺少 `<Plus>` 图标（`life-client.tsx:372` 只有文字"新增"）
+  - 纪念日"选择"和"新增"不在同一个 flex 容器，导致不对齐（`life-client.tsx:357-422` 结构问题）
+  - 礼物列表需检查是否有同样问题
+- **目标**：纪念日和礼物的"选择"+"新增"按钮放入同一个 `flex items-center gap-2` 容器，所有"新增"summary 统一包含 `<Plus>` 图标，与清单页保持一致。
+- **影响文件**：`src/components/life/life-client.tsx`
+
+#### Step 27 执行顺序
+
+1. **Step 27.1**：清单页日程表单补齐循环选项（功能缺失，最高优先）
+2. **Step 27.2**：日程详情页补齐循环字段编辑
+3. **Step 27.3**：灵感列表复选框→转化任务
+4. **Step 27.4**：推迟日期时区 Bug
+5. **Step 27.5**：日程完成切换消除整页刷新
+6. **Step 27.6**：灵感统计日期口径修正
+7. **Step 27.7**：清理废弃 is_completed 字段（需数据库迁移）
+8. **Step 27.8**：搜索扩展到日程和习惯
+9. **Step 27.9**：手机端搜索入口
+10. **Step 27.10**：日程查询数据库级过滤
+11. **Step 27.11**：统一循环判断逻辑
+12. **Step 27.12**：纪念日/礼物页图标与布局对齐
+
+---
 
 ### Modification Step 26：消除整页刷新、日程/延期改进、批量删除、搜索、规则引擎优化与代码清理
 
