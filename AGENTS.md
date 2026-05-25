@@ -61,6 +61,7 @@ cd growth-insight-system && npm run lint
 - **产品文档**: `memory-bank/@product-requirements-document.md`
 - **架构文档**: `memory-bank/@architecture.md`
 - **实施计划**: `memory-bank/implementation-plan.md`
+- **迭代计划**: `memory-bank/modification-plan.md`
 - **进度记录**: `memory-bank/progress.md`
 - **页面路由**: `src/app/` - Next.js App Router（创建应用后）
 - **UI 组件**: `src/components/ui/` - shadcn/ui 组件（创建应用后）
@@ -68,6 +69,41 @@ cd growth-insight-system && npm run lint
 - **数据库模型**: `src/db/` - Drizzle schema and queries（创建应用后）
 - **AI 适配层**: `src/lib/ai/` - provider adapter and review generation（创建应用后）
 - **工具函数**: `src/lib/` - 通用工具函数（创建应用后）
+
+## Memory Bank 文档分工
+
+进入项目后，优先按以下顺序判断上下文：
+
+1. `AGENTS.md`
+   - 项目规则、验证方式、文档分工、红线操作。
+   - 只记录长期有效的协作规则，不记录具体功能完成流水账。
+2. `memory-bank/progress.md`
+   - 当前项目状态的权威入口。
+   - 顶部必须能快速回答：已完成到哪一步、下一步是什么、最近一次完成了什么。
+   - 详细历史可以保留在 `Completed` 区域，不要再堆进顶部摘要。
+3. `memory-bank/modification-plan.md`
+   - 基础闭环之后的当前和未来迭代计划。
+   - 只追加真实准备执行的 Modification Step；已完成内容只保留简短结果和验证摘要。
+   - 不再承接从 0 到 1 的基础实施计划。
+4. `memory-bank/implementation-plan.md`
+   - 从 0 到 1 的历史基础功能计划。
+   - 当前视为冻结文档，除非需要修正文档错误，不再追加新的 Modification Step。
+5. `memory-bank/@architecture.md`
+   - 当前真实系统结构、数据结构、核心数据流和重要技术约束。
+   - 只记录已经落地的结构变化，不记录计划或执行流水账。
+6. `memory-bank/@product-requirements-document.md`
+   - 产品目标、范围、原则和非 MVP 边界。
+   - 产品方向变化先改这里，再改计划和实现。
+7. `memory-bank/tech-stack.md`
+   - 技术栈和关键依赖说明。
+   - 只有技术选型或核心依赖发生变化时才更新。
+
+文档整理原则：
+
+- `progress.md` 顶部保持短摘要；长历史放在后面。
+- `modification-plan.md` 只负责“接下来怎么改”，不要重复粘贴完整进度流水账。
+- `@architecture.md` 只写当前真实架构，不写未来计划。
+- 只做文档整理时不需要运行 `npm run build`；需检查 Markdown 结构、链接路径和 Git diff。
 
 ## Architecture Notes
 
@@ -112,7 +148,7 @@ CREATE POLICY "users can read their own rows"
 
 ## Git 上传规则
 
-- 上传 GitHub 时：`memory-bank/@*` 和 `AGENTS.md` 除外。
+- 上传 GitHub 时：`memory-bank/@*` 除外；项目级 `AGENTS.md` 可以上传，用于让协作者和其他 AI 工具读取项目规则。
 - 其他人 clone 后应能在应用脚手架创建后执行 `npm install && npm run dev` 启动。
 
 ## Reference
