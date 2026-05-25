@@ -33,11 +33,13 @@
 
 #### 一、P0 功能缺失 / 核心逻辑 Bug
 
-##### Step 27.1：清单页日程表单补齐循环选项
+##### ✅ Step 27.1：清单页日程表单补齐循环选项（已完成）
 
 - **现状**：清单页日程新增表单（`checklist-client.tsx:647-680`）没有循环周期选择器；`checklist/actions.ts:119` 硬编码 `recurrence: "none"`。用户无法从清单页创建循环日程，循环功能形同虚设。
 - **目标**：清单页日程新增表单增加"循环周期"下拉选择（不循环/每天/每周/每月），默认"不循环"；对应 action 读取表单值，不再硬编码。
 - **影响文件**：`src/components/checklist/checklist-client.tsx`、`src/app/checklist/actions.ts`
+- **完成结果**：清单页新增日程已支持选择循环周期；`createChecklistScheduleAction()` 会校验并写入 `recurrence`，非法或缺失时回退为 `none`。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过；`npm run lint` 因项目既有 lint 问题未通过，本 Step 未扩大范围处理。
 
 ##### Step 27.2：日程详情页补齐循环字段编辑
 

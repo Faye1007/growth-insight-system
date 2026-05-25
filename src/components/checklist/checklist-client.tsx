@@ -30,6 +30,7 @@ import { getBeijingDateValue } from "@/lib/date";
 import { TaskCompletionToggle } from "@/components/task-completion-toggle";
 import { HabitCheckinToggle } from "@/components/habit-checkin-toggle";
 import { useToast } from "@/components/toast-provider";
+import { scheduleRecurrences } from "@/lib/schedules/options";
 import { getTaskCategoryLabel, taskCategories, taskStatuses } from "@/lib/tasks/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
 
@@ -665,6 +666,16 @@ export function ChecklistClient({
                   <label className="form-field">
                     <span>结束日期</span>
                     <input name="endDate" type="date" />
+                  </label>
+                  <label className="form-field">
+                    <span>循环周期</span>
+                    <select name="recurrence" defaultValue="none">
+                      {scheduleRecurrences.map((recurrence) => (
+                        <option key={recurrence.value} value={recurrence.value}>
+                          {recurrence.label}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                   <label className="form-field">
                     <span>开始时间</span>

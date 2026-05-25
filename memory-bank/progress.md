@@ -6,15 +6,17 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.1：清单页日程表单补齐循环选项**已完成。
+- 清单页新增日程现在可以选择不循环、每天、每周、每月；保存时会写入真实 `recurrence` 值，不再固定为不循环。
 - **Modification Step 26.11：数据按需加载**已完成。
 - 每日工作台默认只读取轻量概览统计；只有需要展示具体列表时才拉取全量数据。
-- 最近一次代码提交为 `fix type: ChecklistHabit 补上 checkedDates 字段`。
+- 最近一次代码提交为 `fix type: ChecklistHabit 补上 checkedDates 字段`；Step 27.1 改动待提交。
 
 当前待执行方向：
 
-- 下一轮进入 **Modification Step 27：产品体验全面审查修复**。
+- 继续推进 **Modification Step 27：产品体验全面审查修复**。
 - Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 执行时从 Step 27.1 开始，每个子 Step 仍按项目规则先确认目标、影响文件和验证方式。
+- 下一步执行 Step 27.2：日程详情页补齐循环字段编辑。执行前需先核对当前代码是否已经具备该能力。
 
 长期状态：
 
@@ -57,6 +59,26 @@
 - `memory-bank/tech-stack.md`
 
 ## Completed
+
+### ✅ Modification Step 27.1：清单页日程表单补齐循环选项
+
+已完成内容：
+
+- 清单页日程新增表单增加“循环周期”下拉选择。
+- 循环周期选项复用 `src/lib/schedules/options.ts` 中的统一配置，包含不循环、每天、每周、每月。
+- `createChecklistScheduleAction()` 读取并校验表单中的 `recurrence`，合法值写入日程；非法或缺失时回退为 `none`。
+- 清单页创建日程不再硬编码 `recurrence: "none"`。
+
+影响文件：
+
+- `src/components/checklist/checklist-client.tsx`
+- `src/app/checklist/actions.ts`
+
+验证记录：
+
+- `npm run build` 通过。
+- `git diff --check -- src/components/checklist/checklist-client.tsx src/app/checklist/actions.ts` 通过。
+- `npm run lint` 未通过，失败来自项目既有问题：未转义引号、一个 `any` 类型和若干未使用变量；本 Step 未扩大范围处理这些存量问题。
 
 ### ✅ Step 1.1：创建 Next.js 应用骨架
 

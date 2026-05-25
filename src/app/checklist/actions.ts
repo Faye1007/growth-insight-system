@@ -20,6 +20,7 @@ import {
 } from "@/lib/data/user-data";
 import { isTaskCategory } from "@/lib/tasks/options";
 import { getBeijingDateValue } from "@/lib/date";
+import { isScheduleRecurrence } from "@/lib/schedules/options";
 
 function getStringValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -98,6 +99,8 @@ export async function createChecklistScheduleAction(formData: FormData) {
   const startDate = getValidTaskDate(getStringValue(formData, "startDate"));
   const endDateRaw = getStringValue(formData, "endDate");
   const endDate = isValidDateValue(endDateRaw) ? endDateRaw : null;
+  const recurrenceValue = getStringValue(formData, "recurrence");
+  const recurrence = isScheduleRecurrence(recurrenceValue) ? recurrenceValue : "none";
   const startTime = getStringValue(formData, "startTime");
   const endTime = getStringValue(formData, "endTime");
 
@@ -116,7 +119,7 @@ export async function createChecklistScheduleAction(formData: FormData) {
       category,
       startDate,
       endDate,
-      recurrence: "none",
+      recurrence,
       startTime,
       endTime: endTime && isValidTimeValue(endTime) ? endTime : null,
     });
