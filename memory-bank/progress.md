@@ -6,17 +6,19 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.2：日程详情页补齐循环字段编辑**已核对完成。
+- 当前代码已支持在日程详情页查看和编辑开始日期、结束日期、循环周期；本 Step 只修正架构文档旧描述，无需代码改动。
 - **Modification Step 27.1：清单页日程表单补齐循环选项**已完成。
 - 清单页新增日程现在可以选择不循环、每天、每周、每月；保存时会写入真实 `recurrence` 值，不再固定为不循环。
 - **Modification Step 26.11：数据按需加载**已完成。
 - 每日工作台默认只读取轻量概览统计；只有需要展示具体列表时才拉取全量数据。
-- 最近一次代码提交为 `fix type: ChecklistHabit 补上 checkedDates 字段`；Step 27.1 改动待提交。
+- 最近一次代码提交为 `fix checklist schedule recurrence creation`。
 
 当前待执行方向：
 
 - 继续推进 **Modification Step 27：产品体验全面审查修复**。
 - Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 下一步执行 Step 27.2：日程详情页补齐循环字段编辑。执行前需先核对当前代码是否已经具备该能力。
+- 下一步执行 Step 27.3：灵感列表增加复选框快捷操作（转化为新任务）。
 
 长期状态：
 
@@ -59,6 +61,27 @@
 - `memory-bank/tech-stack.md`
 
 ## Completed
+
+### ✅ Modification Step 27.2：日程详情页补齐循环字段编辑
+
+核对结果：
+
+- `src/app/records/[kind]/[id]/page.tsx` 的日程详情展示区已经显示开始日期、结束日期和循环周期。
+- `ScheduleDetailEditSection` 已包含 `startDate`、`endDate` 和 `recurrence` 表单字段。
+- `updateScheduleItemAction()` 已读取、校验并传递 `startDate`、`endDate` 和 `recurrence`。
+- `updateScheduleItemForUser()` 已更新数据库字段 `start_date`、`end_date` 和 `recurrence`。
+- 本 Step 无需代码改动。
+
+文档修正：
+
+- 修正 `memory-bank/@architecture.md` 中日程详情页字段描述。
+- 修正 `memory-bank/@architecture.md` 中 `schedule_items` 仍残留的 `schedule_date` 表述。
+- 在 `memory-bank/modification-plan.md` 标记 Step 27.2 为核对完成。
+
+验证记录：
+
+- 代码链路静态核对通过。
+- 本 Step 只做文档修正，没有运行构建。
 
 ### ✅ Modification Step 27.1：清单页日程表单补齐循环选项
 

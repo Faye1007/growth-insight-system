@@ -41,11 +41,13 @@
 - **完成结果**：清单页新增日程已支持选择循环周期；`createChecklistScheduleAction()` 会校验并写入 `recurrence`，非法或缺失时回退为 `none`。
 - **验证摘要**：`npm run build` 通过；`git diff --check` 通过；`npm run lint` 因项目既有 lint 问题未通过，本 Step 未扩大范围处理。
 
-##### Step 27.2：日程详情页补齐循环字段编辑
+##### ✅ Step 27.2：日程详情页补齐循环字段编辑（核对完成）
 
 - **现状**：日程详情页编辑表单（`records/[kind]/[id]/page.tsx`）不支持编辑 `recurrence`、`start_date`、`end_date` 字段。架构文档确认"日程详情支持编辑标题、分类、日期、开始时间、结束时间、说明和软删除"——缺少循环相关字段。
 - **目标**：日程详情编辑表单增加开始日期、结束日期和循环周期字段；保存时写入对应字段。
 - **影响文件**：`src/app/records/[kind]/[id]/page.tsx`
+- **核对结果**：当前代码已经支持查看和编辑开始日期、结束日期、循环周期；`updateScheduleItemAction()` 会校验并写入 `startDate`、`endDate`、`recurrence`，数据层同步更新 `start_date`、`end_date`、`recurrence`。
+- **文档修正**：同步修正 `@architecture.md` 中日程详情和 `schedule_items` 的旧描述，移除 `schedule_date` 残留表述。
 
 ##### Step 27.3：灵感列表增加复选框快捷操作（转化→新建任务）
 

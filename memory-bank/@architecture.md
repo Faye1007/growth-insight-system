@@ -223,7 +223,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `src/app/daily/page.tsx`: 每日工作台入口页，显示北京时间日期、今日概览和晚间总结入口；默认 `/daily` 只展示任务完成率、习惯打卡、今日日程、随手记录四张概览卡和复盘入口，不再直接铺开四类列表；四张概览卡可点击，分别跳转 `/checklist?tab=tasks`、`/checklist?tab=habits`、`/checklist?tab=schedules` 和 `/life?tab=events`；晚间总结入口跳转 `/insights`；`/daily?view=...` 旧入口仍保留，用于清单页新增按钮打开对应创建表单并展示单一当前列表。
 - `src/app/daily/actions.ts`: 每日工作台 Server Actions，当前提供 `createTaskAction()`、`updateTaskStatusAction()`、`updateTaskAction()`、`softDeleteTaskAction()`、`createHabitAction()`、`updateHabitAction()`、`deactivateHabitAction()`、`updateHabitCheckinAction()`、`createScheduleItemAction()`、`updateScheduleItemAction()`、`softDeleteScheduleItemAction()`、`createQuickRecordAction()`、`updateLifeEventAction()`、`softDeleteLifeEventAction()`、`updateIdeaAction()`、`softDeleteIdeaAction()` 和 `generateDailyReviewAction()`；写入任务、更新任务状态、编辑任务、软删除任务、创建习惯、编辑习惯、停用习惯、更新习惯打卡、创建日程、编辑日程、软删除日程、保存随手记录、编辑事件、软删除事件、编辑灵感、软删除灵感和生成每日复盘前必须通过 `requireCurrentUser()` 获取当前登录用户，并把数据写入或限定更新到当前用户的 `user_id`；任务、习惯、打卡、日程、事件和灵感写入失败时会跳回对应页面区块并展示统一错误提示，不展示底层错误；每日复盘生成 Action 会先查同一天缓存报告，已有完成报告时直接返回缓存，不调用 AI；无缓存时才按发送预览选择调用 AI Provider Adapter，并把输出保存到 `insight_reports`；每日复盘生成失败按上下文准备失败、AI 配置缺失、AI provider 调用失败和复盘保存失败分类提示。
 - `src/app/records/page.tsx`: 成长记录页面，服务端读取当前登录用户的近期任务、习惯打卡、日程、事件和灵感，按创建时间倒序合并为统一时间线后按北京时间日期分组展示；页面顶部显示按记录类型统计的当前载入数量，移动端用三列紧凑网格减少垂直占用；支持通过 URL query 参数按记录类型筛选和日期范围筛选，当前类型包括全部、任务、习惯、日程、事件和灵感，日期范围包括全部近期、今天和最近 7 天；事件条目最多展示两行内容，完整内容进入事件详情页查看和编辑；未登录用户可以浏览页面结构并看到登录提示，登录返回路径会保留当前筛选 URL；时间线条目链接到对应详情页。
-- `src/app/records/[kind]/[id]/page.tsx`: 成长记录详情页，支持 `task`、`habit`、`schedule`、`event` 和 `idea` 五类记录详情；任务详情支持编辑标题、分类、日期、状态、说明、复盘备注和软删除；习惯打卡详情展示历史打卡，同时支持编辑对应习惯的名称、分类、说明、开始日期、停用状态和软删除；日程详情支持编辑标题、分类、日期、开始时间、结束时间、说明和软删除；事件详情支持编辑内容、日期、情绪标签、普通标签、AI 分析权限、具体事件、下次行动、摘要和软删除；灵感详情支持编辑内容、日期、状态、处理说明和软删除；未登录用户看到登录提示；登录用户只能查询当前用户 ID 下的数据；不存在、已删除或不属于当前账号的记录显示未找到/无权限状态。
+- `src/app/records/[kind]/[id]/page.tsx`: 成长记录详情页，支持 `task`、`habit`、`schedule`、`event` 和 `idea` 五类记录详情；任务详情支持编辑标题、分类、日期、状态、说明、复盘备注和软删除；习惯打卡详情展示历史打卡，同时支持编辑对应习惯的名称、分类、说明、开始日期、停用状态和软删除；日程详情支持编辑标题、分类、开始日期、结束日期、循环周期、开始时间、结束时间、说明和软删除；事件详情支持编辑内容、日期、情绪标签、普通标签、AI 分析权限、具体事件、下次行动、摘要和软删除；灵感详情支持编辑内容、日期、状态、处理说明和软删除；未登录用户看到登录提示；登录用户只能查询当前用户 ID 下的数据；不存在、已删除或不属于当前账号的记录显示未找到/无权限状态。
 - `src/app/insights/page.tsx`: 洞察报告页面，服务端读取当前登录用户最近 7 天任务、启用习惯、习惯打卡、日程、事件和灵感数据，并读取本月任务、习惯、打卡、日程、事件、灵感和已有周复盘数据；默认视图只展示 AI 复盘与问题拆解/个人说明书快捷入口和成长概览，不再直接堆叠今日概览或完整周/月复盘长内容；问题拆解入口跳转 `/toolbox`，用于临时整理情绪、压力或明日计划；个人说明书入口跳转 `/manual`，用于维护 AI 复盘可参考的长期背景资料；`view=weekly` 视图展示周复盘程序统计、周复盘发送预览、周复盘报告缓存、本周趋势、记录数量趋势、习惯状态和情绪记录；`view=monthly` 视图展示月复盘程序统计、月复盘发送预览、月复盘报告缓存和已有周复盘摘要；周/月复盘生成、缓存和错误跳转会保留在对应视图；月复盘程序统计展示任务完成率、习惯稳定性、记录密度、已有周复盘数量和月度关键摘要，不调用 AI，并提供月复盘 Markdown 导出；月复盘发送预览展示将来可能发送给 AI 的月度统计、关键记录摘要、已有周复盘摘要、敏感降级记录和个人说明书关联边界，用户确认前不调用 AI，不展示事件原文候选；月复盘报告缓存展示读取 `insight_reports` 中当前自然月周期的 `monthly` 报告；周复盘程序统计展示任务完成率、习惯打卡率、随手记录数量、日程记录数量和程序关键摘要，并提供周复盘 Markdown 导出；周复盘发送预览展示将来可能发送给 AI 的统计、关键摘要、事件原文候选、敏感降级事件和个人说明书关联边界，用户确认前不调用 AI；周复盘报告缓存展示读取 `insight_reports` 中当前周期的 `weekly` 报告；本周趋势区已接入最近 7 天任务完成率图表和每日趋势卡；记录数量趋势区已接入最近 7 天事件和灵感堆叠柱状图；习惯状态区已接入最近 7 天习惯打卡图表、每日点阵、今日状态、最近 7 天完成数和连续天数；情绪记录区已接入最近 7 天手动情绪标签统计图表和计数卡片。
 - `src/app/insights/actions.ts`: 洞察报告 Server Actions，当前提供 `generateWeeklyReviewAction()` 和 `generateMonthlyReviewAction()`；生成周复盘或月复盘前必须通过 `requireCurrentUser()` 获取当前用户，先查询当前周期缓存，已有完成报告时直接读取缓存，不调用 AI；无缓存时才使用对应发送预览上下文调用 AI Provider Adapter，并把输出保存到 `insight_reports`。
 - `src/app/manual/page.tsx`: 个人说明书页面，未登录用户只显示登录提示；登录用户读取当前账号的 `personal_manuals` 记录，未创建时显示空白可编辑状态；当前支持手动编辑当前人生阶段、主要目标、能力画像、情绪模式、高能量来源、常见内耗点、反复出现的问题和适合自己的行动建议风格；当前定位为洞察报告里 AI 复盘可参考的长期背景资料，并提供返回洞察报告入口。
@@ -926,7 +926,6 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 - `title`: 日程标题，必填。
 - `description`: 日程说明，可选。
 - `category`: 日程分类，先复用任务分类：`study`、`work`、`life`、`health`、`relationship`、`other`。
-- `schedule_date`: 日程日期，按北京时间理解（当前表单自动等于 `start_date`）。
 - `start_date`: 日程开始日期，循环日程从该日期开始命中。
 - `end_date`: 日程结束日期，可选；为空表示不设置结束日期。
 - `recurrence`: 循环周期，固定为 `none`、`daily`、`weekly`、`monthly`。
@@ -940,11 +939,11 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 
 规则：
 
-- `recurrence = none` 时按单日日程处理，默认 `start_date = schedule_date`。
+- `recurrence = none` 时按单日日程处理，命中日期为 `start_date`。
 - `recurrence = daily` 时，今日日期在 `start_date` 和可选 `end_date` 范围内就显示。
 - `recurrence = weekly` 时，今日日期在日期范围内，且与 `start_date` 相隔整 7 天就显示。
 - `recurrence = monthly` 时，今日日期在日期范围内，且日期号与 `start_date` 相同就显示。
-- 今日工作台展示 `schedule_date = 今天` 的单日日程，以及命中今天的循环日程。
+- 今日工作台展示 `start_date = 今天` 的单日日程，以及命中今天的循环日程。
 - 有 `start_time` 时按开始时间排序，没有时间的日程排在后面。
 - 日程完成状态通过 `schedule_completions` 表（`schedule_id + completion_date` 唯一约束）按日期独立记录，支持循环日程每日期独立打卡。
 
