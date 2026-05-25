@@ -110,6 +110,12 @@ export default async function ChecklistPage({ searchParams }: ChecklistPageProps
   const ideaErrorFeedback: FeedbackMessageType | null =
     params?.ideaError === "missing_content"
       ? { tone: "error", title: "灵感内容不能为空", detail: "请填写灵感内容后重试。" }
+      : params?.ideaError === "missing_id"
+        ? { tone: "error", title: "没有找到这条灵感", detail: "请刷新页面后重试。" }
+        : params?.ideaError === "not_convertible"
+          ? { tone: "error", title: "这条灵感不能转为任务", detail: "只有待处理的灵感可以转化为新任务。" }
+          : params?.ideaError === "convert_failed"
+            ? { tone: "error", title: "灵感没有转化成功", detail: "请稍后重试。" }
       : params?.ideaError === "save_failed"
         ? { tone: "error", title: "灵感没有保存成功", detail: "请稍后重试。" }
         : null;

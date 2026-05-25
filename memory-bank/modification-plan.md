@@ -49,7 +49,7 @@
 - **核对结果**：当前代码已经支持查看和编辑开始日期、结束日期、循环周期；`updateScheduleItemAction()` 会校验并写入 `startDate`、`endDate`、`recurrence`，数据层同步更新 `start_date`、`end_date`、`recurrence`。
 - **文档修正**：同步修正 `@architecture.md` 中日程详情和 `schedule_items` 的旧描述，移除 `schedule_date` 残留表述。
 
-##### Step 27.3：灵感列表增加复选框快捷操作（转化→新建任务）
+##### ✅ Step 27.3：灵感列表增加复选框快捷操作（转化→新建任务）（已完成）
 
 - **现状**：清单页灵感列表（`checklist-client.tsx:984-1020`）左侧无快捷操作，`isSelecting=false` 时渲染 `null`。灵感的状态有"待处理/已转任务/已搁置/已放弃"，但目前只能进详情页修改。
 - **目标**：
@@ -57,6 +57,9 @@
   - 确认后：(1) 将灵感 `status` 改为 `converted`，写入 `converted_to_type=task`；(2) 跳转到清单页任务 tab 并展开新增表单，预填标题为灵感内容
   - 已转化/已搁置/已放弃的灵感不显示复选框，只显示对应状态标签
 - **影响文件**：`src/components/checklist/checklist-client.tsx`、`src/app/checklist/actions.ts`
+- **完成结果**：清单页待处理灵感左侧显示转化复选框；勾选并确认后直接创建新任务，并将灵感更新为 `converted_to_task`，写入 `converted_to_type=task` 和 `converted_to_id=新任务 ID`；已转化/已搁置/已放弃灵感只显示状态标签。
+- **实现调整**：实际落地采用“确认后直接创建任务并回填真实任务 ID”，不采用“只预填任务表单”的中间态，避免灵感已转化但任务未保存造成数据不一致。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过；`npm run lint` 因项目既有 lint 问题未通过，本 Step 未扩大范围处理。
 
 #### 二、P1 交互 Bug / 数据准确性
 

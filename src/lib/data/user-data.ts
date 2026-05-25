@@ -782,18 +782,27 @@ export async function createTaskForUser(input: {
   completedAt: Date | null;
 }) {
   const supabase = await createClient();
-  const { error } = await supabase.from("tasks").insert({
-    user_id: input.userId,
-    title: input.title,
-    category: input.category,
-    status: input.status,
-    task_date: input.taskDate,
-    completed_at: input.completedAt?.toISOString() ?? null,
-  });
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert({
+      user_id: input.userId,
+      title: input.title,
+      category: input.category,
+      status: input.status,
+      task_date: input.taskDate,
+      completed_at: input.completedAt?.toISOString() ?? null,
+    })
+    .select("id")
+    .returns<{ id: string }>()
+    .single();
 
-  if (error) {
-    throw error;
+  const row = data as { id: string } | null;
+
+  if (error || !row) {
+    throw error ?? new Error("Task was not created.");
   }
+
+  return { id: row.id };
 }
 
 export async function getTaskDateForUser(userId: string, taskId: string) {
@@ -1422,6 +1431,57 @@ export async function updateIdeaForUser(input: {
 
   if (error) {
     throw error;
+  }
+}
+
+export async function getIdeaForConversionForUser(userId: string, ideaId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ideas")
+    .select("id,content,status")
+    .eq("id", ideaId)
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .returns<Pick<IdeaRow, "id" | "content" | "status">>()
+    .maybeSingle();
+  const row = assertRow(data as Pick<IdeaRow, "id" | "content" | "status"> | null, error);
+
+  return row
+    ? {
+        id: row.id,
+        content: row.content,
+        status: row.status,
+      }
+    : null;
+}
+
+export async function markIdeaConvertedToTaskForUser(input: {
+  userId: string;
+  ideaId: string;
+  taskId: string;
+  updatedAt: Date;
+}) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ideas")
+    .update({
+      status: "converted_to_task",
+      converted_task_id: input.taskId,
+      converted_to_type: "task",
+      converted_to_id: input.taskId,
+      updated_at: input.updatedAt.toISOString(),
+    })
+    .eq("id", input.ideaId)
+    .eq("user_id", input.userId)
+    .eq("status", "to_review")
+    .is("deleted_at", null)
+    .select("id")
+    .returns<{ id: string }>()
+    .maybeSingle();
+  const row = assertRow(data as { id: string } | null, error);
+
+  if (!row) {
+    throw new Error("Idea is not available for conversion.");
   }
 }
 

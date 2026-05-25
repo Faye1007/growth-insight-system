@@ -10,7 +10,9 @@ import {
   createScheduleItemForUser,
   createTaskForUser,
   deleteScheduleCompletionForUser,
+  getIdeaForConversionForUser,
   getTaskDateForUser,
+  markIdeaConvertedToTaskForUser,
   postponeTaskForUser,
   updateHabitForUser,
   upsertScheduleCompletionForUser,
@@ -180,6 +182,50 @@ export async function createChecklistIdeaAction(formData: FormData) {
 
   revalidatePath("/checklist");
   redirect("/checklist?tab=ideas&ideaCreated=1");
+}
+
+export async function convertIdeaToTaskAction(formData: FormData) {
+  const user = await requireCurrentUser("/checklist");
+  const ideaId = getStringValue(formData, "ideaId");
+
+  if (!ideaId) {
+    redirect("/checklist?tab=ideas&ideaError=missing_id");
+  }
+
+  let idea: Awaited<ReturnType<typeof getIdeaForConversionForUser>>;
+  try {
+    idea = await getIdeaForConversionForUser(user.id, ideaId);
+  } catch {
+    redirect("/checklist?tab=ideas&ideaError=convert_failed");
+  }
+
+  if (!idea || idea.status !== "to_review") {
+    redirect("/checklist?tab=ideas&ideaError=not_convertible");
+  }
+
+  try {
+    const task = await createTaskForUser({
+      userId: user.id,
+      title: idea.content.slice(0, 120),
+      category: "other",
+      status: "todo",
+      taskDate: getBeijingDateValue(),
+      completedAt: null,
+    });
+
+    await markIdeaConvertedToTaskForUser({
+      userId: user.id,
+      ideaId,
+      taskId: task.id,
+      updatedAt: new Date(),
+    });
+  } catch {
+    redirect("/checklist?tab=ideas&ideaError=convert_failed");
+  }
+
+  revalidatePath("/checklist");
+  revalidatePath("/records");
+  redirect("/checklist?tab=tasks&taskCreated=1");
 }
 
 export async function createChecklistEventAction(formData: FormData) {

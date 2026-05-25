@@ -6,6 +6,8 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.3：灵感列表复选框转化为新任务**已完成。
+- 清单页待处理灵感左侧新增转化复选框，确认后直接创建新任务，并把灵感标记为已转任务、写入 `converted_to_type=task` 和 `converted_to_id`。
 - **Modification Step 27.2：日程详情页补齐循环字段编辑**已核对完成。
 - 当前代码已支持在日程详情页查看和编辑开始日期、结束日期、循环周期；本 Step 只修正架构文档旧描述，无需代码改动。
 - **Modification Step 27.1：清单页日程表单补齐循环选项**已完成。
@@ -18,7 +20,7 @@
 
 - 继续推进 **Modification Step 27：产品体验全面审查修复**。
 - Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 下一步执行 Step 27.3：灵感列表增加复选框快捷操作（转化为新任务）。
+- 下一步执行 Step 27.4：修复推迟日期时区 Bug。
 
 长期状态：
 
@@ -61,6 +63,35 @@
 - `memory-bank/tech-stack.md`
 
 ## Completed
+
+### ✅ Modification Step 27.3：灵感列表增加复选框快捷操作（转化为新任务）
+
+已完成内容：
+
+- 清单页灵感列表在非批量选择模式下，为 `to_review` 待处理灵感显示左侧复选框。
+- 勾选待处理灵感时先弹出确认：「将此灵感转化为新任务？」。
+- 用户确认后，`convertIdeaToTaskAction()` 会直接创建一条新任务，默认分类为 `other`、状态为 `todo`、日期为北京时间今天。
+- 转化成功后，原灵感更新为 `status = converted_to_task`，并写入 `converted_task_id`、`converted_to_type = task`、`converted_to_id = 新任务 ID`。
+- 已转任务、已搁置、已放弃的灵感不显示转化复选框，只保留状态标签。
+- 转化完成后跳转到清单页任务 tab，并显示任务保存成功提示。
+
+实现说明：
+
+- 本 Step 没有采用“先跳到任务表单并预填标题”的中间态，而是确认后直接创建任务并回填真实任务 ID。
+- 这样可以保证 `converted_to_id` 指向已经存在的任务，避免灵感显示为已转化但任务尚未保存的数据不一致。
+
+影响文件：
+
+- `src/components/checklist/checklist-client.tsx`
+- `src/app/checklist/actions.ts`
+- `src/app/checklist/page.tsx`
+- `src/lib/data/user-data.ts`
+
+验证记录：
+
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- `npm run lint` 未通过，失败来自项目既有问题：未转义引号、一个 `any` 类型和若干未使用变量；本 Step 未扩大范围处理这些存量问题。
 
 ### ✅ Modification Step 27.2：日程详情页补齐循环字段编辑
 

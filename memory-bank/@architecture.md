@@ -75,6 +75,7 @@
 - 事件和灵感保存 Server Action。
 - 当前登录用户今日事件和灵感读取、列表展示和数量统计。
 - 随手记录简洁列表展示，事件和灵感以内容预览为主，编辑下沉到详情页；情绪标签和普通标签显示前会做数组兜底解析，避免字符串拆字。
+- 清单页待处理灵感可通过左侧复选框快捷转化为新任务；确认后直接创建任务，并把灵感标记为已转任务，写入 `converted_to_type=task` 和 `converted_to_id`。
 - 今日事件编辑入口，可修改内容、日期、情绪标签、普通标签、AI 分析权限、具体事件、下次行动和摘要。
 - 今日事件软删除入口，删除后写入 `deleted_at`，不物理删除数据。
 - 今日灵感编辑入口，可修改内容、日期、状态和处理说明。
@@ -285,7 +286,7 @@ AI Provider Adapter for scheduled/manual reviews
 - `drizzle/meta/`: Drizzle 迁移快照和迁移日志元数据，用于后续增量迁移。
 - `src/db/schema.ts`: Drizzle schema，定义 `tasks`、`habits`、`habit_checkins`、`schedule_items`、`life_events`、`ideas`、`insight_reports`、`personal_manuals`、`anniversaries`、`gift_records` 和 `tool_sessions`；任务、习惯、日程、人生笔记和灵感包含 `is_pinned` 字段；`schedule_items` 已移除冗余的 `schedule_date` 字段，`start_date` 改为 `notNull` 作为日程唯一日期字段。
 - `src/db/index.ts`: 服务端数据库入口，使用 `DATABASE_URL` 创建 Drizzle client；当前保留给 Drizzle schema、迁移和必要的服务端内部维护用途，不作为普通登录用户请求的主读写通道。
-- `src/lib/data/user-data.ts`: 服务端用户态数据访问入口，使用 Supabase SSR client 执行每日工作台、成长记录、详情页、洞察报告、每日复盘、周复盘、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、个人说明书、纪念日、礼物记录、工具箱和 Markdown 导出相关读写；当前包含任务创建、状态更新、编辑、软删除和置顶，习惯创建、编辑、停用、软删除、置顶和打卡，日程创建、编辑、软删除和置顶，事件创建、编辑、软删除和置顶，灵感创建、编辑、软删除和置顶，周复盘最近 7 天只读上下文查询，月复盘当月只读统计查询，月复盘预览当月只读上下文查询，周复盘/月复盘缓存读取和保存，个人说明书读取和 upsert 保存，纪念日创建、编辑、软删除、列表读取和详情读取，礼物记录创建、编辑、软删除、列表读取、详情读取和关联纪念日归属校验，工具记录创建和最近记录读取，以及最近复盘报告导出读取能力；人生事件的 `emotion_tags` 和 `tags` 在读取层做运行时数组兜底，兼容历史导入或旧格式数据；所有查询和写入仍显式限定当前 `user_id`，不只依赖 RLS。
+- `src/lib/data/user-data.ts`: 服务端用户态数据访问入口，使用 Supabase SSR client 执行每日工作台、成长记录、详情页、洞察报告、每日复盘、周复盘、月复盘程序统计、月复盘发送预览、月复盘生成与缓存、个人说明书、纪念日、礼物记录、工具箱和 Markdown 导出相关读写；当前包含任务创建、状态更新、编辑、软删除和置顶，习惯创建、编辑、停用、软删除、置顶和打卡，日程创建、编辑、软删除和置顶，事件创建、编辑、软删除和置顶，灵感创建、编辑、软删除、置顶和转化为任务，周复盘最近 7 天只读上下文查询，月复盘当月只读统计查询，月复盘预览当月只读上下文查询，周复盘/月复盘缓存读取和保存，个人说明书读取和 upsert 保存，纪念日创建、编辑、软删除、列表读取和详情读取，礼物记录创建、编辑、软删除、列表读取、详情读取和关联纪念日归属校验，工具记录创建和最近记录读取，以及最近复盘报告导出读取能力；人生事件的 `emotion_tags` 和 `tags` 在读取层做运行时数组兜底，兼容历史导入或旧格式数据；所有查询和写入仍显式限定当前 `user_id`，不只依赖 RLS。
 - `scripts/README.md`: 本地维护脚本说明，明确 dry-run 优先、真实数据库写入必须单独确认、脚本不能打印 `.env.local`、数据库连接字符串或 API key。
 - `scripts/import_growth_plan_dry_run.py`: Excel 历史数据迁移预览脚本，解析 `Faye的成长计划.xlsx`，输出文本或 JSON 迁移计划；不读取环境变量、不连接数据库、不写入真实数据。
 - `scripts/import_growth_plan_apply.mjs`: Excel 历史数据真实导入辅助脚本，支持计划、只读检查、探针、回滚模拟和应用模式；真实导入必须带 `--confirm-import IMPORT_FAYE_GROWTH_PLAN`，按目标账号 `user_id` 写入业务表，飞书外部 ID 只用于导入期间关联，不写入业务表。
@@ -1017,7 +1018,8 @@ Step 2.1 确定基础功能第一轮需要的数据模型，Step 2.3 已通过 D
 
 - 灵感和人生笔记归属于两个不同思路：灵感偏未来行动候选，人生笔记偏已发生事件和复盘。
 - 新灵感默认 `status = to_review`。
-- 灵感可以转化为任务或习惯，转化后记录 `converted_to_type` 和 `converted_to_id`；历史 `converted_task_id` 字段保留兼容。
+- 当前清单页支持将待处理灵感转化为任务：用户勾选转化复选框并确认后，系统直接创建一条新任务，并把灵感更新为 `status = converted_to_task`、`converted_to_type = task`、`converted_to_id = 新任务 ID`；历史 `converted_task_id` 字段同步保留兼容。
+- 灵感表结构预留转化为任务或习惯，转化后记录 `converted_to_type` 和 `converted_to_id`；当前 UI 只开放转化为任务。
 - 搁置灵感时写入 `shelved_at`。
 - 灵感默认只进入 AI 复盘摘要，不进入原文候选。
 

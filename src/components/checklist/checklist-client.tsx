@@ -18,6 +18,7 @@ import {
 
 import {
   batchSoftDeleteAction,
+  convertIdeaToTaskAction,
   createChecklistHabitAction,
   createChecklistIdeaAction,
   createChecklistScheduleAction,
@@ -1012,6 +1013,26 @@ export function ChecklistClient({
                               onChange={() => toggleSelect(idea.id)}
                             />
                           </label>
+                        ) : idea.status === "to_review" ? (
+                          <form action={convertIdeaToTaskAction}>
+                            <input type="hidden" name="ideaId" value={idea.id} />
+                            <label className="batch-checkbox-label" title="转化为任务">
+                              <input
+                                type="checkbox"
+                                className="batch-checkbox"
+                                aria-label="将此灵感转化为新任务"
+                                onChange={(event) => {
+                                  if (!event.currentTarget.checked) return;
+                                  const shouldConvert = window.confirm("将此灵感转化为新任务？");
+                                  if (shouldConvert) {
+                                    event.currentTarget.form?.requestSubmit();
+                                    return;
+                                  }
+                                  event.currentTarget.checked = false;
+                                }}
+                              />
+                            </label>
+                          </form>
                         ) : null}
                         <div className="min-w-0">
                           <Link
