@@ -6,6 +6,8 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.4：修复推迟日期时区 Bug**已完成。
+- 清单页任务推迟日期计算从 UTC 方式（`new Date()` + `toISOString()`）改为项目统一的 `getBeijingDateAfter(offset)`，消除北京时区下推迟目标日期偏差。
 - **Modification Step 27.3：灵感列表复选框转化为新任务**已完成。
 - 清单页待处理灵感左侧新增转化复选框，确认后直接创建新任务，并把灵感标记为已转任务、写入 `converted_to_type=task` 和 `converted_to_id`。
 - **Modification Step 27.2：日程详情页补齐循环字段编辑**已核对完成。
@@ -14,13 +16,13 @@
 - 清单页新增日程现在可以选择不循环、每天、每周、每月；保存时会写入真实 `recurrence` 值，不再固定为不循环。
 - **Modification Step 26.11：数据按需加载**已完成。
 - 每日工作台默认只读取轻量概览统计；只有需要展示具体列表时才拉取全量数据。
-- 最近一次代码提交为 `fix checklist schedule recurrence creation`。
+- 最近一次代码提交为 `fix postpone date timezone bug`。
 
 当前待执行方向：
 
 - 继续推进 **Modification Step 27：产品体验全面审查修复**。
 - Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 下一步执行 Step 27.4：修复推迟日期时区 Bug。
+- 下一步执行 Step 27.5：日程完成切换消除整页刷新。
 
 长期状态：
 
@@ -63,6 +65,22 @@
 - `memory-bank/tech-stack.md`
 
 ## Completed
+
+### ✅ Modification Step 27.4：修复推迟日期时区 Bug
+
+已完成内容：
+
+- 清单页任务推迟 1 天/3 天/1 周的日期计算从 `new Date()` + `toISOString().slice(0,10)`（UTC 时间）改为项目统一的 `getBeijingDateAfter(offset)`（北京时间）。
+- 修复后，在北京时区下（如 UTC 23:00 = 北京次日 07:00），点击"推迟 1 天"正确按北京日期计算，不会多跳一天。
+
+影响文件：
+
+- `src/components/checklist/checklist-client.tsx`
+
+验证记录：
+
+- `npm run build` 通过。
+- `git diff --check` 通过。
 
 ### ✅ Modification Step 27.3：灵感列表增加复选框快捷操作（转化为新任务）
 

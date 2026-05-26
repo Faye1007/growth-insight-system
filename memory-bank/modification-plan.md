@@ -63,11 +63,13 @@
 
 #### 二、P1 交互 Bug / 数据准确性
 
-##### Step 27.4：修复推迟日期时区 Bug
+##### ✅ Step 27.4：修复推迟日期时区 Bug（已完成）
 
 - **现状**：`checklist-client.tsx:553-556` 的推迟日期计算使用 `new Date()` + `toISOString().slice(0,10)`，这是 UTC 时间。如果用户在 UTC 和北京日期不一致的时段操作（如 UTC 23:00 = 北京次日 07:00），推迟目标日期会错误。
-- **目标**：改用项目统一的 `getBeijingDateValue()` 计算推迟目标日期。
+- **目标**：改用项目统一的 `getBeijingDateAfter()` 计算推迟目标日期。
 - **影响文件**：`src/components/checklist/checklist-client.tsx`
+- **完成结果**：推迟 1/3/7 天日期计算已改用 `getBeijingDateAfter(offset)`，按北京时间计算，消除 UTC 时区差异导致的日期偏差。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
 ##### Step 27.5：日程完成切换消除整页刷新
 
@@ -129,7 +131,7 @@
 1. **Step 27.1**：清单页日程表单补齐循环选项（功能缺失，最高优先）
 2. **Step 27.2**：日程详情页补齐循环字段编辑
 3. **Step 27.3**：灵感列表复选框→转化任务
-4. **Step 27.4**：推迟日期时区 Bug
+4. ✅ **Step 27.4**：推迟日期时区 Bug
 5. **Step 27.5**：日程完成切换消除整页刷新
 6. **Step 27.6**：灵感统计日期口径修正
 7. **Step 27.7**：清理废弃 is_completed 字段（需数据库迁移）

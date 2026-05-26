@@ -27,7 +27,7 @@ import {
   postponeTaskAction,
 } from "@/app/checklist/actions";
 
-import { getBeijingDateValue } from "@/lib/date";
+import { getBeijingDateAfter, getBeijingDateValue } from "@/lib/date";
 import { TaskCompletionToggle } from "@/components/task-completion-toggle";
 import { HabitCheckinToggle } from "@/components/habit-checkin-toggle";
 import { useToast } from "@/components/toast-provider";
@@ -552,9 +552,7 @@ export function ChecklistClient({
                                   { label: "推迟 3 天", offset: 3 },
                                   { label: "推迟 1 周", offset: 7 },
                                 ].map(({ label, offset }) => {
-                                  const d = new Date();
-                                  d.setDate(d.getDate() + offset);
-                                  const dateStr = d.toISOString().slice(0, 10);
+                                  const dateStr = getBeijingDateAfter(offset);
                                   return (
                                     <form key={offset} action={postponeAction}>
                                       <input type="hidden" name="taskId" value={task.id} />
