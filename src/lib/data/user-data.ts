@@ -3613,6 +3613,8 @@ const searchTableConfig: Array<{ kind: string; table: string; titleField: string
   { kind: "ideas", table: "ideas", titleField: "content", dateField: "idea_date", label: "灵感" },
   { kind: "anniversaries", table: "anniversaries", titleField: "title", dateField: "anniversary_date", label: "纪念日" },
   { kind: "gifts", table: "gift_records", titleField: "gift_name", dateField: "gift_date", label: "礼物" },
+  { kind: "schedules", table: "schedule_items", titleField: "title", dateField: "start_date", label: "日程" },
+  { kind: "habits", table: "habits", titleField: "name", dateField: "start_date", label: "习惯" },
 ];
 
 export async function searchAllForUser(userId: string, query: string, limit = 10): Promise<SearchResultItem[]> {

@@ -6,6 +6,8 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.8：搜索扩展到日程和习惯**已完成。
+- 全局搜索新增覆盖 `schedule_items.title`（日程）和 `habits.name`（习惯）。
 - **Modification Step 27.7：清理废弃的 `schedule_items.is_completed` 字段**已完成。
 - 从 Drizzle schema 和数据库表移除已废弃的 `is_completed` 字段，完成状态已由 `schedule_completions` 表管理。
 - **Modification Step 27.6：修复每日概览统计灵感日期口径**已完成。
@@ -28,7 +30,7 @@
 
 - 继续推进 **Modification Step 27：产品体验全面审查修复**。
 - Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 下一步执行 Step 27.8：搜索扩展到日程和习惯。
+- 下一步执行 Step 27.9：手机端搜索入口。
 
 长期状态：
 
@@ -71,6 +73,22 @@
 - `memory-bank/tech-stack.md`
 
 ## Completed
+
+### ✅ Modification Step 27.8：搜索扩展到日程和习惯
+
+已完成内容：
+
+- 全局搜索 `searchTableConfig` 新增 `schedule_items`（搜 title，日期字段 start_date）和 `habits`（搜 name，日期字段 start_date）。
+- 现在搜索日程标题或习惯名称能返回结果。
+
+影响文件：
+
+- `src/lib/data/user-data.ts`
+
+验证记录：
+
+- `npm run build` 通过。
+- `git diff --check` 通过。
 
 ### ✅ Modification Step 27.7：清理废弃的 `schedule_items.is_completed` 字段
 
