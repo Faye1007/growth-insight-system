@@ -6,6 +6,8 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.5：日程完成切换消除整页刷新**已完成。
+- 清单页日程完成切换从 `redirect()` 整页刷新改为 `useActionState` 客户端组件局部更新，与任务/习惯保持一致。
 - **Modification Step 27.4：修复推迟日期时区 Bug**已完成。
 - 清单页任务推迟日期计算从 UTC 方式（`new Date()` + `toISOString()`）改为项目统一的 `getBeijingDateAfter(offset)`，消除北京时区下推迟目标日期偏差。
 - **Modification Step 27.3：灵感列表复选框转化为新任务**已完成。
@@ -22,7 +24,7 @@
 
 - 继续推进 **Modification Step 27：产品体验全面审查修复**。
 - Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 下一步执行 Step 27.5：日程完成切换消除整页刷新。
+- 下一步执行 Step 27.6：修复每日概览统计灵感日期口径。
 
 长期状态：
 
@@ -65,6 +67,25 @@
 - `memory-bank/tech-stack.md`
 
 ## Completed
+
+### ✅ Modification Step 27.5：日程完成切换消除整页刷新
+
+已完成内容：
+
+- `toggleScheduleCompletionAction` 改为 `useActionState` 签名（返回 `{ success, error }`，不再 `redirect`）。
+- 新建 `src/components/schedule-completion-toggle.tsx` 客户端组件，与 `TaskCompletionToggle` 模式一致。
+- 清单页日程复选框从内联 `<form>` 替换为 `<ScheduleCompletionToggle>`。
+
+影响文件：
+
+- `src/app/checklist/actions.ts`
+- `src/components/schedule-completion-toggle.tsx`（新建）
+- `src/components/checklist/checklist-client.tsx`
+
+验证记录：
+
+- `npm run build` 通过。
+- `git diff --check` 通过。
 
 ### ✅ Modification Step 27.4：修复推迟日期时区 Bug
 

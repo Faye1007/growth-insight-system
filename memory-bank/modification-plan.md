@@ -71,11 +71,13 @@
 - **完成结果**：推迟 1/3/7 天日期计算已改用 `getBeijingDateAfter(offset)`，按北京时间计算，消除 UTC 时区差异导致的日期偏差。
 - **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-##### Step 27.5：日程完成切换消除整页刷新
+##### ✅ Step 27.5：日程完成切换消除整页刷新（已完成）
 
 - **现状**：`toggleScheduleCompletionAction`（`checklist/actions.ts:250-281`）使用 `redirect()` 导致整页刷新。任务和习惯的切换都已改为 `useActionState` 局部更新（Step 26.2/26.3），但日程没改。
 - **目标**：日程完成切换改为与任务/习惯一致的 `useActionState` + 客户端状态更新，不 redirect。
 - **影响文件**：`src/app/checklist/actions.ts`、`src/components/checklist/checklist-client.tsx`
+- **完成结果**：`toggleScheduleCompletionAction` 改为 `useActionState` 签名，新建 `ScheduleCompletionToggle` 客户端组件，清单页日程复选框已替换为局部更新模式。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
 ##### Step 27.6：修复每日概览统计灵感日期口径
 
@@ -132,7 +134,7 @@
 2. **Step 27.2**：日程详情页补齐循环字段编辑
 3. **Step 27.3**：灵感列表复选框→转化任务
 4. ✅ **Step 27.4**：推迟日期时区 Bug
-5. **Step 27.5**：日程完成切换消除整页刷新
+5. ✅ **Step 27.5**：日程完成切换消除整页刷新
 6. **Step 27.6**：灵感统计日期口径修正
 7. **Step 27.7**：清理废弃 is_completed 字段（需数据库迁移）
 8. **Step 27.8**：搜索扩展到日程和习惯

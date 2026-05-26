@@ -23,13 +23,13 @@ import {
   createChecklistIdeaAction,
   createChecklistScheduleAction,
   createChecklistTaskAction,
-  toggleScheduleCompletionAction,
   postponeTaskAction,
 } from "@/app/checklist/actions";
 
 import { getBeijingDateAfter, getBeijingDateValue } from "@/lib/date";
 import { TaskCompletionToggle } from "@/components/task-completion-toggle";
 import { HabitCheckinToggle } from "@/components/habit-checkin-toggle";
+import { ScheduleCompletionToggle } from "@/components/schedule-completion-toggle";
 import { useToast } from "@/components/toast-provider";
 import { scheduleRecurrences } from "@/lib/schedules/options";
 import { getTaskCategoryLabel, taskCategories, taskStatuses } from "@/lib/tasks/options";
@@ -715,22 +715,12 @@ export function ChecklistClient({
                                 />
                               </label>
                             ) : (
-                              <form action={toggleScheduleCompletionAction}>
-                                <input type="hidden" name="scheduleId" value={item.id} />
-                                <input type="hidden" name="completionDate" value={date} />
-                                <input type="hidden" name="isCurrentlyCompleted" value={String(isCompleted)} />
-                                <button
-                                  aria-label={
-                                    isCompleted
-                                      ? `取消完成 ${item.title}`
-                                      : `完成 ${item.title}`
-                                  }
-                                  className={`quick-check-button ${isCompleted ? "checked" : ""}`}
-                                  type="submit"
-                                >
-                                  <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-                                </button>
-                              </form>
+                              <ScheduleCompletionToggle
+                                scheduleId={item.id}
+                                completionDate={date}
+                                isCompleted={isCompleted}
+                                label={isCompleted ? `取消完成 ${item.title}` : `完成 ${item.title}`}
+                              />
                             )}
                             <div className="min-w-0">
                               <Link

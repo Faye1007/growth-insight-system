@@ -296,14 +296,22 @@ export async function updateChecklistHabitAction(formData: FormData) {
   redirect(`/checklist/habits/${habitId}?habitUpdated=1`);
 }
 
-export async function toggleScheduleCompletionAction(formData: FormData) {
-  const user = await requireCurrentUser("/checklist");
+export async function toggleScheduleCompletionAction(
+  _prevState: { success: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ success: boolean; error?: string }> {
+  let user;
+  try {
+    user = await requireCurrentUser("/checklist");
+  } catch {
+    return { success: false, error: "auth_required" };
+  }
   const scheduleId = getStringValue(formData, "scheduleId");
   const completionDate = getStringValue(formData, "completionDate");
   const isCurrentlyCompleted = getStringValue(formData, "isCurrentlyCompleted") === "true";
 
   if (!scheduleId || !completionDate) {
-    redirect("/checklist?tab=schedules&scheduleError=missing_id");
+    return { success: false, error: "missing_fields" };
   }
 
   try {
@@ -322,11 +330,11 @@ export async function toggleScheduleCompletionAction(formData: FormData) {
       });
     }
   } catch {
-    redirect("/checklist?tab=schedules&scheduleError=save_failed");
+    return { success: false, error: "save_failed" };
   }
 
   revalidatePath("/checklist");
-  redirect("/checklist?tab=schedules&scheduleUpdated=1");
+  return { success: true };
 }
 
 export async function postponeTaskAction(
