@@ -2916,6 +2916,7 @@ export async function getChecklistSchedulesForUser(
     .select("id,title,category,start_date,end_date,recurrence,start_time,end_time,is_pinned,created_at")
     .eq("user_id", userId)
     .is("deleted_at", null)
+    .lte("start_date", dateTo)
     .order("is_pinned", { ascending: false })
     .order("start_date", { ascending: true })
     .order("start_time", { ascending: true, nullsFirst: false })

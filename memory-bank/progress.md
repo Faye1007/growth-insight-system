@@ -6,6 +6,8 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.10：日程列表查询增加数据库级日期过滤**已完成。
+- `getChecklistSchedulesForUser` 增加 `.lte("start_date", dateTo)` 数据库级过滤，不再加载本周范围之外的日程。
 - **Modification Step 27.9：手机端搜索入口**已完成。
 - 移动端底部导航栏新增搜索按钮，6 项均分排列，点击后触发搜索 overlay。
 - **Modification Step 27.8：搜索扩展到日程和习惯**已完成。
@@ -32,7 +34,7 @@
 
 - 继续推进 **Modification Step 27：产品体验全面审查修复**。
 - Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 下一步执行 Step 27.10：日程列表查询增加数据库级日期过滤。
+- 下一步执行 Step 27.11：统一服务端和客户端循环日程判断逻辑。
 
 长期状态：
 
@@ -75,6 +77,21 @@
 - `memory-bank/tech-stack.md`
 
 ## Completed
+
+### ✅ Modification Step 27.10：日程列表查询增加数据库级日期过滤
+
+已完成内容：
+
+- `getChecklistSchedulesForUser` 查询增加 `.lte("start_date", dateTo)`，只加载开始日期在周范围内的日程，减少返回数据量。
+
+影响文件：
+
+- `src/lib/data/user-data.ts`
+
+验证记录：
+
+- `npm run build` 通过。
+- `git diff --check` 通过。
 
 ### ✅ Modification Step 27.9：手机端搜索入口
 
