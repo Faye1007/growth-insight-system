@@ -31,7 +31,7 @@ import { TaskCompletionToggle } from "@/components/task-completion-toggle";
 import { HabitCheckinToggle } from "@/components/habit-checkin-toggle";
 import { ScheduleCompletionToggle } from "@/components/schedule-completion-toggle";
 import { useToast } from "@/components/toast-provider";
-import { scheduleRecurrences } from "@/lib/schedules/options";
+import { scheduleOccursOnDate, scheduleRecurrences } from "@/lib/schedules/options";
 import { getTaskCategoryLabel, taskCategories, taskStatuses } from "@/lib/tasks/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
 
@@ -776,28 +776,7 @@ export function ChecklistClient({
                   <div key={item.id} className="habit-checkin-row">
                     <span className="habit-checkin-name">{item.title}</span>
                     {weekDays.map((d) => {
-                      const start = item.startDate;
-                      const end = item.endDate;
-                      let isOnDay = false;
-                      if (item.recurrence === "none") {
-                        isOnDay = item.startDate === d.date;
-                      } else if (item.recurrence === "daily") {
-                        isOnDay = d.date >= start && (!end || d.date <= end);
-                      } else if (item.recurrence === "weekly") {
-                        const startD = new Date(`${start}T00:00:00+08:00`);
-                        const targetD = new Date(`${d.date}T00:00:00+08:00`);
-                        const diffDays = Math.floor(
-                          (targetD.getTime() - startD.getTime()) / (24 * 60 * 60 * 1000),
-                        );
-                        isOnDay = diffDays >= 0 && diffDays % 7 === 0 && (!end || d.date <= end);
-                      } else if (item.recurrence === "monthly") {
-                        const startD = new Date(`${start}T00:00:00+08:00`);
-                        const targetD = new Date(`${d.date}T00:00:00+08:00`);
-                        isOnDay =
-                          startD.getDate() === targetD.getDate() &&
-                          d.date >= start &&
-                          (!end || d.date <= end);
-                      }
+                      let isOnDay = scheduleOccursOnDate(item.startDate, item.endDate ?? null, item.recurrence as "none" | "daily" | "weekly" | "monthly", d.date);
                       const isCompleted = isOnDay && (scheduleCompletionMap.get(item.id)?.has(d.date) ?? false);
                       return (
                         <span

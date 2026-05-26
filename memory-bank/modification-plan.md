@@ -123,11 +123,13 @@
 - **完成结果**：查询增加 `.lte("start_date", dateTo)`，只加载开始日期在周范围内的日程。
 - **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-##### Step 27.11：统一服务端和客户端循环日程判断逻辑
+##### ✅ Step 27.11：统一服务端和客户端循环日程判断逻辑（已完成）
 
 - **现状**：循环日程的"是否命中某天"逻辑在服务端（`user-data.ts:scheduleOccursOnDate`）和客户端（`checklist-client.tsx:786-792`）各实现了一份，用的算法略有不同（服务端用 `getDaysBetween`，客户端用毫秒差值）。改了一边容易忘另一边。
 - **目标**：提取 `scheduleOccursOnDate` 到 `src/lib/date.ts` 或 `src/lib/schedules/options.ts`，服务端和客户端统一调用。
-- **影响文件**：`src/lib/date.ts` 或 `src/lib/schedules/options.ts`、`src/lib/data/user-data.ts`、`src/components/checklist/checklist-client.tsx`
+- **影响文件**：`src/lib/schedules/options.ts`、`src/lib/data/user-data.ts`、`src/components/checklist/checklist-client.tsx`
+- **完成结果**：`scheduleOccursOnDate` 提取到 `src/lib/schedules/options.ts`，两端统一调用；同时修正服务端 daily 循环缺少 endDate 检查的 Bug。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
 ##### Step 27.12：纪念日/礼物页图标与布局对齐
 
@@ -150,7 +152,7 @@
 8. ✅ **Step 27.8**：搜索扩展到日程和习惯
 9. ✅ **Step 27.9**：手机端搜索入口
 10. ✅ **Step 27.10**：日程查询数据库级过滤
-11. **Step 27.11**：统一循环判断逻辑
+11. ✅ **Step 27.11**：统一循环判断逻辑
 12. **Step 27.12**：纪念日/礼物页图标与布局对齐
 
 ---

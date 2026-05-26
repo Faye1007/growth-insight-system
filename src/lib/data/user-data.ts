@@ -2,6 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import type { ScheduleRecurrence } from "@/lib/schedules/options";
+import { scheduleOccursOnDate } from "@/lib/schedules/options";
 import type { TaskCategory, TaskStatus } from "@/lib/tasks/options";
 import { getBeijingDateValue, getBeijingDateAfter } from "@/lib/date";
 
@@ -22,36 +23,6 @@ function getDateTime(value: string) {
 
 function getDaysBetween(start: string, end: string) {
   return Math.floor((getDateTime(end) - getDateTime(start)) / (24 * 60 * 60 * 1000));
-}
-
-function scheduleOccursOnDate(row: ScheduleItemRow, date: string) {
-  const startDate = row.start_date;
-  const endDate = row.end_date;
-
-  if (getDateTime(startDate) > getDateTime(date)) {
-    return false;
-  }
-
-  if (endDate && getDateTime(endDate) < getDateTime(date)) {
-    return false;
-  }
-
-  if (row.recurrence === "none") {
-    return startDate === date;
-  }
-
-  if (row.recurrence === "daily") {
-    return true;
-  }
-
-  const start = new Date(`${startDate}T00:00:00+08:00`);
-  const target = new Date(`${date}T00:00:00+08:00`);
-
-  if (row.recurrence === "weekly") {
-    return getDaysBetween(startDate, date) % 7 === 0;
-  }
-
-  return start.getDate() === target.getDate();
 }
 
 function assertArray<T>(data: T[] | null, error: unknown) {
@@ -2224,7 +2195,7 @@ export async function getTodayScheduleItemsForUser(
     .returns<ScheduleItemRow[]>();
 
   return assertArray(data, error)
-    .filter((row) => scheduleOccursOnDate(row, todayDate))
+    .filter((row) => scheduleOccursOnDate(row.start_date, row.end_date, row.recurrence, todayDate))
     .map((row) => ({
       id: row.id,
       title: row.title,
@@ -3291,7 +3262,7 @@ export async function getDailyReviewRowsForUser(
       note: checkin.note,
     })),
     schedules: assertArray(schedulesResult.data, schedulesResult.error)
-      .filter((row) => scheduleOccursOnDate(row, date))
+      .filter((row) => scheduleOccursOnDate(row.start_date, row.end_date, row.recurrence, date))
       .map((row) => ({
         id: row.id,
         title: row.title,
@@ -3709,7 +3680,7 @@ export async function getDailyOverviewStatsForUser(
   const totalHabits = habitsRes.count ?? 0;
   const checkedHabits = checkinsRes.count ?? 0;
   const totalSchedules = (schedulesRes.data ?? []).filter((row) =>
-    scheduleOccursOnDate(row as ScheduleItemRow, todayDate),
+    scheduleOccursOnDate(row.start_date, row.end_date, row.recurrence, todayDate),
   ).length;
   const totalEvents = eventsRes.count ?? 0;
   const totalIdeas = ideasRes.count ?? 0;
