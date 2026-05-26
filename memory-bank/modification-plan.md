@@ -79,11 +79,13 @@
 - **完成结果**：`toggleScheduleCompletionAction` 改为 `useActionState` 签名，新建 `ScheduleCompletionToggle` 客户端组件，清单页日程复选框已替换为局部更新模式。
 - **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-##### Step 27.6：修复每日概览统计灵感日期口径
+##### ✅ Step 27.6：修复每日概览统计灵感日期口径（已完成）
 
-- **现状**：`getDailyOverviewStatsForUser`（`user-data.ts:3636-3640`）统计灵感数量时用 `created_at` 过滤，但列表展示按 `idea_date`。如果创建日期和灵感日期不一致，统计和列表会不匹配。任务和事件都用各自业务日期字段过滤，灵感也应该用 `idea_date`。
+- **现状**：`getDailyOverviewStatsForUser`（`user-data.ts:3636-3640`）统计灵感数量时没有日期过滤条件，列表展示按 `idea_date`。如果创建日期和灵感日期不一致，统计和列表会不匹配。任务和事件都用各自业务日期字段过滤，灵感也应该用 `idea_date`。
 - **目标**：灵感统计查询改用 `idea_date` 过滤，与其他统计口径一致。
 - **影响文件**：`src/lib/data/user-data.ts`
+- **完成结果**：灵感统计查询补上 `.eq("idea_date", todayDate)`，与任务用 `task_date`、事件用 `event_date` 保持一致。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
 ##### Step 27.7：清理废弃的 `schedule_items.is_completed` 字段
 
@@ -135,7 +137,7 @@
 3. **Step 27.3**：灵感列表复选框→转化任务
 4. ✅ **Step 27.4**：推迟日期时区 Bug
 5. ✅ **Step 27.5**：日程完成切换消除整页刷新
-6. **Step 27.6**：灵感统计日期口径修正
+6. ✅ **Step 27.6**：灵感统计日期口径修正
 7. **Step 27.7**：清理废弃 is_completed 字段（需数据库迁移）
 8. **Step 27.8**：搜索扩展到日程和习惯
 9. **Step 27.9**：手机端搜索入口

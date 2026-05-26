@@ -3695,6 +3695,7 @@ export async function getDailyOverviewStatsForUser(
       .from("ideas")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
+      .eq("idea_date", todayDate)
       .is("deleted_at", null)
       .gte("created_at", `${todayDate}T00:00:00+08:00`)
       .lt("created_at", `${todayDate}T23:59:59+08:00`),

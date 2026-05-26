@@ -6,6 +6,8 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.6：修复每日概览统计灵感日期口径**已完成。
+- `getDailyOverviewStatsForUser` 灵感统计原来无日期过滤，已补上 `.eq("idea_date", todayDate)`，与任务用 `task_date`、事件用 `event_date` 一致。
 - **Modification Step 27.5：日程完成切换消除整页刷新**已完成。
 - 清单页日程完成切换从 `redirect()` 整页刷新改为 `useActionState` 客户端组件局部更新，与任务/习惯保持一致。
 - **Modification Step 27.4：修复推迟日期时区 Bug**已完成。
@@ -24,7 +26,7 @@
 
 - 继续推进 **Modification Step 27：产品体验全面审查修复**。
 - Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 下一步执行 Step 27.6：修复每日概览统计灵感日期口径。
+- 下一步执行 Step 27.7：清理废弃的 `schedule_items.is_completed` 字段。
 
 长期状态：
 
@@ -67,6 +69,21 @@
 - `memory-bank/tech-stack.md`
 
 ## Completed
+
+### ✅ Modification Step 27.6：修复每日概览统计灵感日期口径
+
+已完成内容：
+
+- `getDailyOverviewStatsForUser` 中的灵感统计查询原来没有日期过滤，统计的是用户所有未删除灵感。已补上 `.eq("idea_date", todayDate)` 过滤，与任务用 `task_date`、事件用 `event_date` 保持一致。
+
+影响文件：
+
+- `src/lib/data/user-data.ts`
+
+验证记录：
+
+- `npm run build` 通过。
+- `git diff --check` 通过。
 
 ### ✅ Modification Step 27.5：日程完成切换消除整页刷新
 
