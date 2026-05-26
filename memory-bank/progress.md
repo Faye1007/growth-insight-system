@@ -6,6 +6,8 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.12：纪念日/礼物页图标与布局对齐**已完成。
+- 纪念日和礼物"新增"summary 补上 `<Plus>` 图标；"选择"和"新增"放入同一 `flex items-center gap-2` 容器，对齐方式与事件部分一致。
 - **Modification Step 27.11：统一服务端和客户端循环日程判断逻辑**已完成。
 - `scheduleOccursOnDate` 提取到 `src/lib/schedules/options.ts`，服务端和客户端统一调用；修正服务端 daily 循环缺少 endDate 检查的 Bug。
 - **Modification Step 27.10：日程列表查询增加数据库级日期过滤**已完成。
@@ -34,9 +36,8 @@
 
 当前待执行方向：
 
-- 继续推进 **Modification Step 27：产品体验全面审查修复**。
-- Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 下一步执行 Step 27.12：纪念日/礼物页图标与布局对齐。
+- **Modification Step 27 所有子项已完成**。
+- 下一步考虑新的迭代方向。
 
 长期状态：
 

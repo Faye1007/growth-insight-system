@@ -131,7 +131,7 @@
 - **完成结果**：`scheduleOccursOnDate` 提取到 `src/lib/schedules/options.ts`，两端统一调用；同时修正服务端 daily 循环缺少 endDate 检查的 Bug。
 - **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-##### Step 27.12：纪念日/礼物页图标与布局对齐
+##### ✅ Step 27.12：纪念日/礼物页图标与布局对齐
 
 - **现状**：
   - 纪念日"新增"summary 缺少 `<Plus>` 图标（`life-client.tsx:372` 只有文字"新增"）
@@ -139,6 +139,8 @@
   - 礼物列表需检查是否有同样问题
 - **目标**：纪念日和礼物的"选择"+"新增"按钮放入同一个 `flex items-center gap-2` 容器，所有"新增"summary 统一包含 `<Plus>` 图标，与清单页保持一致。
 - **影响文件**：`src/components/life/life-client.tsx`
+- **完成结果**：纪念日和礼物的"新增"summary 均补上 `<Plus>` 图标；"选择"和"新增"放入同一 `flex items-center gap-2` 容器。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
 #### Step 27 执行顺序
 
@@ -153,7 +155,7 @@
 9. ✅ **Step 27.9**：手机端搜索入口
 10. ✅ **Step 27.10**：日程查询数据库级过滤
 11. ✅ **Step 27.11**：统一循环判断逻辑
-12. **Step 27.12**：纪念日/礼物页图标与布局对齐
+12. ✅ **Step 27.12**：纪念日/礼物页图标与布局对齐
 
 ---
 

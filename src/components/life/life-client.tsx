@@ -365,12 +365,12 @@ export function LifeClient({
                   取消
                 </button>
               )}
-            </div>
-            {isLoggedIn && (
-              <details className="create-disclosure">
-                <summary className="create-summary soft-button text-sm">
-                  新增
-                </summary>
+              {isLoggedIn && (
+                <details className="create-disclosure">
+                  <summary className="create-summary soft-button text-sm">
+                    <Plus aria-hidden="true" className="h-3 w-3" />
+                    新增
+                  </summary>
                 <form action={createAnniversaryAction} className="task-form mt-3">
                   <label className="form-field">
                     <span>标题</span>
@@ -420,6 +420,7 @@ export function LifeClient({
                 </form>
               </details>
             )}
+            </div>
           </div>
           {!isLoggedIn ? (
             <div className="empty-state mt-4">
@@ -506,12 +507,12 @@ export function LifeClient({
                   取消
                 </button>
               )}
-            </div>
-            {isLoggedIn && (
-              <details className="create-disclosure">
-                <summary className="create-summary soft-button text-sm">
-                  新增
-                </summary>
+              {isLoggedIn && (
+                <details className="create-disclosure">
+                  <summary className="create-summary soft-button text-sm">
+                    <Plus aria-hidden="true" className="h-3 w-3" />
+                    新增
+                  </summary>
                 <form action={createGiftRecordAction} className="task-form mt-3">
                   <label className="form-field">
                     <span>礼物名称</span>
@@ -550,6 +551,7 @@ export function LifeClient({
                 </form>
               </details>
             )}
+            </div>
           </div>
           {!isLoggedIn ? (
             <div className="empty-state mt-4">
