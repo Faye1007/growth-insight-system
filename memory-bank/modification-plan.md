@@ -105,11 +105,13 @@
 - **完成结果**：`searchTableConfig` 新增日程和习惯配置，全局搜索已覆盖 7 张表。
 - **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-##### Step 27.9：手机端搜索入口
+##### ✅ Step 27.9：手机端搜索入口（已完成）
 
 - **现状**：`SearchOverlay` 只在桌面端 header（`hidden ... lg:flex`）渲染，移动端无搜索入口。
 - **目标**：在移动端底部导航栏或页面顶部增加搜索入口，点击后打开搜索 overlay。
-- **影响文件**：`src/components/app-shell.tsx`、`src/components/bottom-nav.tsx`、`src/components/search-overlay.tsx`
+- **影响文件**：`src/components/bottom-nav.tsx`
+- **完成结果**：底部导航首位新增搜索按钮，点击 dispatch Ctrl+K 事件触发 `SearchOverlay`。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
 #### 四、P3 代码质量 / 性能
 
@@ -144,7 +146,7 @@
 6. ✅ **Step 27.6**：灵感统计日期口径修正
 7. ✅ **Step 27.7**：清理废弃 is_completed 字段（需数据库迁移）
 8. ✅ **Step 27.8**：搜索扩展到日程和习惯
-9. **Step 27.9**：手机端搜索入口
+9. ✅ **Step 27.9**：手机端搜索入口
 10. **Step 27.10**：日程查询数据库级过滤
 11. **Step 27.11**：统一循环判断逻辑
 12. **Step 27.12**：纪念日/礼物页图标与布局对齐

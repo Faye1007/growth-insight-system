@@ -6,6 +6,7 @@ import {
   BarChart3,
   ListTodo,
   MessageCircle,
+  Search,
   Settings,
   UserRound,
 } from "lucide-react";
@@ -21,8 +22,21 @@ const bottomTabs = [
 export function BottomNav() {
   const pathname = usePathname();
 
+  function openSearch() {
+    window.dispatchEvent(new KeyboardEvent("keydown", { ctrlKey: true, key: "k" }));
+  }
+
   return (
     <nav className="bottom-nav" aria-label="底部导航">
+      <button
+        type="button"
+        className="bottom-nav-item search-nav-item"
+        onClick={openSearch}
+        aria-label="搜索"
+      >
+        <Search aria-hidden="true" className="h-5 w-5" />
+        <span>搜索</span>
+      </button>
       {bottomTabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = pathname === tab.href || (tab.href !== "/checklist" && pathname.startsWith(tab.href));

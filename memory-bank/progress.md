@@ -6,6 +6,8 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.9：手机端搜索入口**已完成。
+- 移动端底部导航栏新增搜索按钮，6 项均分排列，点击后触发搜索 overlay。
 - **Modification Step 27.8：搜索扩展到日程和习惯**已完成。
 - 全局搜索新增覆盖 `schedule_items.title`（日程）和 `habits.name`（习惯）。
 - **Modification Step 27.7：清理废弃的 `schedule_items.is_completed` 字段**已完成。
@@ -30,7 +32,7 @@
 
 - 继续推进 **Modification Step 27：产品体验全面审查修复**。
 - Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 下一步执行 Step 27.9：手机端搜索入口。
+- 下一步执行 Step 27.10：日程列表查询增加数据库级日期过滤。
 
 长期状态：
 
@@ -73,6 +75,22 @@
 - `memory-bank/tech-stack.md`
 
 ## Completed
+
+### ✅ Modification Step 27.9：手机端搜索入口
+
+已完成内容：
+
+- 移动端底部导航 `BottomNav` 增加搜索按钮（搜索图标 + "搜索"标签），置于首位，与 5 个 Tab 均分排列。
+- 点击搜索按钮通过 `Ctrl+K` 事件触发 `SearchOverlay`，无需状态共享改造。
+
+影响文件：
+
+- `src/components/bottom-nav.tsx`
+
+验证记录：
+
+- `npm run build` 通过。
+- `git diff --check` 通过。
 
 ### ✅ Modification Step 27.8：搜索扩展到日程和习惯
 
