@@ -71,6 +71,13 @@
       "when": 1779001789077,
       "tag": "0009_schedule_completion",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1779001789078,
+      "tag": "0013_drop_is_completed",
+      "breakpoints": true
     }
   ]
 }

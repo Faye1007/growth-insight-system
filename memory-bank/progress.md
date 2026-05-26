@@ -6,6 +6,8 @@
 
 最新已完成里程碑：
 
+- **Modification Step 27.7：清理废弃的 `schedule_items.is_completed` 字段**已完成。
+- 从 Drizzle schema 和数据库表移除已废弃的 `is_completed` 字段，完成状态已由 `schedule_completions` 表管理。
 - **Modification Step 27.6：修复每日概览统计灵感日期口径**已完成。
 - `getDailyOverviewStatsForUser` 灵感统计原来无日期过滤，已补上 `.eq("idea_date", todayDate)`，与任务用 `task_date`、事件用 `event_date` 一致。
 - **Modification Step 27.5：日程完成切换消除整页刷新**已完成。
@@ -26,7 +28,7 @@
 
 - 继续推进 **Modification Step 27：产品体验全面审查修复**。
 - Step 27 已在 `memory-bank/modification-plan.md` 中规划为 4 大类 12 项：功能缺失、交互 Bug、搜索/移动端体验、代码质量/性能。
-- 下一步执行 Step 27.7：清理废弃的 `schedule_items.is_completed` 字段。
+- 下一步执行 Step 27.8：搜索扩展到日程和习惯。
 
 长期状态：
 
@@ -69,6 +71,27 @@
 - `memory-bank/tech-stack.md`
 
 ## Completed
+
+### ✅ Modification Step 27.7：清理废弃的 `schedule_items.is_completed` 字段
+
+已完成内容：
+
+- 从 `src/db/schema.ts` 移除 `isCompleted` 字段定义。
+- 生成迁移文件 `drizzle/0013_drop_is_completed.sql`，删除 `schedule_items.is_completed` 列。
+- 更新 `drizzle/meta/_journal.json` 包含该迁移。
+- 已执行真实数据库迁移。
+
+影响文件：
+
+- `src/db/schema.ts`
+- `drizzle/0013_drop_is_completed.sql`（新建）
+- `drizzle/meta/_journal.json`
+
+验证记录：
+
+- `npm run build` 通过。
+- `git diff --check` 通过。
+- 应用代码已无 `is_completed`/`isCompleted` 引用。
 
 ### ✅ Modification Step 27.6：修复每日概览统计灵感日期口径
 

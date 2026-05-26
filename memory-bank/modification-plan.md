@@ -87,11 +87,13 @@
 - **完成结果**：灵感统计查询补上 `.eq("idea_date", todayDate)`，与任务用 `task_date`、事件用 `event_date` 保持一致。
 - **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-##### Step 27.7：清理废弃的 `schedule_items.is_completed` 字段
+##### ✅ Step 27.7：清理废弃的 `schedule_items.is_completed` 字段（已完成）
 
-- **现状**：`schedule_items` 表有 `is_completed` 布尔字段（migration 0009），但实际完成状态已迁移到 `schedule_completions` 表（migration 0011）。`is_completed` 字段是死代码，`getRecentScheduleItemsForUser` 仍在读取它，可能造成成长记录和清单页的状态不一致。
-- **目标**：确认 `is_completed` 不再被任何页面使用后，生成迁移删除该字段；如仍有引用则先清理引用再删字段。
-- **影响文件**：`src/db/schema.ts`、新建数据库迁移文件、`src/lib/data/user-data.ts`
+- **现状**：`schedule_items` 表有 `is_completed` 布尔字段（migration 0009），但实际完成状态已迁移到 `schedule_completions` 表（migration 0011）。`is_completed` 字段是死代码，应用代码已无引用。
+- **目标**：从 schema 和数据库中删除 `is_completed` 字段。
+- **影响文件**：`src/db/schema.ts`、新建数据库迁移文件
+- **完成结果**：已从 Drizzle schema 移除字段定义，生成迁移 `0013_drop_is_completed.sql` 删除列并已执行到真实数据库。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过；应用代码已无 `is_completed` 引用。
 
 #### 三、P2 搜索覆盖 / 移动端体验
 
@@ -138,7 +140,7 @@
 4. ✅ **Step 27.4**：推迟日期时区 Bug
 5. ✅ **Step 27.5**：日程完成切换消除整页刷新
 6. ✅ **Step 27.6**：灵感统计日期口径修正
-7. **Step 27.7**：清理废弃 is_completed 字段（需数据库迁移）
+7. ✅ **Step 27.7**：清理废弃 is_completed 字段（需数据库迁移）
 8. **Step 27.8**：搜索扩展到日程和习惯
 9. **Step 27.9**：手机端搜索入口
 10. **Step 27.10**：日程查询数据库级过滤

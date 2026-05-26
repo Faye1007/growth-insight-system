@@ -171,7 +171,6 @@ export const scheduleItems = pgTable(
     startTime: time("start_time"),
     endTime: time("end_time"),
     isPinned: boolean("is_pinned").default(false).notNull(),
-    isCompleted: boolean("is_completed").default(false).notNull(),
     ...timestamps,
     ...softDeleteTimestamp,
   },
