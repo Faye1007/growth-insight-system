@@ -2178,6 +2178,29 @@ export async function getHabitByIdForUser(userId: string, habitId: string): Prom
   };
 }
 
+export async function getHabitCheckinsForDateRange(
+  userId: string,
+  habitId: string,
+  startDate: string,
+  endDate: string,
+): Promise<Array<{ checkinDate: string; status: string }>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("habit_checkins")
+    .select("checkin_date,status")
+    .eq("user_id", userId)
+    .eq("habit_id", habitId)
+    .gte("checkin_date", startDate)
+    .lte("checkin_date", endDate)
+    .order("checkin_date", { ascending: true })
+    .returns<Array<{ checkin_date: string; status: string }>>();
+
+  return assertArray(data, error).map((row) => ({
+    checkinDate: row.checkin_date,
+    status: row.status,
+  }));
+}
+
 export async function getTodayScheduleItemsForUser(
   userId: string,
   todayDate: string,

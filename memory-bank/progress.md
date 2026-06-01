@@ -6,6 +6,10 @@
 
 最新已完成里程碑：
 
+- **Modification Step 28.2：新增习惯补打卡功能与日历选择器**已完成。
+- `toggleHabitCheckinAction` 新增可选 `checkinDate` 参数，支持补打卡；添加 30 天日期范围校验。
+- 新建 `HabitCheckinCalendar` 日历组件，显示月视图并标记已打卡/已取消日期。
+- 习惯详情页添加补打卡区块，使用日历选择日期。
 - **Modification Step 28.1：修复移动端搜索按钮不弹出搜索框**已完成。
 - `SearchOverlay` 组件从桌面端 header 移到不受显示/隐藏限制的位置，确保移动端和桌面端都能使用。
 - 搜索按钮改为 dispatch 自定义事件 `open-search`，`SearchOverlay` 同时监听 `keydown` 和 `open-search` 事件。

@@ -4,9 +4,11 @@ import { ArrowLeft, CheckCircle2, Heart, Trash2 } from "lucide-react";
 import { deactivateHabitAction, softDeleteHabitAction } from "@/app/daily/actions";
 import { updateChecklistHabitAction } from "@/app/checklist/actions";
 import { FeedbackMessage } from "@/components/feedback-message";
+import { HabitBackfillCheckin } from "@/components/habit-backfill-checkin";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getHabitByIdForUser } from "@/lib/data/user-data";
+import { getBeijingDateAfter, getBeijingDateValue } from "@/lib/date";
+import { getHabitByIdForUser, getHabitCheckinsForDateRange } from "@/lib/data/user-data";
 import { taskCategories } from "@/lib/tasks/options";
 
 type HabitDetailPageProps = {
@@ -26,6 +28,17 @@ export default async function HabitDetailPage({ params, searchParams }: HabitDet
   const loginPath = buildLoginPath({ next: `/checklist/habits/${id}`, message: loginRequiredMessage });
 
   const habit = user ? await getHabitByIdForUser(user.id, id) : null;
+
+  // 获取最近 30 天打卡记录
+  const today = getBeijingDateValue();
+  const minDate = getBeijingDateAfter(-29);
+  const checkins = habit && user
+    ? await getHabitCheckinsForDateRange(user.id, habit.id, minDate, today)
+    : [];
+  const checkinMap: Record<string, "checked" | "skipped"> = {};
+  for (const c of checkins) {
+    checkinMap[c.checkinDate] = c.status as "checked" | "skipped";
+  }
 
   const errorFeedback =
     sp.habitError === "missing_name"
@@ -129,6 +142,8 @@ export default async function HabitDetailPage({ params, searchParams }: HabitDet
               <button className="soft-button w-fit text-sm" type="submit">保存习惯</button>
             </form>
           </section>
+
+          <HabitBackfillCheckin habitId={habit.id} checkinMap={checkinMap} />
 
           <section className="panel-card">
             <h2 className="section-heading">操作</h2>

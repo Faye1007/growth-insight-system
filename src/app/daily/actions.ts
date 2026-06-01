@@ -269,6 +269,14 @@ export async function postponeTaskAction(
   }
 }
 
+function isDateWithinDays(dateStr: string, days: number): boolean {
+  const today = new Date(getBeijingDateValue() + "T00:00:00+08:00");
+  const target = new Date(dateStr + "T00:00:00+08:00");
+  const diffMs = today.getTime() - target.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return diffDays >= 0 && diffDays < days;
+}
+
 export async function toggleHabitCheckinAction(
   _prevState: { success: boolean; error?: string } | null,
   formData: FormData,
@@ -277,6 +285,7 @@ export async function toggleHabitCheckinAction(
     const user = await requireCurrentUser("/daily");
     const habitId = getStringValue(formData, "habitId");
     const intent = getStringValue(formData, "intent");
+    const checkinDateRaw = getStringValue(formData, "checkinDate");
 
     if (!habitId || (intent !== "check" && intent !== "cancel")) {
       return { success: false, error: "invalid_checkin" };
@@ -287,18 +296,24 @@ export async function toggleHabitCheckinAction(
       return { success: false, error: "missing_habit" };
     }
 
-    const todayDate = getBeijingDateValue();
+    // 补打卡日期校验：只允许最近 30 天内
+    const checkinDate = checkinDateRaw || getBeijingDateValue();
+    if (checkinDateRaw && !isDateWithinDays(checkinDateRaw, 30)) {
+      return { success: false, error: "date_out_of_range" };
+    }
+
     const status = intent === "check" ? "checked" : "skipped";
     await upsertHabitCheckinForUser({
       userId: user.id,
       habitId,
-      checkinDate: todayDate,
+      checkinDate,
       status,
       updatedAt: new Date(),
     });
 
     revalidatePath("/daily");
     revalidatePath("/checklist");
+    revalidatePath(`/checklist/habits/${habitId}`);
     return { success: true };
   } catch {
     return { success: false, error: "save_failed" };

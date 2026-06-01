@@ -2511,6 +2511,125 @@ select {
   color: var(--muted-foreground);
 }
 
+/* Habit checkin calendar */
+.habit-calendar {
+  margin-top: 0.75rem;
+}
+
+.habit-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.habit-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.habit-calendar-weekday {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.habit-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.habit-calendar-day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.habit-calendar-day:hover:not(:disabled) {
+  background: var(--surface-strong);
+}
+
+.habit-calendar-day.other-month {
+  color: var(--border-strong);
+}
+
+.habit-calendar-day.out-of-range {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.habit-calendar-day.is-today {
+  border-color: var(--lavender);
+  font-weight: 700;
+}
+
+.habit-calendar-day.is-selected {
+  background: var(--lavender-soft);
+  border-color: var(--lavender);
+}
+
+.habit-calendar-day.is-checked {
+  background: var(--sage-soft);
+}
+
+.habit-calendar-day.is-skipped {
+  background: var(--clay-soft);
+}
+
+.habit-calendar-day-num {
+  font-size: 0.875rem;
+}
+
+.habit-calendar-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+.habit-calendar-dot.checked-dot {
+  background: var(--sage);
+}
+
+.habit-calendar-dot.skipped-dot {
+  background: var(--clay);
+}
+
+.habit-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.habit-calendar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.habit-calendar-day-num-legend {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+}
+
 /* Toast */
 .toast-container {
   position: fixed;
