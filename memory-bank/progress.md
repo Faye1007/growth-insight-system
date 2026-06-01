@@ -7,6 +7,10 @@
 最新已完成里程碑：
 
 - **Modification Step 28.4：修复移动端日程保存时间验证问题**已完成。
+- 修复清单页选择按钮样式统一。
+- 修复移动端搜索按钮样式。
+- 修复习惯打卡累计和连续天数计算（从习惯开始第一天计算）。
+- **Modification Step 28.4：修复移动端日程保存时间验证问题**已完成。
 - 更新 `isValidTimeValue` 支持 `HH:MM:SS` 格式；新增 `normalizeTimeValue` 规范化时间值。
 - 移动端 `<input type="time">` 可能返回带秒格式，现在能正确处理。
 - **Modification Step 28.3：清单页选择按钮与新增按钮样式统一**已完成。

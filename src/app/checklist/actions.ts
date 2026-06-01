@@ -111,10 +111,10 @@ export async function createChecklistScheduleAction(formData: FormData) {
   const recurrence = isScheduleRecurrence(recurrenceValue) ? recurrenceValue : "none";
   const startTimeRaw = getStringValue(formData, "startTime");
   const endTimeRaw = getStringValue(formData, "endTime");
-  const startTime = normalizeTimeValue(startTimeRaw);
+  const startTime = startTimeRaw ? normalizeTimeValue(startTimeRaw) : "09:00";
   const endTime = endTimeRaw && isValidTimeValue(endTimeRaw) ? normalizeTimeValue(endTimeRaw) : null;
 
-  if (!startTime || !isValidTimeValue(startTime)) {
+  if (!isValidTimeValue(startTime)) {
     redirect("/checklist?tab=schedules&scheduleError=missing_time");
   }
 

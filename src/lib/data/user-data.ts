@@ -2957,13 +2957,12 @@ export async function getChecklistHabitsForUser(userId: string, dateFrom: string
   const habits = assertArray(habitsData, habitsError);
   if (habits.length === 0) return [];
 
+  // 查询所有打卡记录（不限日期范围），用于计算累计和连续天数
   const { data: checkinsData, error: checkinsError } = await supabase
     .from("habit_checkins")
     .select("habit_id,checkin_date,status")
     .eq("user_id", userId)
     .in("habit_id", habits.map((h) => h.id))
-    .gte("checkin_date", dateFrom)
-    .lte("checkin_date", dateTo)
     .returns<HabitCheckinRow[]>();
 
   const checkins = assertArray(checkinsData, checkinsError);

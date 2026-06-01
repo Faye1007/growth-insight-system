@@ -30,7 +30,7 @@ export function BottomNav() {
     <nav className="bottom-nav" aria-label="底部导航">
       <button
         type="button"
-        className="bottom-nav-item search-nav-item"
+        className="bottom-nav-item"
         onClick={openSearch}
         aria-label="搜索"
       >
