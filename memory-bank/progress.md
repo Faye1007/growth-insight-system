@@ -6,6 +6,8 @@
 
 最新已完成里程碑：
 
+- **Modification Step 28.3：清单页选择按钮与新增按钮样式统一**已完成。
+- 清单页四个 tab（任务、日程、习惯、灵感）的"选择"和"取消"按钮样式从 `quiet-button` 改为 `soft-button`，与"新增"按钮保持一致。
 - **Modification Step 28.2：新增习惯补打卡功能与日历选择器**已完成。
 - `toggleHabitCheckinAction` 新增可选 `checkinDate` 参数，支持补打卡；添加 30 天日期范围校验。
 - 新建 `HabitCheckinCalendar` 日历组件，显示月视图并标记已打卡/已取消日期。

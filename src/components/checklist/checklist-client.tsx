@@ -417,11 +417,11 @@ export function ChecklistClient({
             <h2 className="section-heading">任务</h2>
             <div className="flex items-center gap-2">
               {!isSelecting ? (
-                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                <button type="button" className="soft-button text-sm" onClick={() => setIsSelecting(true)}>
                   选择
                 </button>
               ) : (
-                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                <button type="button" className="soft-button text-sm" onClick={exitSelectionMode}>
                   取消
                 </button>
               )}
@@ -630,11 +630,11 @@ export function ChecklistClient({
             <h2 className="section-heading">日程</h2>
             <div className="flex items-center gap-2">
               {!isSelecting ? (
-                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                <button type="button" className="soft-button text-sm" onClick={() => setIsSelecting(true)}>
                   选择
                 </button>
               ) : (
-                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                <button type="button" className="soft-button text-sm" onClick={exitSelectionMode}>
                   取消
                 </button>
               )}
@@ -803,11 +803,11 @@ export function ChecklistClient({
             <h2 className="section-heading">习惯</h2>
             <div className="flex items-center gap-2">
               {!isSelecting ? (
-                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                <button type="button" className="soft-button text-sm" onClick={() => setIsSelecting(true)}>
                   选择
                 </button>
               ) : (
-                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                <button type="button" className="soft-button text-sm" onClick={exitSelectionMode}>
                   取消
                 </button>
               )}
@@ -930,11 +930,11 @@ export function ChecklistClient({
             <h2 className="section-heading">灵感</h2>
             <div className="flex items-center gap-2">
               {!isSelecting ? (
-                <button type="button" className="quiet-button text-sm" onClick={() => setIsSelecting(true)}>
+                <button type="button" className="soft-button text-sm" onClick={() => setIsSelecting(true)}>
                   选择
                 </button>
               ) : (
-                <button type="button" className="quiet-button text-sm" onClick={exitSelectionMode}>
+                <button type="button" className="soft-button text-sm" onClick={exitSelectionMode}>
                   取消
                 </button>
               )}
