@@ -71,7 +71,12 @@ function isDateAfter(value: string, baseline: string) {
 }
 
 function isValidTimeValue(value: string) {
-  return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+  return /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(value);
+}
+
+function normalizeTimeValue(value: string): string {
+  const match = value.match(/^([01]\d|2[0-3]):[0-5]\d/);
+  return match ? match[0] : value;
 }
 
 function getTagsValue(value: string) {
@@ -774,8 +779,10 @@ export async function createScheduleItemAction(formData: FormData) {
   const scheduleDateFallback = getStringValue(formData, "scheduleDate");
   const endDateValue = getStringValue(formData, "endDate");
   const recurrenceValue = getStringValue(formData, "recurrence");
-  const startTimeValue = getStringValue(formData, "startTime");
-  const endTimeValue = getStringValue(formData, "endTime");
+  const startTimeRaw = getStringValue(formData, "startTime");
+  const endTimeRaw = getStringValue(formData, "endTime");
+  const startTimeValue = normalizeTimeValue(startTimeRaw);
+  const endTimeValue = endTimeRaw ? normalizeTimeValue(endTimeRaw) : "";
   const category = isTaskCategory(categoryValue) ? categoryValue : "other";
   const startDate = isValidDateValue(startDateValue) ? startDateValue : (isValidDateValue(scheduleDateFallback) ? scheduleDateFallback : getBeijingDateValue());
   const endDate = isValidDateValue(endDateValue) ? endDateValue : null;
@@ -836,8 +843,10 @@ export async function updateScheduleItemAction(formData: FormData) {
   const scheduleDateFallback = getStringValue(formData, "scheduleDate");
   const endDateValue = getStringValue(formData, "endDate");
   const recurrenceValue = getStringValue(formData, "recurrence");
-  const startTimeValue = getStringValue(formData, "startTime");
-  const endTimeValue = getStringValue(formData, "endTime");
+  const startTimeRaw = getStringValue(formData, "startTime");
+  const endTimeRaw = getStringValue(formData, "endTime");
+  const startTimeValue = normalizeTimeValue(startTimeRaw);
+  const endTimeValue = endTimeRaw ? normalizeTimeValue(endTimeRaw) : "";
   const category = isTaskCategory(categoryValue) ? categoryValue : "other";
   const startDate = isValidDateValue(startDateValue) ? startDateValue : (isValidDateValue(scheduleDateFallback) ? scheduleDateFallback : getBeijingDateValue());
   const endDate = isValidDateValue(endDateValue) ? endDateValue : null;

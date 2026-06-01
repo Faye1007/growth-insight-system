@@ -38,7 +38,13 @@ function isValidDateValue(value: string) {
 }
 
 function isValidTimeValue(value: string) {
-  return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+  return /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(value);
+}
+
+function normalizeTimeValue(value: string): string {
+  // 移动端可能返回 HH:MM:SS，规范化为 HH:MM
+  const match = value.match(/^([01]\d|2[0-3]):[0-5]\d/);
+  return match ? match[0] : value;
 }
 
 function getTagsValue(value: string) {
@@ -103,8 +109,10 @@ export async function createChecklistScheduleAction(formData: FormData) {
   const endDate = isValidDateValue(endDateRaw) ? endDateRaw : null;
   const recurrenceValue = getStringValue(formData, "recurrence");
   const recurrence = isScheduleRecurrence(recurrenceValue) ? recurrenceValue : "none";
-  const startTime = getStringValue(formData, "startTime");
-  const endTime = getStringValue(formData, "endTime");
+  const startTimeRaw = getStringValue(formData, "startTime");
+  const endTimeRaw = getStringValue(formData, "endTime");
+  const startTime = normalizeTimeValue(startTimeRaw);
+  const endTime = endTimeRaw && isValidTimeValue(endTimeRaw) ? normalizeTimeValue(endTimeRaw) : null;
 
   if (!startTime || !isValidTimeValue(startTime)) {
     redirect("/checklist?tab=schedules&scheduleError=missing_time");
@@ -123,7 +131,7 @@ export async function createChecklistScheduleAction(formData: FormData) {
       endDate,
       recurrence,
       startTime,
-      endTime: endTime && isValidTimeValue(endTime) ? endTime : null,
+      endTime,
     });
   } catch {
     redirect("/checklist?tab=schedules&scheduleError=save_failed");

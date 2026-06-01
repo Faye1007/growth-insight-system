@@ -6,6 +6,9 @@
 
 最新已完成里程碑：
 
+- **Modification Step 28.4：修复移动端日程保存时间验证问题**已完成。
+- 更新 `isValidTimeValue` 支持 `HH:MM:SS` 格式；新增 `normalizeTimeValue` 规范化时间值。
+- 移动端 `<input type="time">` 可能返回带秒格式，现在能正确处理。
 - **Modification Step 28.3：清单页选择按钮与新增按钮样式统一**已完成。
 - 清单页四个 tab（任务、日程、习惯、灵感）的"选择"和"取消"按钮样式从 `quiet-button` 改为 `soft-button`，与"新增"按钮保持一致。
 - **Modification Step 28.2：新增习惯补打卡功能与日历选择器**已完成。
