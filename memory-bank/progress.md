@@ -6,6 +6,10 @@
 
 最新已完成里程碑：
 
+- **Modification Step 28.1：修复移动端搜索按钮不弹出搜索框**已完成。
+- `SearchOverlay` 组件从桌面端 header 移到不受显示/隐藏限制的位置，确保移动端和桌面端都能使用。
+- 搜索按钮改为 dispatch 自定义事件 `open-search`，`SearchOverlay` 同时监听 `keydown` 和 `open-search` 事件。
+- **Modification Step 28：移动端体验优化与习惯补打卡**正在执行中。
 - **Modification Step 27.12：纪念日/礼物页图标与布局对齐**已完成。
 - 纪念日和礼物"新增"summary 补上 `<Plus>` 图标；"选择"和"新增"放入同一 `flex items-center gap-2` 容器，对齐方式与事件部分一致。
 - **Modification Step 27.11：统一服务端和客户端循环日程判断逻辑**已完成。
@@ -36,8 +40,12 @@
 
 当前待执行方向：
 
+- **Modification Step 28：移动端体验优化与习惯补打卡**正在执行中，包含 4 个子项：
+  - 28.1：修复移动端搜索按钮不弹出搜索框
+  - 28.2：新增习惯补打卡功能
+  - 28.3：清单页选择按钮与新增按钮样式统一并排
+  - 28.4：排查日程新建/修改功能
 - **Modification Step 27 所有子项已完成**。
-- 下一步考虑新的迭代方向。
 
 长期状态：
 

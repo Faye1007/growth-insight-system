@@ -159,6 +159,67 @@
 
 ---
 
+### Modification Step 28：移动端体验优化与习惯补打卡
+
+基于 Faye 实际使用中发现的移动端体验问题，以下按优先级逐步修复：
+
+#### 一、P0 功能 Bug
+
+##### Step 28.1：修复移动端搜索按钮不弹出搜索框
+
+- **现状**：底部导航搜索按钮通过 `window.dispatchEvent(new KeyboardEvent("keydown", { ctrlKey: true, key: "k" }))` 触发搜索，但移动端某些浏览器对程序触发的 `KeyboardEvent` 有限制，导致搜索框不弹出。
+- **目标**：改用自定义事件机制，确保移动端搜索按钮能可靠触发搜索框。
+- **影响文件**：`src/components/bottom-nav.tsx`、`src/components/search-overlay.tsx`
+- **验证方式**：移动端点击搜索按钮，搜索框正常弹出；桌面端 Ctrl+K 快捷键仍正常工作。
+
+##### Step 28.2：新增习惯补打卡功能
+
+- **现状**：`toggleHabitCheckinAction`（`src/app/daily/actions.ts:272`）硬编码 `todayDate = getBeijingDateValue()`，只能打卡/取消今天。用户漏打卡时无法补打。
+- **目标**：
+  - 修改 `toggleHabitCheckinAction` 支持可选的 `checkinDate` 参数
+  - 在习惯详情页（`/checklist/habits/[id]`）添加补打卡 UI
+  - 补打卡日期范围限制为最近 30 天内
+  - 增加日期校验，防止超出范围
+- **影响文件**：`src/app/daily/actions.ts`、`src/app/checklist/habits/[id]/page.tsx`
+- **验证方式**：
+  - 打卡今天正常工作（默认行为）
+  - 在习惯详情页选择过去 30 天内的日期补打卡成功
+  - 选择超出 30 天范围的日期被拒绝
+  - 补打卡后累计次数和连续天数正确更新
+
+#### 二、P1 交互优化
+
+##### Step 28.3：清单页选择按钮与新增按钮样式统一并排
+
+- **现状**：清单页任务/日程/习惯/灵感列表的"选择"按钮使用 `quiet-button` 样式，"新增"按钮使用 `soft-button` 样式，两者视觉效果不一致。且两个按钮没有明确的并排布局。
+- **目标**：
+  - 将"选择"按钮改为 `soft-button` 样式，与"新增"保持一致
+  - 确保两个按钮在同一 `flex items-center gap-2` 容器内并排展示
+- **影响文件**：`src/components/checklist/checklist-client.tsx`
+- **验证方式**：清单页四个 tab 的"选择"和"新增"按钮视觉风格一致、并排对齐。
+
+#### 三、P2 待排查
+
+##### Step 28.4：排查日程新建/修改功能
+
+- **现状**：用户报告移动端日程无法新建和修改。从代码结构看，日程创建表单（清单页日程 tab）和编辑表单（日程详情页）都存在。
+- **目标**：排查并修复可能导致移动端日程新建/修改失败的问题。
+- **可能原因**：
+  - 清单页日程 tab 的 `<details>/<summary>` 元素在移动端交互异常
+  - 日程创建 Action 执行后页面刷新问题
+  - 表单字段验证问题
+- **影响文件**：`src/components/checklist/checklist-client.tsx`、`src/app/checklist/actions.ts`
+- **验证方式**：移动端能正常新建日程、编辑日程。
+
+#### Step 28 执行顺序
+
+1. **Step 28.1**：修复移动端搜索按钮（功能 Bug，最高优先）
+2. **Step 28.2**：新增习惯补打卡功能（功能增强）
+3. **Step 28.3**：清单页按钮样式统一（交互优化）
+4. **Step 28.4**：排查日程新建/修改问题（待排查）
+
+---
+
 ### Modification Step 26：消除整页刷新、日程/延期改进、批量删除、搜索、规则引擎优化与代码清理
 
 基于 Faye 确认的改进方向，以下按优先级排序逐步实施：

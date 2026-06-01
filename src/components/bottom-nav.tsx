@@ -23,7 +23,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   function openSearch() {
-    window.dispatchEvent(new KeyboardEvent("keydown", { ctrlKey: true, key: "k" }));
+    window.dispatchEvent(new CustomEvent("open-search"));
   }
 
   return (

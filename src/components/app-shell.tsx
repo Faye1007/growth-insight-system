@@ -39,9 +39,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <body>
       <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-16 lg:pb-0">
-        {/* Desktop top header with search and account entry */}
+        {/* Desktop top header with account entry */}
         <div className="hidden border-b border-[var(--border)] bg-[var(--sidebar)] px-6 py-3 lg:flex lg:items-center lg:justify-end lg:gap-3">
-          <SearchOverlay />
           {user ? (
             <Link className="desktop-account-button" href="/settings" aria-label="打开账号与应用设置">
               <UserRound aria-hidden="true" className="h-4 w-4" />
@@ -94,6 +93,9 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
+
+        {/* SearchOverlay - rendered for both desktop and mobile */}
+        <SearchOverlay />
 
         {/* Mobile bottom navigation */}
         <div className="lg:hidden">
