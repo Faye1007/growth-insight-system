@@ -133,7 +133,8 @@ export async function createChecklistScheduleAction(formData: FormData) {
       startTime,
       endTime,
     });
-  } catch {
+  } catch (error) {
+    console.error("[createChecklistScheduleAction] save failed:", error);
     redirect("/checklist?tab=schedules&scheduleError=save_failed");
   }
 

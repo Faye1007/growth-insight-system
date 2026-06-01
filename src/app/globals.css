@@ -1550,6 +1550,9 @@ select {
     font-size: 0.6875rem;
     font-weight: 600;
     text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
     transition: color 160ms ease;
   }
 

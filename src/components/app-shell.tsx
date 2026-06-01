@@ -37,7 +37,6 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   const displayName = getDisplayName(user);
 
   return (
-    <body>
       <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-16 lg:pb-0">
         {/* Desktop top header with account entry */}
         <div className="hidden border-b border-[var(--border)] bg-[var(--sidebar)] px-6 py-3 lg:flex lg:items-center lg:justify-end lg:gap-3">
@@ -102,6 +101,5 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           <BottomNav />
         </div>
       </div>
-    </body>
   );
 }

@@ -15,9 +15,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <ToastProvider>
-        <AppShell>{children}</AppShell>
-      </ToastProvider>
+      <body>
+        <ToastProvider>
+          <AppShell>{children}</AppShell>
+        </ToastProvider>
+      </body>
     </html>
   );
 }
