@@ -2870,7 +2870,7 @@ export async function getPostponedTasksForUser(userId: string) {
     status: row.status,
     taskDate: row.task_date,
     isPostponed: row.is_postponed,
-    postponedToDate: (row as any).postponed_to_date ?? null,
+    postponedToDate: row.postponed_to_date ?? null,
     isPinned: row.is_pinned,
     createdAt: new Date(row.created_at),
   }));

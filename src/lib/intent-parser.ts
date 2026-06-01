@@ -18,14 +18,6 @@ const weekdayNames: Record<string, number> = {
   monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 7,
 };
 
-function parseChineseWeekday(text: string): number | null {
-  const match = text.match(/[周|星期]([一二三四五六日天])/);
-  if (match) return weekdayNames[match[1]];
-  const engMatch = text.match(/(?:this|next|last)\s+(mon|tue|wed|thu|fri|sat|sun|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
-  if (engMatch) return weekdayNames[engMatch[1].toLowerCase()];
-  return null;
-}
-
 function parseRelativeDateFromText(text: string): { date: string; rest: string } {
   const today = new Date();
   const todayStr = getBeijingDateValue();
@@ -62,11 +54,6 @@ function parseRelativeDateFromText(text: string): { date: string; rest: string }
 
   return { date: todayStr, rest: text };
 }
-
-// 时间段 → hour offset
-const periodToOffset: Record<string, number> = {
-  早上: 6, 早晨: 6, 上午: 9, 中午: 12, 下午: 13, 晚上: 18, 夜间: 21, 半夜: 0,
-};
 
 // category keywords → category value
 const categoryKeywords: Array<{ keywords: string[]; category: string }> = [
@@ -145,8 +132,6 @@ function parseTimeFromText(text: string): { time: string | undefined; rest: stri
 }
 
 function detectPrefixType(text: string): { type: IntentType | null; clean: string } {
-  const lower = text.toLowerCase();
-
   // Explicit intent prefixes extract the remainder
   const prefixRules: Array<{ pattern: RegExp; type: IntentType }> = [
     { pattern: /^(?:创建|新增|添加|加一个|记一个)(?:任务|todo|待办)[：:]?\s*/i, type: "task" },

@@ -7,7 +7,7 @@ import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getHabitByIdForUser } from "@/lib/data/user-data";
-import { getTaskCategoryLabel, taskCategories } from "@/lib/tasks/options";
+import { taskCategories } from "@/lib/tasks/options";
 
 type HabitDetailPageProps = {
   params: Promise<{ id: string }>;

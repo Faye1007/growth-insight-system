@@ -21,7 +21,6 @@ import {
   getRecentTasksForUser,
   getUpcomingAnniversariesForUser,
 } from "@/lib/data/user-data";
-import type { UpcomingAnniversary } from "@/lib/data/user-data";
 import { getTaskCategoryLabel } from "@/lib/tasks/options";
 import { getBeijingDateValue, getBeijingDateAfter } from "@/lib/date";
 

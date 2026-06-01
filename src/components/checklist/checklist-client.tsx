@@ -4,7 +4,6 @@ import { useState, useActionState, useEffect } from "react";
 import Link from "next/link";
 import {
   CalendarDays,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
@@ -222,7 +221,7 @@ export function ChecklistClient({
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [_postponeState, postponeAction] = useActionState(postponeTaskAction, null);
-  const [_batchState, batchAction, _batchPending] = useActionState(batchSoftDeleteAction, null);
+  const [_batchState, batchAction] = useActionState(batchSoftDeleteAction, null);
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -233,7 +232,7 @@ export function ChecklistClient({
     } else {
       addToast("删除失败，请稍后重试", "error");
     }
-  }, [_batchState]);
+  }, [_batchState, addToast]);
 
   useEffect(() => {
     if (!_postponeState) return;
@@ -244,7 +243,7 @@ export function ChecklistClient({
         _postponeState.error === "missing_task" ? "任务不存在" : "延期失败，请稍后重试";
       addToast(msg, "error");
     }
-  }, [_postponeState]);
+  }, [_postponeState, addToast]);
 
   const today = new Date();
   const todayStr = getBeijingDateValue(today);
@@ -581,7 +580,7 @@ export function ChecklistClient({
                 </span>
                 <div>
                   <p className="list-label">本周暂无任务</p>
-                  <p className="body-copy mt-1">点击上方"新增"创建任务。</p>
+                  <p className="body-copy mt-1">点击上方&quot;新增&quot;创建任务。</p>
                 </div>
               </div>
             )
@@ -752,7 +751,7 @@ export function ChecklistClient({
                 </span>
                 <div>
                   <p className="list-label">本周暂无日程</p>
-                  <p className="body-copy mt-1">点击上方"新增"记录日程。</p>
+                  <p className="body-copy mt-1">点击上方&quot;新增&quot;记录日程。</p>
                 </div>
               </div>
             )
@@ -776,7 +775,7 @@ export function ChecklistClient({
                   <div key={item.id} className="habit-checkin-row">
                     <span className="habit-checkin-name">{item.title}</span>
                     {weekDays.map((d) => {
-                      let isOnDay = scheduleOccursOnDate(item.startDate, item.endDate ?? null, item.recurrence as "none" | "daily" | "weekly" | "monthly", d.date);
+                      const isOnDay = scheduleOccursOnDate(item.startDate, item.endDate ?? null, item.recurrence as "none" | "daily" | "weekly" | "monthly", d.date);
                       const isCompleted = isOnDay && (scheduleCompletionMap.get(item.id)?.has(d.date) ?? false);
                       return (
                         <span
@@ -881,7 +880,7 @@ export function ChecklistClient({
                 </span>
                 <div>
                   <p className="list-label">暂无启用习惯</p>
-                  <p className="body-copy mt-1">点击上方"新增"添加习惯。</p>
+                  <p className="body-copy mt-1">点击上方&quot;新增&quot;添加习惯。</p>
                 </div>
               </div>
             )
@@ -1027,7 +1026,7 @@ export function ChecklistClient({
               </span>
               <div>
                 <p className="list-label">本周暂无灵感</p>
-                <p className="body-copy mt-1">点击上方"新增"记录灵感。</p>
+                <p className="body-copy mt-1">点击上方&quot;新增&quot;记录灵感。</p>
               </div>
             </div>
           )}

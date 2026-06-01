@@ -8,7 +8,6 @@ import {
   Plus,
   Repeat2,
   Sparkles,
-  Trash2,
 } from "lucide-react";
 
 import {
@@ -19,7 +18,6 @@ import { HabitCheckinToggle } from "@/components/habit-checkin-toggle";
 import { DeleteButton } from "@/components/delete-button";
 import { PinToggle } from "@/components/pin-toggle";
 import { getBeijingDateValue, getBeijingDateAfter } from "@/lib/date";
-import { normalizeStringList } from "@/lib/utils";
 import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -47,13 +45,10 @@ import {
 import {
   getScheduleRecurrenceLabel,
   type ScheduleRecurrence,
-  scheduleRecurrences,
 } from "@/lib/schedules/options";
 import {
   getTaskCategoryLabel,
   getTaskStatusLabel,
-  taskCategories,
-  taskStatuses,
 } from "@/lib/tasks/options";
 import {
   dailyHabitErrorFeedback,
@@ -123,36 +118,6 @@ const beijingDateTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
   minute: "2-digit",
 });
 
-const emotionOptions = [
-  "平静",
-  "开心",
-  "满足",
-  "期待",
-  "兴奋",
-  "焦虑",
-  "疲惫",
-  "低落",
-  "委屈",
-  "生气",
-  "压力",
-  "混乱",
-  "孤独",
-  "感激",
-] as const;
-
-const aiAnalysisPermissions = [
-  { value: "none", label: "不参与 AI 分析" },
-  { value: "summary_only", label: "仅摘要参与" },
-  { value: "allow_original", label: "允许原文参与" },
-] as const;
-
-const ideaStatusOptions = [
-  { value: "to_review", label: "待处理" },
-  { value: "converted_to_task", label: "已转任务" },
-  { value: "shelved", label: "已搁置" },
-  { value: "abandoned", label: "已放弃" },
-] as const;
-
 type DailySectionId = "tasks" | "habits" | "schedule" | "notes";
 
 const dailySections: Array<{
@@ -212,32 +177,6 @@ const dailySections: Array<{
   },
 ];
 
-function WriteAction({
-  isLoggedIn,
-  label,
-  loginPath,
-}: {
-  isLoggedIn: boolean;
-  label: string;
-  loginPath: string;
-}) {
-  if (!isLoggedIn) {
-    return (
-      <Link className="soft-button w-full sm:w-auto" href={loginPath}>
-        <Plus aria-hidden="true" className="h-4 w-4" />
-        登录后{label}
-      </Link>
-    );
-  }
-
-  return (
-    <button className="soft-button w-full sm:w-auto" type="button" disabled>
-      <Plus aria-hidden="true" className="h-4 w-4" />
-      {label}待接入
-    </button>
-  );
-}
-
 function getHabitStats(habit: ActiveHabit, checkins: HabitCheckin[], todayDate: string) {
   const habitCheckins = checkins.filter((checkin) => checkin.habitId === habit.id);
   const checkedDates = new Set(
@@ -268,12 +207,6 @@ function getHabitStats(habit: ActiveHabit, checkins: HabitCheckin[], todayDate: 
 
 
 
-function formatScheduleTimeRange(startTime: string | null, endTime: string | null) {
-  const start = startTime ? startTime.slice(0, 5) : "未设置时间";
-
-  return endTime ? `${start}-${endTime.slice(0, 5)}` : start;
-}
-
 function formatScheduleDateMeta(item: {
   startDate: string;
   endDate: string | null;
@@ -286,14 +219,6 @@ function formatScheduleDateMeta(item: {
   const end = item.endDate ? ` 至 ${item.endDate}` : "";
 
   return `${getScheduleRecurrenceLabel(item.recurrence)} · ${item.startDate}${end}`;
-}
-
-function getAiAnalysisPermissionLabel(value: string) {
-  return aiAnalysisPermissions.find((item) => item.value === value)?.label ?? "仅摘要参与";
-}
-
-function getIdeaStatusLabel(value: string) {
-  return ideaStatusOptions.find((item) => item.value === value)?.label ?? value;
 }
 
 function getTaskStatusTone(status: TodayTask["status"]) {
@@ -328,17 +253,6 @@ function getCreateSectionId(value: string | undefined): DailySectionId | null {
   }
 
   return null;
-}
-
-function getCreateHref(sectionId: DailySectionId) {
-  const createValue: Record<DailySectionId, string> = {
-    tasks: "task",
-    habits: "habit",
-    schedule: "schedule",
-    notes: "record",
-  };
-
-  return `/daily?view=${sectionId}&create=${createValue[sectionId]}#${sectionId}`;
 }
 
 function getSearchParamValues(
@@ -766,22 +680,6 @@ export default async function DailyPage({ searchParams }: DailyPageProps) {
     dailyReviewErrorFeedback,
     defaultReviewErrorFeedback,
   );
-  const taskCreateFormOpen =
-    params?.create === "task" || params?.taskError === "missing_title" || params?.taskError === "save_failed";
-  const habitCreateFormOpen =
-    params?.create === "habit" || params?.habitError === "missing_name" || params?.habitError === "save_failed";
-  const scheduleCreateFormOpen =
-    params?.create === "schedule" ||
-    params?.scheduleError === "missing_title" ||
-    params?.scheduleError === "missing_time" ||
-    params?.scheduleError === "invalid_time" ||
-    params?.scheduleError === "invalid_date_range" ||
-    params?.scheduleError === "save_failed";
-  const recordCreateFormOpen =
-    params?.create === "record" ||
-    params?.recordError === "missing_content" ||
-    params?.recordError === "invalid_type" ||
-    params?.recordError === "save_failed";
   const activeSections = activeSectionId
     ? dailySections.filter((section) => section.id === activeSectionId)
     : [];

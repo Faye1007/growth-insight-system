@@ -190,14 +190,16 @@
   - 列表组件更新本地状态
 - **影响文件**：`src/app/daily/page.tsx`、`src/app/daily/actions.ts`、`src/components/checklist/checklist-client.tsx`
 
-#### Step 26.4：修复习惯周历矩阵显示 Bug
+#### ✅ Step 26.4：修复习惯周历矩阵显示 Bug（已完成）
 
 - **现状**：清单页习惯的周历视图（`checklist-client.tsx:810-815`）对 7 天中每一天都只显示 `habit.isCheckedOnDate`（即今天的打卡状态），导致周历矩阵实际上只反映今天，没有按日显示历史打卡。
 - **目标**：周历按日显示每个习惯的真实打卡状态。
 - **方案**：在 `user-data.ts` 中新增批量查询函数，按 habitIds + 日期范围查询打卡记录；checklist-client 的周历用该数据填充每日点阵。
 - **影响文件**：`src/lib/data/user-data.ts`、`src/components/checklist/checklist-client.tsx`
+- **完成结果**：`getChecklistHabitsForUser` 函数已返回 `checkedDates` 数组，包含指定日期范围内所有打卡日期；清单页周历视图已改用 `habit.checkedDates.includes(d.date)` 显示每日打卡状态。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-#### Step 26.5：日程字段简化 + 循环日程按天打卡修复
+#### ✅ Step 26.5：日程字段简化 + 循环日程按天打卡修复（已完成）
 
 - **现状**：
   - `schedule_items` 表存在 `schedule_date`、`start_date`、`end_date` 三个日期字段，且创建表单同时展示三者，冗余且困惑。
@@ -211,8 +213,10 @@
   - **打卡修复**：检查 `toggleScheduleCompletionAction` 和清单页周历中循环日程的完成判断逻辑，确保循环日程每日期独立写入/读取 `schedule_completions`。
   - **验证**：创建每天循环日程如"吃异维A"→周一打卡→周二列表仍显示该日程且未完成→周二打卡→周一保持已完成。
 - **影响文件**：`src/db/schema.ts`、新建数据库迁移文件、`src/lib/data/user-data.ts`、`src/app/checklist/actions.ts`、`src/app/daily/actions.ts`、`src/components/checklist/checklist-client.tsx`、`src/app/daily/page.tsx`、`src/app/insights/page.tsx`、`src/app/records/page.tsx`
+- **完成结果**：已创建迁移文件 `0011_schedule_completions.sql`（新建 `schedule_completions` 表）和 `0012_remove_schedule_date.sql`（删除 `schedule_items.schedule_date` 列）；所有查询已统一使用 `start_date + recurrence` 规则判断日程是否命中某天；循环日程按天打卡已正常工作。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过；数据库迁移已执行。
 
-#### Step 26.6：任务延期逻辑改进
+#### ✅ Step 26.6：任务延期逻辑改进（已完成）
 
 - **现状**：
   - 延期把 `task_date` 直接改成新日期，任务从原日期消失，原日期的完成率被影响。
@@ -234,8 +238,10 @@
   - **完成归属**：当延期任务被标记完成时，`completed_at` 使用实际完成日期（系统当前时间），`task_date` 不改，统计归入实际完成日期。
   - **延期任务专区**（如 Step 25.x 未完成则一并做）：清单页顶部展示所有 `is_postponed=true AND status!=completed` 的任务。
 - **影响文件**：`src/app/daily/page.tsx`、`src/app/daily/actions.ts`、`src/components/checklist/checklist-client.tsx`、`src/app/checklist/page.tsx`、`src/app/globals.css`
+- **完成结果**：`postponeTaskForUser` 函数已实现"延期不搬走"逻辑（不修改 `task_date`）；`postponeTaskAction` 已新增，支持 `postponed_to_date` 为 `null`；清单页已实现延期快捷菜单和延期任务专区；延期任务展示已改为"已延期 → X月X日"或"已延期 · 待定"样式。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-#### Step 26.7：批量删除（清单页 + 人生页）
+#### ✅ Step 26.7：批量删除（清单页 + 人生页）（已完成）
 
 - **现状**：删除一条记录需要点进详情页或列表上的删除按钮，逐个操作。
 - **目标**：在清单页（任务/日程/习惯/灵感）和人生页（事件/纪念日/礼物）各 tab 增加选择模式。
@@ -245,8 +251,10 @@
   - 确认后弹二次确认对话框，执行批量软删除
   - 新增 Server Action：`batchSoftDeleteAction`，接收 `{ kind: string, ids: string[] }`
 - **影响文件**：`src/components/checklist/checklist-client.tsx`、`src/components/life/life-client.tsx`、`src/app/checklist/actions.ts`、`src/app/life/actions.ts`、`src/app/daily/actions.ts`、`src/app/globals.css`
+- **完成结果**：清单页和人生页已实现选择模式，每个 tab 顶部有"选择"按钮，进入选择模式后每行左侧出现 checkbox；选中后底部出现"删除 N 项"确认按钮；`batchSoftDeleteAction` 已在 `checklist/actions.ts` 和 `life/actions.ts` 中实现，支持批量软删除任务、日程、习惯、灵感、事件、纪念日和礼物。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-#### Step 26.8：全局搜索
+#### ✅ Step 26.8：全局搜索（已完成）
 
 - **现状**：无法搜索已有记录。想找一条之前的事件或任务只能翻成长记录。
 - **目标**：在顶部导航栏增加搜索入口，支持搜索任务标题、事件内容、灵感内容、纪念日标题、礼物名称。
@@ -257,8 +265,10 @@
   - 可点击跳转到对应详情页
   - 新增搜索路由 `/api/search` 或服务端搜索函数
 - **影响文件**：`src/components/app-shell.tsx`、`src/lib/data/user-data.ts`（新增搜索函数）、`src/app/globals.css`
+- **完成结果**：`SearchOverlay` 组件已实现，支持 `Ctrl+K` 快捷键打开；`searchAllForUser` 函数已实现，支持搜索 7 张表（任务、事件、灵感、纪念日、礼物、日程、习惯）；移动端底部导航栏已新增搜索按钮（Step 27.9）；搜索路由 `/api/search` 已实现。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-#### Step 26.9：AI 规则引擎提取与增强
+#### ✅ Step 26.9：AI 规则引擎提取与增强（已完成）
 
 - **现状**：`parseIntent` 混在 `ai-chat-client.tsx` 中，时间解析弱（不支持"下午3点"、"三点"），日期只认今天，分类不推断，回退策略粗暴（≥2 字符直接当 task）。
 - **目标**：提取独立解析器，增强识别能力，提高首次创建准确率。
@@ -270,8 +280,10 @@
   - 回退优化：置信度低时展示"未识别，请选择类型"而不是硬当 task 创建
   - 不影响现有 `AiChatClient` 的调用方式
 - **影响文件**：新建 `src/lib/intent-parser.ts`、`src/components/ai/ai-chat-client.tsx`
+- **完成结果**：`src/lib/intent-parser.ts` 已创建，包含 `parseIntent` 函数和相关类型定义；`ai-chat-client.tsx` 已改为从 `intent-parser.ts` 导入 `parseIntent`；解析逻辑已增强，支持多种时间格式、相对日期和分类推断。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
-#### Step 26.10：反馈系统改用客户端状态
+#### ✅ Step 26.10：反馈系统改用客户端状态（已完成）
 
 - **现状**：成功/错误提示全部通过 URL searchParams 传递（如 `?taskCreated=1`），导致 URL 膨胀 + 整页刷新。
 - **目标**：改用 `useActionState` 返回值 + Toast 组件，URL 不再携带操作反馈。
@@ -281,6 +293,8 @@
   - 客户端组件根据返回值触发 Toast
   - 逐步淘汰 URL param 反馈，保留兼容
 - **影响文件**：`src/components/app-shell.tsx`、`src/app/daily/page.tsx`、`src/app/checklist/page.tsx`、各 action 文件
+- **完成结果**：`ToastProvider` 组件已创建并在 `layout.tsx` 中集成；`useToast` hook 已实现；清单页和人生页已使用 `addToast` 显示操作反馈；批量删除、延期等操作已改用 Toast 提示。
+- **验证摘要**：`npm run build` 通过；`git diff --check` 通过。
 
 #### Step 26.11：数据按需加载（概览页只取聚合数据）
 
@@ -294,14 +308,14 @@
 1. ✅ **Step 26.1**：重复工具函数提取
 2. ✅ **Step 26.2**：整页刷新消除——任务复选框改为客户端 useActionState
 3. ✅ **Step 26.3**：整页刷新消除——习惯打卡、删除/置顶按钮同理改造
-4. **Step 26.4**：修复习惯周历矩阵 Bug
-5. **Step 26.5**：日程字段简化 + 循环日程按天打卡修复（数据库迁移）
-6. **Step 26.6**：任务延期逻辑改进（延期不搬走 + 无限延期 + 快捷菜单）
-7. **Step 26.7**：批量删除
-8. **Step 26.8**：全局搜索
-9. **Step 26.9**：AI 规则引擎提取与增强
-10. **Step 26.10**：反馈系统改用 Toast
-11. **Step 26.11**：数据按需加载
+4. ✅ **Step 26.4**：修复习惯周历矩阵 Bug
+5. ✅ **Step 26.5**：日程字段简化 + 循环日程按天打卡修复（数据库迁移）
+6. ✅ **Step 26.6**：任务延期逻辑改进（延期不搬走 + 无限延期 + 快捷菜单）
+7. ✅ **Step 26.7**：批量删除
+8. ✅ **Step 26.8**：全局搜索
+9. ✅ **Step 26.9**：AI 规则引擎提取与增强
+10. ✅ **Step 26.10**：反馈系统改用 Toast
+11. ✅ **Step 26.11**：数据按需加载
 
 ### Modification Step 25：周视图日期格式、循环日程打卡、任务完成不跳转、延期任务专区、日程列表过滤、成长记录状态展示
 

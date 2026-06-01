@@ -93,7 +93,7 @@ export function LifeClient({
   const [activeTab, setActiveTab] = useState<LifeTab>(initialTab);
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [_batchState, batchAction, _batchPending] = useActionState(batchSoftDeleteAction, null);
+  const [_batchState, batchAction] = useActionState(batchSoftDeleteAction, null);
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export function LifeClient({
     } else {
       addToast("删除失败，请稍后重试", "error");
     }
-  }, [_batchState]);
+  }, [_batchState, addToast]);
 
   const today = getTodayValue();
 
@@ -342,7 +342,7 @@ export function LifeClient({
               </span>
               <div>
                 <p className="list-label">暂无事件记录</p>
-                <p className="body-copy mt-1">点击上方"新增"记录事件。</p>
+                <p className="body-copy mt-1">点击上方&quot;新增&quot;记录事件。</p>
               </div>
             </div>
           )}
