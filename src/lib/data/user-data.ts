@@ -2942,7 +2942,7 @@ export async function getChecklistSchedulesForUser(
     }));
 }
 
-export async function getChecklistHabitsForUser(userId: string, dateFrom: string, dateTo: string) {
+export async function getChecklistHabitsForUser(userId: string) {
   const supabase = await createClient();
   const { data: habitsData, error: habitsError } = await supabase
     .from("habits")

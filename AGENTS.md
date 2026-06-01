@@ -122,6 +122,10 @@ Supabase 已通知：2026年10月30日起，所有现有项目的 `public` schem
 - 2026年10月30日之前已创建的表保持当前权限不变。
 - 2026年10月30日之后新建的表需要显式 `GRANT` 才能被 supabase-js 访问。
 
+**已完成的 GRANT 迁移**：
+- `0010_supabase_js_grants.sql`：anniversaries, gift_records, tool_sessions
+- `0014_remaining_table_grants.sql`：tasks, habits, habit_checkins, schedule_items, life_events, ideas, insight_reports, personal_manuals, schedule_completions
+
 **后续新建表时必须做的**：
 在迁移文件中为每个新表加上显式授权：
 

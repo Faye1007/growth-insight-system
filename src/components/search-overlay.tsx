@@ -8,6 +8,8 @@ import type { SearchResultItem } from "@/lib/data/user-data";
 
 const detailPaths: Record<string, string> = {
   tasks: "/records/task",
+  schedules: "/records/schedule",
+  habits: "/checklist/habits",
   events: "/records/event",
   ideas: "/records/idea",
   anniversaries: "/life/anniversary",

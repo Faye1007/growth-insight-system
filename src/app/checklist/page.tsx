@@ -50,7 +50,7 @@ export default async function ChecklistPage({ searchParams }: ChecklistPageProps
     ? await Promise.all([
         getChecklistTasksForUser(user.id, weekStart, weekEnd),
         getChecklistSchedulesForUser(user.id, weekStart, weekEnd),
-        getChecklistHabitsForUser(user.id, weekStart, weekEnd),
+        getChecklistHabitsForUser(user.id),
         getChecklistIdeasForUser(user.id, weekStart, weekEnd),
         getPostponedTasksForUser(user.id),
       ])

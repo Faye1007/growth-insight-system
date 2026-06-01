@@ -76,7 +76,35 @@
       "idx": 10,
       "version": "7",
       "when": 1779001789078,
+      "tag": "0010_supabase_js_grants",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1779001789079,
+      "tag": "0011_schedule_completions",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1779001789080,
+      "tag": "0012_remove_schedule_date",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1779001789081,
       "tag": "0013_drop_is_completed",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1780314660000,
+      "tag": "0014_remaining_table_grants",
       "breakpoints": true
     }
   ]

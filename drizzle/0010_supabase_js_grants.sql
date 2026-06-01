@@ -3,15 +3,15 @@
 
 -- Grant for anniversaries table
 GRANT SELECT ON public.anniversaries TO anon;
-GRANT SELECT ON public.anniversaries TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.anniversaries TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.anniversaries TO service_role;
 
 -- Grant for gift_records table
 GRANT SELECT ON public.gift_records TO anon;
-GRANT SELECT ON public.gift_records TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.gift_records TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.gift_records TO service_role;
 
 -- Grant for tool_sessions table
 GRANT SELECT ON public.tool_sessions TO anon;
-GRANT SELECT ON public.tool_sessions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.tool_sessions TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.tool_sessions TO service_role;

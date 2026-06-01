@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { apiResponse, apiError, requireApiKey } from "@/lib/api/auth";
 import {
   createLifeEventForUser,
+  getEventDetailForUser,
   getLifeEventsForUser,
   softDeleteLifeEventForUser,
   updateLifeEventForUser,
@@ -97,6 +98,11 @@ export async function PATCH(request: NextRequest) {
       return apiResponse({ message: "事件已删除" });
     }
 
+    const existingEvent = await getEventDetailForUser(userId, eventId);
+    if (!existingEvent) {
+      return apiError("事件不存在", 404);
+    }
+
     const content = typeof body.content === "string" ? body.content.trim() : undefined;
     const eventDate = typeof body.date === "string" ? body.date : undefined;
     const aiPermissionRaw = typeof body.aiPermission === "string" ? body.aiPermission : undefined;
@@ -112,17 +118,33 @@ export async function PATCH(request: NextRequest) {
       ? body.tags.filter((t): t is string => typeof t === "string")
       : undefined;
 
+    if (
+      content === undefined &&
+      eventDate === undefined &&
+      aiAnalysisPermission === undefined &&
+      emotionTags === undefined &&
+      tags === undefined &&
+      typeof body.specificEvent !== "string" &&
+      typeof body.nextAction !== "string" &&
+      typeof body.summary !== "string"
+    ) {
+      return apiError("至少需要提供一个更新字段", 400);
+    }
+    if (content !== undefined && !content) {
+      return apiError("事件内容不能为空", 400);
+    }
+
     await updateLifeEventForUser({
       userId,
       eventId,
-      content: content ?? "",
-      eventDate: eventDate ?? getBeijingDateValue(),
-      aiAnalysisPermission: aiAnalysisPermission ?? "summary_only",
-      emotionTags: emotionTags ?? [],
-      tags: tags ?? [],
-      specificEvent: null,
-      nextAction: null,
-      summary: null,
+      content: content ?? existingEvent.content,
+      eventDate: eventDate ?? existingEvent.eventDate,
+      aiAnalysisPermission: aiAnalysisPermission ?? existingEvent.aiAnalysisPermission,
+      emotionTags: emotionTags ?? existingEvent.emotionTags,
+      tags: tags ?? existingEvent.tags,
+      specificEvent: typeof body.specificEvent === "string" ? body.specificEvent : existingEvent.specificEvent,
+      nextAction: typeof body.nextAction === "string" ? body.nextAction : existingEvent.nextAction,
+      summary: typeof body.summary === "string" ? body.summary : existingEvent.summary,
       updatedAt: now,
     });
     return apiResponse({ message: "事件已更新" });

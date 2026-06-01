@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { apiResponse, apiError, requireApiKey } from "@/lib/api/auth";
 import {
   createTaskForUser,
+  getTaskDetailForUser,
   getTasksForUser,
   softDeleteTaskForUser,
   updateTaskForUser,
@@ -104,32 +105,48 @@ export async function PATCH(request: NextRequest) {
       return apiResponse({ message: "任务状态已更新" });
     }
 
-    const task = typeof body === "object" ? body : {};
-    const title = typeof task.title === "string" ? task.title.trim() : undefined;
-    const category: TaskCategory | undefined = typeof task.category === "string" && isTaskCategory(task.category)
-      ? task.category
+    const existingTask = await getTaskDetailForUser(userId, taskId);
+    if (!existingTask) {
+      return apiError("任务不存在", 404);
+    }
+
+    const title = typeof body.title === "string" ? body.title.trim() : undefined;
+    const category: TaskCategory | undefined = typeof body.category === "string" && isTaskCategory(body.category)
+      ? body.category
       : undefined;
-    const taskDate = typeof task.date === "string" ? task.date : undefined;
-    const description = typeof task.description === "string" ? task.description : undefined;
-    const reviewNote = typeof task.reviewNotes === "string" ? task.reviewNotes : undefined;
-    const status: TaskStatus | undefined = typeof task.status === "string" && isTaskStatus(task.status)
-      ? task.status
+    const taskDate = typeof body.date === "string" ? body.date : undefined;
+    const description = typeof body.description === "string" ? body.description : undefined;
+    const reviewNote = typeof body.reviewNote === "string"
+      ? body.reviewNote
+      : typeof body.reviewNotes === "string"
+        ? body.reviewNotes
+        : undefined;
+    const status: TaskStatus | undefined = typeof body.status === "string" && isTaskStatus(body.status)
+      ? body.status
       : undefined;
 
     if (!title && !category && !taskDate && description === undefined && reviewNote === undefined && !status) {
       return apiError("至少需要提供一个更新字段", 400);
     }
+    if (title !== undefined && !title) {
+      return apiError("任务标题不能为空", 400);
+    }
+
+    const nextStatus = status ?? existingTask.status;
+    const completedAt = status
+      ? (status === "completed" ? now : null)
+      : existingTask.completedAt;
 
     await updateTaskForUser({
       userId,
       taskId,
-      title: title ?? "",
-      description: description ?? null,
-      category: category ?? "other",
-      status: status ?? "todo",
-      taskDate: taskDate ?? getBeijingDateValue(),
-      reviewNote: reviewNote ?? null,
-      completedAt: status === "completed" ? now : null,
+      title: title ?? existingTask.title,
+      description: description ?? existingTask.description,
+      category: category ?? existingTask.category,
+      status: nextStatus,
+      taskDate: taskDate ?? existingTask.taskDate,
+      reviewNote: reviewNote ?? existingTask.reviewNote,
+      completedAt,
       updatedAt: now,
     });
     return apiResponse({ message: "任务已更新" });

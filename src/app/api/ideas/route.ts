@@ -3,6 +3,7 @@ import { apiResponse, apiError, requireApiKey } from "@/lib/api/auth";
 import {
   createIdeaForUser,
   getChecklistIdeasForUser,
+  getIdeaDetailForUser,
   softDeleteIdeaForUser,
   updateIdeaForUser,
 } from "@/lib/data/user-data";
@@ -84,21 +85,33 @@ export async function PATCH(request: NextRequest) {
       return apiResponse({ message: "灵感已删除" });
     }
 
+    const existingIdea = await getIdeaDetailForUser(userId, ideaId);
+    if (!existingIdea) {
+      return apiError("灵感不存在", 404);
+    }
+
     const content = typeof body.content === "string" ? body.content.trim() : undefined;
     const ideaDate = typeof body.date === "string" ? body.date : undefined;
     const statusRaw = typeof body.status === "string" ? body.status : undefined;
     const status = (["to_review", "converted_to_task", "shelved", "abandoned"].includes(statusRaw ?? "")
       ? statusRaw
-      : "to_review") as "to_review" | "converted_to_task" | "shelved" | "abandoned";
+      : undefined) as "to_review" | "converted_to_task" | "shelved" | "abandoned" | undefined;
     const solutionNote = typeof body.solutionNote === "string" ? body.solutionNote : undefined;
+
+    if (!content && !ideaDate && !status && solutionNote === undefined) {
+      return apiError("至少需要提供一个更新字段", 400);
+    }
+    if (content !== undefined && !content) {
+      return apiError("灵感内容不能为空", 400);
+    }
 
     await updateIdeaForUser({
       userId,
       ideaId,
-      content: content ?? "",
-      ideaDate: ideaDate ?? getBeijingDateValue(),
-      status,
-      solutionNote: solutionNote ?? null,
+      content: content ?? existingIdea.content,
+      ideaDate: ideaDate ?? existingIdea.ideaDate,
+      status: status ?? existingIdea.status,
+      solutionNote: solutionNote ?? existingIdea.solutionNote,
       updatedAt: now,
     });
     return apiResponse({ message: "灵感已更新" });
