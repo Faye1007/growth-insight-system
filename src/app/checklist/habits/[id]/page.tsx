@@ -8,7 +8,7 @@ import { HabitBackfillCheckin } from "@/components/habit-backfill-checkin";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getBeijingDateAfter, getBeijingDateValue } from "@/lib/date";
-import { getHabitByIdForUser, getHabitCheckinsForDateRange } from "@/lib/data/user-data";
+import { getHabitByIdForUser, getHabitCheckinsForDateRange } from "@/lib/data/user-data/index";
 import { taskCategories } from "@/lib/tasks/options";
 
 type HabitDetailPageProps = {

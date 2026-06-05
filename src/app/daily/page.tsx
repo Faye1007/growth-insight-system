@@ -41,7 +41,7 @@ import {
   type HabitCheckin,
   type TodayTask,
   type ChecklistSchedule,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import {
   getScheduleRecurrenceLabel,
   type ScheduleRecurrence,

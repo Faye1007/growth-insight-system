@@ -4,7 +4,7 @@ import { savePersonalManualAction } from "@/app/manual/actions";
 import { FeedbackMessage } from "@/components/feedback-message";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getPersonalManualForUser } from "@/lib/data/user-data";
+import { getPersonalManualForUser } from "@/lib/data/user-data/index";
 import {
   defaultManualErrorFeedback,
   getFeedbackByCode,

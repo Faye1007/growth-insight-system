@@ -7,7 +7,7 @@ import {
   softDeleteTaskForUser,
   updateTaskForUser,
   updateTaskStatusForUser,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import { isTaskCategory, isTaskStatus, type TaskCategory, type TaskStatus } from "@/lib/tasks/options";
 import { getBeijingDateValue } from "@/lib/date";
 

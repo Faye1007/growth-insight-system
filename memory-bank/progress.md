@@ -6,6 +6,11 @@
 
 最新已完成里程碑：
 
+- **代码重构：拆分 user-data.ts 为模块化结构**已完成。
+- 将 3711 行的 `src/lib/data/user-data.ts` 拆分为 16 个模块文件，按功能领域划分：tasks、habits、schedules、events、ideas、reports、personal-manual、anniversaries、gifts、tools、insights、trash、overview、types、helpers、index。
+- 抽取 Server Actions 重复的工具函数到 `src/lib/actions/helpers.ts`，消除 `daily/actions.ts` 和 `checklist/actions.ts` 之间的代码重复。
+- 所有外部导入路径保持不变，通过 `index.ts` 统一重新导出。
+- `npm run lint` 和 `npm run build` 验证通过。
 - **Modification Step 28.4：修复移动端日程保存时间验证问题**已完成。
 - 修复清单页选择按钮样式统一。
 - 修复移动端搜索按钮样式。

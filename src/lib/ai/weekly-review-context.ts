@@ -6,7 +6,7 @@ import {
   buildPersonalManualContextForReview,
   type ReviewPersonalManualContext,
 } from "@/lib/ai/personal-manual-context";
-import { getWeeklyReviewRowsForUser } from "@/lib/data/user-data";
+import { getWeeklyReviewRowsForUser } from "@/lib/data/user-data/index";
 import { getTaskCategoryLabel, getTaskStatusLabel, type TaskCategory, type TaskStatus } from "@/lib/tasks/options";
 
 const maxOriginalEvents = 5;

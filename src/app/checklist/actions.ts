@@ -16,50 +16,22 @@ import {
   postponeTaskForUser,
   updateHabitForUser,
   upsertScheduleCompletionForUser,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import {
   batchSoftDeleteForUser,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import { isTaskCategory } from "@/lib/tasks/options";
 import { getBeijingDateValue } from "@/lib/date";
 import { isScheduleRecurrence } from "@/lib/schedules/options";
-
-function getStringValue(formData: FormData, key: string) {
-  const value = formData.get(key);
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function getValidTaskDate(value: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : getBeijingDateValue();
-}
-
-function isValidDateValue(value: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
-function isValidTimeValue(value: string) {
-  return /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(value);
-}
-
-function normalizeTimeValue(value: string): string {
-  // 移动端可能返回 HH:MM:SS，规范化为 HH:MM
-  const match = value.match(/^([01]\d|2[0-3]):[0-5]\d/);
-  return match ? match[0] : value;
-}
-
-function getTagsValue(value: string) {
-  return value
-    .split(/[,，]/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 8);
-}
-
-function isAiAnalysisPermission(
-  value: string,
-): value is "none" | "summary_only" | "allow_original" {
-  return value === "none" || value === "summary_only" || value === "allow_original";
-}
+import {
+  getStringValue,
+  getValidTaskDate,
+  isValidDateValue,
+  isValidTimeValue,
+  normalizeTimeValue,
+  getTagsValue,
+  isAiAnalysisPermission,
+} from "@/lib/actions/helpers";
 
 export async function createChecklistTaskAction(formData: FormData) {
   const user = await requireCurrentUser("/checklist");

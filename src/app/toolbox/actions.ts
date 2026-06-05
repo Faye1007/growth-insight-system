@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireCurrentUser } from "@/lib/auth/session";
-import { createToolSessionForUser, type ToolType } from "@/lib/data/user-data";
+import { createToolSessionForUser, type ToolType } from "@/lib/data/user-data/index";
 
 const toolTypes: ToolType[] = ["emotion_review", "stress_sorting", "tomorrow_plan"];
 

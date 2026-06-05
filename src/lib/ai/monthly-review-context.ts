@@ -6,7 +6,7 @@ import {
   buildPersonalManualContextForReview,
   type ReviewPersonalManualContext,
 } from "@/lib/ai/personal-manual-context";
-import { getMonthlyReviewRowsForUser } from "@/lib/data/user-data";
+import { getMonthlyReviewRowsForUser } from "@/lib/data/user-data/index";
 import { getTaskCategoryLabel, getTaskStatusLabel, type TaskCategory, type TaskStatus } from "@/lib/tasks/options";
 
 const summaryTextLimit = 120;

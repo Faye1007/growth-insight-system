@@ -9,7 +9,7 @@ import {
   getToolSessionsForUser,
   type ToolSessionRecord,
   type ToolType,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import type { FeedbackMessage as FeedbackMessageType } from "@/lib/feedback";
 
 type ToolboxPageProps = {

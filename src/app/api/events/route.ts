@@ -6,7 +6,7 @@ import {
   getLifeEventsForUser,
   softDeleteLifeEventForUser,
   updateLifeEventForUser,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import { getBeijingDateValue } from "@/lib/date";
 
 export async function GET(request: NextRequest) {

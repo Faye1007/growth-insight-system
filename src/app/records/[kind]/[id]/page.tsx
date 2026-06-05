@@ -23,7 +23,7 @@ import {
   getIdeaDetailForUser,
   getScheduleDetailForUser,
   getTaskDetailForUser,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import {
   getScheduleRecurrenceLabel,
   type ScheduleRecurrence,

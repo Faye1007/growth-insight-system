@@ -7,7 +7,7 @@ import {
   softDeleteHabitForUser,
   updateHabitForUser,
   upsertHabitCheckinForUser,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import { isTaskCategory, type TaskCategory } from "@/lib/tasks/options";
 import { getBeijingDateValue } from "@/lib/date";
 

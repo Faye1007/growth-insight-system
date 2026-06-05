@@ -20,7 +20,7 @@ import {
   getRecentScheduleItemsForUser,
   getRecentTasksForUser,
   getUpcomingAnniversariesForUser,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import { getTaskCategoryLabel } from "@/lib/tasks/options";
 import { getBeijingDateValue, getBeijingDateAfter } from "@/lib/date";
 

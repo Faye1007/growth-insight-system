@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireCurrentUser } from "@/lib/auth/session";
-import { upsertPersonalManualForUser } from "@/lib/data/user-data";
+import { upsertPersonalManualForUser } from "@/lib/data/user-data/index";
 
 function getStringValue(formData: FormData, key: string) {
   const value = formData.get(key);

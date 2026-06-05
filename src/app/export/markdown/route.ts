@@ -6,7 +6,7 @@ import {
   getRecentScheduleItemsForUser,
   getRecentTasksForUser,
   type ExportReviewReport,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getTaskCategoryLabel, getTaskStatusLabel } from "@/lib/tasks/options";
 

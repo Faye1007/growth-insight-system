@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { ReviewType } from "@/lib/ai/types";
-import { getPersonalManualForUser, type PersonalManual } from "@/lib/data/user-data";
+import { getPersonalManualForUser, type PersonalManual } from "@/lib/data/user-data/index";
 
 type ManualSection = {
   label: string;

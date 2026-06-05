@@ -7,9 +7,9 @@ import {
   getGiftRecordsForUser,
   getLifeEventsForUser,
   getUpcomingAnniversariesForUser,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import type { FeedbackMessage as FeedbackMessageType } from "@/lib/feedback";
-import type { AnniversaryRecord, GiftRecord, LifeEventRecord, UpcomingAnniversary } from "@/lib/data/user-data";
+import type { AnniversaryRecord, GiftRecord, LifeEventRecord, UpcomingAnniversary } from "@/lib/data/user-data/index";
 
 type LifePageProps = {
   searchParams?: Promise<{

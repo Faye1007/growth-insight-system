@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
-import { searchAllForUser } from "@/lib/data/user-data";
+import { searchAllForUser } from "@/lib/data/user-data/index";
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser();

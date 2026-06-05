@@ -13,7 +13,7 @@ import {
 import { createChecklistEventAction } from "@/app/checklist/actions";
 import { batchSoftDeleteAction, createAnniversaryAction, createGiftRecordAction } from "@/app/life/actions";
 import { useToast } from "@/components/toast-provider";
-import type { AnniversaryRecord, GiftRecord, LifeEventRecord, UpcomingAnniversary } from "@/lib/data/user-data";
+import type { AnniversaryRecord, GiftRecord, LifeEventRecord, UpcomingAnniversary } from "@/lib/data/user-data/index";
 
 type LifeTab = "events" | "anniversaries" | "gifts";
 

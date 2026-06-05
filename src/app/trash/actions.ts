@@ -6,7 +6,7 @@ import { requireCurrentUser } from "@/lib/auth/session";
 import {
   permanentlyDeleteTrashedItemForUser,
   restoreTrashedItemForUser,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 
 function getStringValue(formData: FormData, key: string) {
   const value = formData.get(key);

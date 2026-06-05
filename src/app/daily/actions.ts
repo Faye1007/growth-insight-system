@@ -40,68 +40,22 @@ import {
   updateTaskForUser,
   upsertDailyReviewReportForUser,
   upsertHabitCheckinForUser,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import { isScheduleRecurrence } from "@/lib/schedules/options";
 import { isTaskCategory, isTaskStatus } from "@/lib/tasks/options";
-
-function getStringValue(formData: FormData, key: string) {
-  const value = formData.get(key);
-
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function getStringValues(formData: FormData, key: string) {
-  return formData
-    .getAll(key)
-    .filter((value): value is string => typeof value === "string")
-    .map((value) => value.trim())
-    .filter(Boolean);
-}
-
-function getValidTaskDate(value: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : getBeijingDateValue();
-}
-
-function isValidDateValue(value: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
-function isDateAfter(value: string, baseline: string) {
-  return new Date(`${value}T00:00:00+08:00`).getTime() > new Date(`${baseline}T00:00:00+08:00`).getTime();
-}
-
-function isValidTimeValue(value: string) {
-  return /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(value);
-}
-
-function normalizeTimeValue(value: string): string {
-  const match = value.match(/^([01]\d|2[0-3]):[0-5]\d/);
-  return match ? match[0] : value;
-}
-
-function getTagsValue(value: string) {
-  return value
-    .split(/[,，]/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 8);
-}
-
-function isAiAnalysisPermission(
-  value: string,
-): value is "none" | "summary_only" | "allow_original" {
-  return value === "none" || value === "summary_only" || value === "allow_original";
-}
-
-function isIdeaStatus(
-  value: string,
-): value is "to_review" | "converted_to_task" | "shelved" | "abandoned" {
-  return value === "to_review" || value === "converted_to_task" || value === "shelved" || value === "abandoned";
-}
-
-function getPinnedValue(formData: FormData) {
-  return getStringValue(formData, "isPinned") === "true";
-}
+import {
+  getStringValue,
+  getStringValues,
+  getValidTaskDate,
+  isValidDateValue,
+  isDateAfter,
+  isValidTimeValue,
+  normalizeTimeValue,
+  getTagsValue,
+  isAiAnalysisPermission,
+  isIdeaStatus,
+  getPinnedValue,
+} from "@/lib/actions/helpers";
 
 export async function createTaskAction(formData: FormData) {
   const user = await requireCurrentUser("/daily");

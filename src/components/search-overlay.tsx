@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Search, X } from "lucide-react";
 
-import type { SearchResultItem } from "@/lib/data/user-data";
+import type { SearchResultItem } from "@/lib/data/user-data/index";
 
 const detailPaths: Record<string, string> = {
   tasks: "/records/task",

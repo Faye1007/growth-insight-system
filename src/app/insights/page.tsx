@@ -39,7 +39,7 @@ import {
   getMonthlyReviewReportForUser,
   getWeeklyReviewReportForUser,
   type ReviewReport,
-} from "@/lib/data/user-data";
+} from "@/lib/data/user-data/index";
 import { getBeijingDateValue, getBeijingDateAfter, getBeijingMonthStart, getBeijingMonthEnd, getDateValuesBetween } from "@/lib/date";
 import { normalizeStringList } from "@/lib/utils";
 import {

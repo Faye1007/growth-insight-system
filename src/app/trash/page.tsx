@@ -3,7 +3,7 @@ import { Trash2, RotateCcw, AlertTriangle } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/auth/session";
 import { buildLoginPath, loginRequiredMessage } from "@/lib/auth/paths";
-import { getTrashedItemsForUser } from "@/lib/data/user-data";
+import { getTrashedItemsForUser } from "@/lib/data/user-data/index";
 import { restoreTrashItemAction, permanentlyDeleteTrashItemAction } from "@/app/trash/actions";
 
 type TrashPageProps = {
