@@ -24,7 +24,8 @@
 - `drizzle.config.ts` 迁移配置。
 - `src/db/schema.ts` 基础数据表和生活扩展表 schema。
 - `src/db/index.ts` 服务端数据库查询入口，保留给迁移和必要的服务端内部维护用途；普通用户态读写使用 Supabase SSR client。
-- `src/lib/data/user-data.ts` 用户态业务数据访问层，使用 Supabase SSR client 携带当前用户会话，并继续显式限定 `user_id`。
+- `src/lib/data/user-data/` 用户态业务数据访问层，使用 Supabase SSR client 携带当前用户会话，并继续显式限定 `user_id`。按功能领域拆分为 16 个模块：`types.ts`（类型定义）、`helpers.ts`（工具函数）、`tasks.ts`、`habits.ts`、`schedules.ts`、`events.ts`、`ideas.ts`、`reports.ts`、`personal-manual.ts`、`anniversaries.ts`、`gifts.ts`、`tools.ts`、`insights.ts`、`trash.ts`、`overview.ts`，通过 `index.ts` 统一重新导出。
+- `src/lib/actions/helpers.ts` Server Actions 通用工具函数，包括 `getStringValue`、`getStringValues`、`getValidTaskDate`、`isValidDateValue`、`isDateAfter`、`isValidTimeValue`、`normalizeTimeValue`、`getTagsValue`、`isAiAnalysisPermission`、`isIdeaStatus`、`getPinnedValue`。
 - `scripts/` 本地维护脚本目录，当前包含 Excel 历史数据迁移 dry-run 脚本和真实导入辅助脚本；脚本不进入前端运行时。
 - `drizzle/0000_true_silver_sable.sql` 第一版迁移 SQL。
 - 真实 Supabase 数据库中的第一批 8 张基础业务表。

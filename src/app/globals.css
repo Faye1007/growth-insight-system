@@ -717,12 +717,30 @@ select {
   }
 
   .create-summary {
+    display: inline-flex;
+    min-height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     cursor: pointer;
     list-style: none;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
   }
 
   .create-summary::-webkit-details-marker {
     display: none;
+  }
+
+  .create-summary::marker {
+    content: "";
   }
 
   .task-form-grid {
@@ -1545,6 +1563,7 @@ select {
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
+    margin: 0;
     padding: 0.5rem 0.25rem;
     color: var(--muted-foreground);
     font-size: 0.6875rem;
@@ -1554,6 +1573,8 @@ select {
     border: none;
     cursor: pointer;
     transition: color 160ms ease;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .bottom-nav-item:hover {

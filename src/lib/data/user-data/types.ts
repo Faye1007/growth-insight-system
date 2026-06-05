@@ -68,7 +68,6 @@ export type ScheduleItemRow = {
   start_time: string | null;
   end_time: string | null;
   is_pinned: boolean;
-  is_completed: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

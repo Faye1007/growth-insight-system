@@ -221,7 +221,7 @@ export async function getRecentScheduleItemsForUser(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("schedule_items")
-    .select("id,title,category,start_date,start_time,end_time,is_completed,created_at")
+    .select("id,title,category,start_date,start_time,end_time,created_at")
     .eq("user_id", userId)
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
@@ -235,7 +235,7 @@ export async function getRecentScheduleItemsForUser(
     startDate: row.start_date,
     startTime: row.start_time,
     endTime: row.end_time,
-    isCompleted: row.is_completed,
+    isCompleted: false,
     createdAt: new Date(row.created_at),
   }));
 }
